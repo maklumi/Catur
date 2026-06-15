@@ -14,4 +14,21 @@ data class GameSnapshotState(
 
     fun isLegalMove(position: Position): Boolean =
         legalMoves.any { it.move.to == position }
+
+    fun move(to: Position): GameSnapshotState {
+        val boardMove = legalMoves.find { it.move.to == to }
+        return if (boardMove != null) {
+            copy(
+                board = boardMove.move.applyOn(board),
+                selectedPosition = null
+            )
+        } else {
+            val piece = board[to].piece
+            if (piece != null) {
+                copy(selectedPosition = to)
+            } else {
+                copy(selectedPosition = null)
+            }
+        }
+    }
 }

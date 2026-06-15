@@ -17,7 +17,6 @@ fun App() {
         mutableStateOf(
             GameSnapshotState(
                 board = Board().withPiece(Position.d4, Bishop(PieceColor.WHITE)),
-                selectedPosition = Position.d4
             )
         )
     }
@@ -26,7 +25,7 @@ fun App() {
         ChessBoard(
             state = state,
             onPositionClick = { position ->
-                state = state.copy(selectedPosition = position)
+                state = state.move(position)
             }
         )
     }
