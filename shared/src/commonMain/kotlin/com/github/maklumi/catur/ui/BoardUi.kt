@@ -20,6 +20,11 @@ fun ChessBoard(
     onPositionClick: (Position) -> Unit = {}
 ) {
     Column {
+        Text(
+            text = "Turn: ${state.activeColor}",
+            modifier = Modifier.padding(8.dp),
+            fontSize = 20.sp
+        )
         for (rank in 8 downTo 1) {
             Row {
                 for (file in 1..8) {

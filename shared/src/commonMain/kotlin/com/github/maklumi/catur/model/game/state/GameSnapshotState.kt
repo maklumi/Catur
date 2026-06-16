@@ -3,14 +3,21 @@ package com.github.maklumi.catur.model.game.state
 import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.move.BoardMove
+import com.github.maklumi.catur.model.piece.PieceColor
 
 data class GameSnapshotState(
     val board: Board = Board(),
     val selectedPosition: Position? = null,
     val lastMove: BoardMove? = null,
+    val activeColor: PieceColor = PieceColor.WHITE,
 ) {
-    val legalMoves: List<BoardMove> = selectedPosition?.let {
-        board[it].piece?.pseudoLegalMoves(board, lastMove)
+    val legalMoves: List<BoardMove> = selectedPosition?.let { pos ->
+        val piece = board[pos].piece
+        if (piece?.pieceColor == activeColor) {
+            piece.pseudoLegalMoves(board, lastMove)
+        } else {
+            null
+        }
     } ?: emptyList()
 
     fun isLegalMove(position: Position): Boolean =
@@ -22,11 +29,12 @@ data class GameSnapshotState(
             copy(
                 board = boardMove.move.applyOn(board),
                 selectedPosition = null,
-                lastMove = boardMove
+                lastMove = boardMove,
+                activeColor = activeColor.opposite()
             )
         } else {
             val piece = board[to].piece
-            if (piece != null) {
+            if (piece != null && piece.pieceColor == activeColor) {
                 copy(selectedPosition = to)
             } else {
                 copy(selectedPosition = null)
