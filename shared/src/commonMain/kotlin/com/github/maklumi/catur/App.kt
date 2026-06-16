@@ -4,12 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.maklumi.catur.model.board.Board
-import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.state.GameSnapshotState
-import com.github.maklumi.catur.model.move.BoardMove
-import com.github.maklumi.catur.model.move.Move
-import com.github.maklumi.catur.model.piece.Pawn
-import com.github.maklumi.catur.model.piece.PieceColor
 import com.github.maklumi.catur.ui.ChessBoard
 
 @Composable
@@ -18,16 +13,7 @@ fun App() {
     var state by remember {
         mutableStateOf(
             GameSnapshotState(
-                board = Board()
-                    .withPiece(Position.e5, Pawn(PieceColor.WHITE))
-                    .withPiece(Position.f5, Pawn(PieceColor.BLACK)),
-                lastMove = BoardMove(
-                    Move(
-                        piece = Pawn(PieceColor.BLACK),
-                        from = Position.f7,
-                        to = Position.f5
-                    )
-                )
+                board = Board.initial
             )
         )
     }
