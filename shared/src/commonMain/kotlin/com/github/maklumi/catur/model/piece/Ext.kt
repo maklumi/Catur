@@ -19,6 +19,26 @@ fun Piece.lineMoves(
     return moves
 }
 
+fun Piece.singleMoves(
+    board: Board,
+    offsets: List<Pair<Int, Int>>,
+): List<BoardMove> {
+    val moves = mutableListOf<BoardMove>()
+    val square = board.find(this) ?: return emptyList()
+
+    offsets.forEach { (deltaFile, deltaRank) ->
+        val target = board[square.file + deltaFile, square.rank + deltaRank] ?: return@forEach
+        if (target.hasPiece(pieceColor)) return@forEach
+
+        moves += BoardMove(
+            Move(piece = this, from = square.position, to = target.position)
+        )
+
+    }
+
+    return moves
+}
+
 fun lineMoves(
     board: Board,
     square: Square,

@@ -7,6 +7,7 @@ import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.state.GameSnapshotState
 import com.github.maklumi.catur.model.piece.Bishop
+import com.github.maklumi.catur.model.piece.Knight
 import com.github.maklumi.catur.model.piece.PieceColor
 import com.github.maklumi.catur.ui.ChessBoard
 
@@ -16,7 +17,9 @@ fun App() {
     var state by remember {
         mutableStateOf(
             GameSnapshotState(
-                board = Board().withPiece(Position.d4, Bishop(PieceColor.WHITE)),
+                board = Board()
+                    .withPiece(Position.d4, Bishop(PieceColor.WHITE))
+                    .withPiece(Position.f3, Knight(PieceColor.BLACK)),
             )
         )
     }
