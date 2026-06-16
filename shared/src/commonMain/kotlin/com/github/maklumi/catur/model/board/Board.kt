@@ -4,6 +4,8 @@ import com.github.maklumi.catur.model.piece.Bishop
 import com.github.maklumi.catur.model.piece.Knight
 import com.github.maklumi.catur.model.piece.Piece
 import com.github.maklumi.catur.model.piece.PieceColor
+import com.github.maklumi.catur.model.piece.Queen
+import com.github.maklumi.catur.model.piece.Rook
 import java.lang.IllegalArgumentException
 
 data class Board(
@@ -45,12 +47,18 @@ data class Board(
 }
 
 private val initialPieces = mapOf(
+    Position.a8 to Rook(PieceColor.BLACK),
     Position.b8 to Knight(PieceColor.BLACK),
     Position.g8 to Knight(PieceColor.BLACK),
     Position.c8 to Bishop(PieceColor.BLACK),
+    Position.d8 to Queen(PieceColor.BLACK),
     Position.f8 to Bishop(PieceColor.BLACK),
+    Position.h8 to Rook(PieceColor.BLACK),
+    Position.a1 to Rook(PieceColor.WHITE),
     Position.b1 to Knight(PieceColor.WHITE),
     Position.g1 to Knight(PieceColor.WHITE),
     Position.c1 to Bishop(PieceColor.WHITE),
+    Position.d1 to Queen(PieceColor.WHITE),
     Position.f1 to Bishop(PieceColor.WHITE),
+    Position.h1 to Rook(PieceColor.WHITE),
 )

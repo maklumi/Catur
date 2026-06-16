@@ -9,6 +9,8 @@ import com.github.maklumi.catur.model.game.state.GameSnapshotState
 import com.github.maklumi.catur.model.piece.Bishop
 import com.github.maklumi.catur.model.piece.Knight
 import com.github.maklumi.catur.model.piece.PieceColor
+import com.github.maklumi.catur.model.piece.Queen
+import com.github.maklumi.catur.model.piece.Rook
 import com.github.maklumi.catur.ui.ChessBoard
 
 @Composable
@@ -19,7 +21,9 @@ fun App() {
             GameSnapshotState(
                 board = Board()
                     .withPiece(Position.d4, Bishop(PieceColor.WHITE))
-                    .withPiece(Position.f3, Knight(PieceColor.BLACK)),
+                    .withPiece(Position.f3, Knight(PieceColor.BLACK))
+                    .withPiece(Position.h2, Rook(PieceColor.WHITE))
+                    .withPiece(Position.d2, Queen(PieceColor.WHITE)),
             )
         )
     }
