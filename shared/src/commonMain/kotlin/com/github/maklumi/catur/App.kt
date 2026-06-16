@@ -6,11 +6,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.state.GameSnapshotState
-import com.github.maklumi.catur.model.piece.Bishop
-import com.github.maklumi.catur.model.piece.Knight
+import com.github.maklumi.catur.model.move.BoardMove
+import com.github.maklumi.catur.model.move.Move
+import com.github.maklumi.catur.model.piece.Pawn
 import com.github.maklumi.catur.model.piece.PieceColor
-import com.github.maklumi.catur.model.piece.Queen
-import com.github.maklumi.catur.model.piece.Rook
 import com.github.maklumi.catur.ui.ChessBoard
 
 @Composable
@@ -20,10 +19,15 @@ fun App() {
         mutableStateOf(
             GameSnapshotState(
                 board = Board()
-                    .withPiece(Position.d4, Bishop(PieceColor.WHITE))
-                    .withPiece(Position.f3, Knight(PieceColor.BLACK))
-                    .withPiece(Position.h2, Rook(PieceColor.WHITE))
-                    .withPiece(Position.d2, Queen(PieceColor.WHITE)),
+                    .withPiece(Position.e5, Pawn(PieceColor.WHITE))
+                    .withPiece(Position.f5, Pawn(PieceColor.BLACK)),
+                lastMove = BoardMove(
+                    Move(
+                        piece = Pawn(PieceColor.BLACK),
+                        from = Position.f7,
+                        to = Position.f5
+                    )
+                )
             )
         )
     }

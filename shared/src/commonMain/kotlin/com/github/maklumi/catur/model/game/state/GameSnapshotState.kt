@@ -7,9 +7,10 @@ import com.github.maklumi.catur.model.move.BoardMove
 data class GameSnapshotState(
     val board: Board = Board(),
     val selectedPosition: Position? = null,
+    val lastMove: BoardMove? = null,
 ) {
     val legalMoves: List<BoardMove> = selectedPosition?.let {
-        board[it].piece?.pseudoLegalMoves(board)
+        board[it].piece?.pseudoLegalMoves(board, lastMove)
     } ?: emptyList()
 
     fun isLegalMove(position: Position): Boolean =
@@ -20,7 +21,8 @@ data class GameSnapshotState(
         return if (boardMove != null) {
             copy(
                 board = boardMove.move.applyOn(board),
-                selectedPosition = null
+                selectedPosition = null,
+                lastMove = boardMove
             )
         } else {
             val piece = board[to].piece

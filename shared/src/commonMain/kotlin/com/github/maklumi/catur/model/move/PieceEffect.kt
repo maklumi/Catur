@@ -46,3 +46,36 @@ data class Move(
         )
     }
 }
+
+data class EnPassantMove(
+    override val piece: Piece,
+    override val from: Position,
+    override val to: Position,
+    val capturedPosition: Position,
+) : PrimaryMove {
+    override fun applyOn(board: Board): Board {
+        return board.copy(
+            piecesMap = board.piecesMap
+                .minus(from)
+                .minus(capturedPosition)
+                .plus(to to piece)
+        )
+    }
+}
+
+data class PromotionMove(
+    val baseMove: PrimaryMove,
+    val promotedPiece: Piece
+) : PrimaryMove {
+    override val piece: Piece get() = promotedPiece
+    override val from: Position get() = baseMove.from
+    override val to: Position get() = baseMove.to
+
+    override fun applyOn(board: Board): Board {
+        return board.copy(
+            piecesMap = board.piecesMap
+                .minus(from)
+                .plus(to to promotedPiece)
+        )
+    }
+}

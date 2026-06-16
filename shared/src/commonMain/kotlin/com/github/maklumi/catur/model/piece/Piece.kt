@@ -16,5 +16,5 @@ interface Piece {
     /**
      * List of moves that are legally possible for the piece without applying pin / check constraints
      */
-    fun pseudoLegalMoves(board: Board): List<BoardMove>
+    fun pseudoLegalMoves(board: Board, lastMove: BoardMove? = null): List<BoardMove>
 }
