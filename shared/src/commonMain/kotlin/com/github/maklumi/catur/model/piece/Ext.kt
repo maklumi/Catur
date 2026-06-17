@@ -1,6 +1,7 @@
 package com.github.maklumi.catur.model.piece
 
 import com.github.maklumi.catur.model.board.Board
+import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.board.Square
 import com.github.maklumi.catur.model.move.BoardMove
 import com.github.maklumi.catur.model.move.Move
@@ -37,6 +38,41 @@ fun Piece.singleMoves(
     }
 
     return moves
+}
+
+fun Piece.lineAttacks(
+    board: Board,
+    directions: List<Pair<Int, Int>>,
+): List<Position> {
+    val attacks = mutableListOf<Position>()
+    val square = board.find(this) ?: return emptyList()
+
+    directions.forEach { (deltaFile, deltaRank) ->
+        var i = 0
+        while (true) {
+            i++
+            val target = board[square.file + deltaFile * i, square.rank + deltaRank * i] ?: break
+            attacks += target.position
+            if (target.isNotEmpty) break
+        }
+    }
+
+    return attacks
+}
+
+fun Piece.singleAttacks(
+    board: Board,
+    offsets: List<Pair<Int, Int>>,
+): List<Position> {
+    val attacks = mutableListOf<Position>()
+    val square = board.find(this) ?: return emptyList()
+
+    offsets.forEach { (deltaFile, deltaRank) ->
+        val target = board[square.file + deltaFile, square.rank + deltaRank] ?: return@forEach
+        attacks += target.position
+    }
+
+    return attacks
 }
 
 fun lineMoves(

@@ -14,7 +14,10 @@ data class GameSnapshotState(
     val legalMoves: List<BoardMove> = selectedPosition?.let { pos ->
         val piece = board[pos].piece
         if (piece?.pieceColor == activeColor) {
-            piece.pseudoLegalMoves(board, lastMove)
+            piece.pseudoLegalMoves(board, lastMove).filter { boardMove ->
+                val nextBoard = boardMove.move.applyOn(board)
+                !nextBoard.isInCheck(activeColor)
+            }
         } else {
             null
         }
@@ -41,4 +44,9 @@ data class GameSnapshotState(
             }
         }
     }
+}
+
+fun Board.isInCheck(color: PieceColor): Boolean {
+    val kingSquare = findKing(color) ?: return false
+    return isAttacked(kingSquare.position, color.opposite())
 }

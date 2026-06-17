@@ -1,6 +1,7 @@
 package com.github.maklumi.catur.model.piece
 
 import com.github.maklumi.catur.model.board.Board
+import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.move.BoardMove
 import com.github.maklumi.catur.model.move.EnPassantMove
 import com.github.maklumi.catur.model.move.Move
@@ -78,6 +79,21 @@ class Pawn(override val pieceColor: PieceColor) : Piece {
         }
 
         return moves
+    }
+
+    override fun attacks(board: Board): List<Position> {
+        val attacks = mutableListOf<Position>()
+        val square = board.find(this) ?: return emptyList()
+        val forward = if (pieceColor == PieceColor.WHITE) 1 else -1
+
+        listOf(-1, 1).forEach { deltaFile ->
+            val target = board[square.file + deltaFile, square.rank + forward]
+            if (target != null) {
+                attacks += target.position
+            }
+        }
+
+        return attacks
     }
 
     private fun promotionMoves(baseMove: Move): List<BoardMove> {

@@ -1,6 +1,7 @@
 package com.github.maklumi.catur.model.piece
 
 import com.github.maklumi.catur.model.board.Board
+import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.move.BoardMove
 
 interface Piece {
@@ -17,4 +18,9 @@ interface Piece {
      * List of moves that are legally possible for the piece without applying pin / check constraints
      */
     fun pseudoLegalMoves(board: Board, lastMove: BoardMove? = null): List<BoardMove>
+
+    /**
+     * List of squares currently attacked by this piece
+     */
+    fun attacks(board: Board): List<Position>
 }

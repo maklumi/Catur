@@ -36,10 +36,20 @@ data class Board(
     fun find(piece: Piece): Square? =
         squares.values.firstOrNull { it.piece == piece }
 
+    fun findKing(color: PieceColor): Square? =
+        squares.values.firstOrNull { it.piece is King && it.piece.pieceColor == color }
+
     fun withPiece(position: Position, piece: Piece?): Board {
         return copy(
             piecesMap = if (piece == null) piecesMap - position else piecesMap + (position to piece)
         )
+    }
+
+    fun isAttacked(position: Position, byColor: PieceColor): Boolean {
+        return squares.values.any { square ->
+            val piece = square.piece
+            piece != null && piece.pieceColor == byColor && piece.attacks(this).contains(position)
+        }
     }
 
     companion object {
