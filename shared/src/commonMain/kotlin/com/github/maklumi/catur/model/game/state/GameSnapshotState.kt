@@ -10,11 +10,12 @@ data class GameSnapshotState(
     val selectedPosition: Position? = null,
     val lastMove: BoardMove? = null,
     val activeColor: PieceColor = PieceColor.WHITE,
+    val movedPositions: Set<Position> = emptySet(),
 ) {
     val legalMoves: List<BoardMove> = selectedPosition?.let { pos ->
         val piece = board[pos].piece
         if (piece?.pieceColor == activeColor) {
-            piece.pseudoLegalMoves(board, lastMove).filter { boardMove ->
+            piece.pseudoLegalMoves(board, lastMove, movedPositions).filter { boardMove ->
                 val nextBoard = boardMove.move.applyOn(board)
                 !nextBoard.isInCheck(activeColor)
             }
@@ -33,7 +34,8 @@ data class GameSnapshotState(
                 board = boardMove.move.applyOn(board),
                 selectedPosition = null,
                 lastMove = boardMove,
-                activeColor = activeColor.opposite()
+                activeColor = activeColor.opposite(),
+                movedPositions = movedPositions + boardMove.move.from + boardMove.move.to
             )
         } else {
             val piece = board[to].piece

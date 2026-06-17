@@ -19,7 +19,11 @@ class Pawn(override val pieceColor: PieceColor) : Piece {
 
     override val value: Int = 1
 
-    override fun pseudoLegalMoves(board: Board, lastMove: BoardMove?): List<BoardMove> {
+    override fun pseudoLegalMoves(
+        board: Board,
+        lastMove: BoardMove?,
+        movedPositions: Set<Position>
+    ): List<BoardMove> {
         val moves = mutableListOf<BoardMove>()
         val square = board.find(this) ?: return emptyList()
         val forward = if (pieceColor == PieceColor.WHITE) 1 else -1

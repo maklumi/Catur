@@ -19,8 +19,10 @@ fun App() {
             GameSnapshotState(
                 board = Board()
                     .withPiece(Position.e1, King(PieceColor.WHITE))
-                    .withPiece(Position.e8, Rook(PieceColor.BLACK))
-                    .withPiece(Position.a2, Rook(PieceColor.WHITE)),
+                    .withPiece(Position.h1, Rook(PieceColor.WHITE))
+                    .withPiece(Position.a1, Rook(PieceColor.WHITE))
+                    .withPiece(Position.e8, King(PieceColor.BLACK))
+                    .withPiece(Position.h8, Rook(PieceColor.BLACK)),
             )
         )
     }

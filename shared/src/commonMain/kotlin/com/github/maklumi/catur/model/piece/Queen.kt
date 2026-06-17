@@ -15,7 +15,11 @@ class Queen(override val pieceColor: PieceColor) : Piece {
 
     override val value: Int = 9
 
-    override fun pseudoLegalMoves(board: Board, lastMove: BoardMove?): List<BoardMove> {
+    override fun pseudoLegalMoves(
+        board: Board,
+        lastMove: BoardMove?,
+        movedPositions: Set<Position>
+    ): List<BoardMove> {
         return lineMoves(board, directions)
     }
 

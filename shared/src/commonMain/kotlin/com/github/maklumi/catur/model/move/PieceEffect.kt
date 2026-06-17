@@ -79,3 +79,22 @@ data class PromotionMove(
         )
     }
 }
+
+data class CastlingMove(
+    override val piece: Piece,
+    override val from: Position,
+    override val to: Position,
+    val rook: Piece,
+    val rookFrom: Position,
+    val rookTo: Position,
+) : PrimaryMove {
+    override fun applyOn(board: Board): Board {
+        return board.copy(
+            piecesMap = board.piecesMap
+                .minus(from)
+                .minus(rookFrom)
+                .plus(to to piece)
+                .plus(rookTo to rook)
+        )
+    }
+}
