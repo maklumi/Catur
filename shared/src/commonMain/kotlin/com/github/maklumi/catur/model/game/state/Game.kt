@@ -18,6 +18,8 @@ data class Game(
     fun goBack(): Game = if (canGoBack()) copy(currentIndex = currentIndex - 1) else this
     fun goForward(): Game = if (canGoForward()) copy(currentIndex = currentIndex + 1) else this
 
+    fun jumpTo(index: Int): Game = if (index in snapshots.indices) copy(currentIndex = index) else this
+
     fun move(to: Position): Game {
         if (isViewingHistory) return this
 

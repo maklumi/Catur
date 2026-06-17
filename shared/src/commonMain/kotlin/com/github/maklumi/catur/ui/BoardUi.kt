@@ -31,7 +31,8 @@ fun ChessBoard(
     onPositionClick: (Position) -> Unit = {},
     onPromotionChoice: (BoardMove) -> Unit = {},
     onBack: () -> Unit = {},
-    onForward: () -> Unit = {}
+    onForward: () -> Unit = {},
+    onHistoryClick: (Int) -> Unit = {}
 ) {
     val state = game.currentSnapshot
     Box {
@@ -88,7 +89,7 @@ fun ChessBoard(
 
             Spacer(modifier = Modifier.width(32.dp))
 
-            MoveHistoryList(game)
+            MoveHistoryList(game, onHistoryClick)
         }
 
         state.pendingPromotion?.let { moves ->
@@ -101,7 +102,10 @@ fun ChessBoard(
 }
 
 @Composable
-fun MoveHistoryList(game: Game) {
+fun MoveHistoryList(
+    game: Game,
+    onHistoryClick: (Int) -> Unit
+) {
     Column(
         modifier = Modifier
             .width(200.dp)
@@ -115,9 +119,21 @@ fun MoveHistoryList(game: Game) {
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
+        // Starting position
+        Text(
+            text = "Start",
+            fontWeight = if (game.currentIndex == 0) FontWeight.Bold else FontWeight.Normal,
+            modifier = Modifier
+                .clickable { onHistoryClick(0) }
+                .padding(vertical = 4.dp)
+        )
+
         val historySnapshots = game.snapshots.drop(1)
         for (i in historySnapshots.indices step 2) {
             val turnNumber = i / 2 + 1
+            val whiteMoveIdx = i + 1
+            val blackMoveIdx = i + 2
+            
             val whiteMove = historySnapshots[i].notation ?: ""
             val blackMove = historySnapshots.getOrNull(i + 1)?.notation ?: ""
 
@@ -129,14 +145,20 @@ fun MoveHistoryList(game: Game) {
                 )
                 Text(
                     text = whiteMove,
-                    fontWeight = if (game.currentIndex == i + 1) FontWeight.Bold else FontWeight.Normal,
-                    modifier = Modifier.width(64.dp)
+                    fontWeight = if (game.currentIndex == whiteMoveIdx) FontWeight.Bold else FontWeight.Normal,
+                    modifier = Modifier
+                        .width(64.dp)
+                        .clickable { onHistoryClick(whiteMoveIdx) }
                 )
-                Text(
-                    text = blackMove,
-                    fontWeight = if (game.currentIndex == i + 2) FontWeight.Bold else FontWeight.Normal,
-                    modifier = Modifier.width(64.dp)
-                )
+                if (blackMove.isNotEmpty()) {
+                    Text(
+                        text = blackMove,
+                        fontWeight = if (game.currentIndex == blackMoveIdx) FontWeight.Bold else FontWeight.Normal,
+                        modifier = Modifier
+                            .width(64.dp)
+                            .clickable { onHistoryClick(blackMoveIdx) }
+                    )
+                }
             }
         }
     }
