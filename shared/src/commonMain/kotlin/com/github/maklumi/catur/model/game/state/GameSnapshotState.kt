@@ -18,6 +18,7 @@ data class GameSnapshotState(
     val activeColor: PieceColor = PieceColor.WHITE,
     val movedPositions: Set<Position> = emptySet(),
     val pendingPromotion: List<BoardMove>? = null,
+    val notation: String? = null,
 ) {
     val legalMoves: List<BoardMove> = if (pendingPromotion != null) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos].piece

@@ -3,7 +3,9 @@ package com.github.maklumi.catur.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -12,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -32,54 +35,60 @@ fun ChessBoard(
 ) {
     val state = game.currentSnapshot
     Box {
-        Column {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "Turn: ${state.activeColor}",
-                    modifier = Modifier.padding(8.dp),
-                    fontSize = 20.sp
-                )
-                if (state.status != GameStatus.ONGOING) {
+        Row(modifier = Modifier.padding(16.dp)) {
+            Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
-                        text = " - ${state.status}",
-                        color = Color.Red,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(8.dp)
+                        text = "Turn: ${state.activeColor}",
+                        modifier = Modifier.padding(8.dp),
+                        fontSize = 20.sp
                     )
-                }
-            }
-
-            for (rank in 8 downTo 1) {
-                Row {
-                    for (file in 1..8) {
-                        val position = Position.from(file, rank)
-                        SquareView(
-                            position = position,
-                            state = state,
-                            onClick = { onPositionClick(position) }
+                    if (state.status != GameStatus.ONGOING) {
+                        Text(
+                            text = " - ${state.status}",
+                            color = Color.Red,
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(8.dp)
                         )
+                    }
+                }
+
+                for (rank in 8 downTo 1) {
+                    Row {
+                        for (file in 1..8) {
+                            val position = Position.from(file, rank)
+                            SquareView(
+                                position = position,
+                                state = state,
+                                onClick = { onPositionClick(position) }
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.padding(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Button(onClick = onBack, enabled = game.canGoBack()) {
+                        Text("Back")
+                    }
+                    Text(
+                        text = "${game.currentIndex} / ${game.snapshots.size - 1}",
+                        modifier = Modifier.align(Alignment.CenterVertically)
+                    )
+                    Button(onClick = onForward, enabled = game.canGoForward()) {
+                        Text("Forward")
                     }
                 }
             }
 
-            Row(
-                modifier = Modifier.padding(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Button(onClick = onBack, enabled = game.canGoBack()) {
-                    Text("Back")
-                }
-                Text(
-                    text = "${game.currentIndex} / ${game.snapshots.size - 1}",
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
-                Button(onClick = onForward, enabled = game.canGoForward()) {
-                    Text("Forward")
-                }
-            }
+            Spacer(modifier = Modifier.width(32.dp))
+
+            MoveHistoryList(game)
         }
 
         state.pendingPromotion?.let { moves ->
@@ -87,6 +96,48 @@ fun ChessBoard(
                 moves = moves,
                 onChoice = onPromotionChoice
             )
+        }
+    }
+}
+
+@Composable
+fun MoveHistoryList(game: Game) {
+    Column(
+        modifier = Modifier
+            .width(200.dp)
+            .fillMaxHeight()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Move History",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        val historySnapshots = game.snapshots.drop(1)
+        for (i in historySnapshots.indices step 2) {
+            val turnNumber = i / 2 + 1
+            val whiteMove = historySnapshots[i].notation ?: ""
+            val blackMove = historySnapshots.getOrNull(i + 1)?.notation ?: ""
+
+            Row(modifier = Modifier.padding(vertical = 2.dp)) {
+                Text(
+                    text = "$turnNumber. ",
+                    color = Color.Gray,
+                    modifier = Modifier.width(32.dp)
+                )
+                Text(
+                    text = whiteMove,
+                    fontWeight = if (game.currentIndex == i + 1) FontWeight.Bold else FontWeight.Normal,
+                    modifier = Modifier.width(64.dp)
+                )
+                Text(
+                    text = blackMove,
+                    fontWeight = if (game.currentIndex == i + 2) FontWeight.Bold else FontWeight.Normal,
+                    modifier = Modifier.width(64.dp)
+                )
+            }
         }
     }
 }

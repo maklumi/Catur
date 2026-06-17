@@ -21,22 +21,24 @@ data class Game(
     fun move(to: Position): Game {
         if (isViewingHistory) return this
 
-        val nextSnapshot = currentSnapshot.move(to)
-        if (nextSnapshot == currentSnapshot) return this
+        val nextSnapshotBeforeNotation = currentSnapshot.move(to)
+        if (nextSnapshotBeforeNotation == currentSnapshot) return this
 
-        // We only add a new snapshot if a move actually occurred
-        // Selection changes don't count as a new history entry in most chess apps,
-        // but they do update the current state.
-        
-        return if (nextSnapshot.board != currentSnapshot.board) {
+        return if (nextSnapshotBeforeNotation.board != currentSnapshot.board) {
+            val boardMove = nextSnapshotBeforeNotation.lastMove!!
+            val isCheck = nextSnapshotBeforeNotation.board.isInCheck(nextSnapshotBeforeNotation.activeColor)
+            val isMate = nextSnapshotBeforeNotation.status == GameStatus.CHECKMATE
+            
+            val notation = currentSnapshot.board.getNotation(boardMove, isCheck, isMate)
+            val nextSnapshot = nextSnapshotBeforeNotation.copy(notation = notation)
+            
             copy(
                 snapshots = snapshots + nextSnapshot,
                 currentIndex = currentIndex + 1
             )
         } else {
-            // Just update the current selection state without adding to history
             copy(
-                snapshots = snapshots.toMutableList().apply { set(currentIndex, nextSnapshot) }
+                snapshots = snapshots.toMutableList().apply { set(currentIndex, nextSnapshotBeforeNotation) }
             )
         }
     }
@@ -44,7 +46,13 @@ data class Game(
     fun promote(move: BoardMove): Game {
         if (isViewingHistory) return this
 
-        val nextSnapshot = currentSnapshot.promote(move)
+        val nextSnapshotBeforeNotation = currentSnapshot.promote(move)
+        
+        val isCheck = nextSnapshotBeforeNotation.board.isInCheck(nextSnapshotBeforeNotation.activeColor)
+        val isMate = nextSnapshotBeforeNotation.status == GameStatus.CHECKMATE
+        val notation = currentSnapshot.board.getNotation(move, isCheck, isMate)
+        val nextSnapshot = nextSnapshotBeforeNotation.copy(notation = notation)
+
         return copy(
             snapshots = snapshots + nextSnapshot,
             currentIndex = currentIndex + 1
