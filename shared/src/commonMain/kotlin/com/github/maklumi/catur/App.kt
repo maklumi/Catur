@@ -10,15 +10,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.tooling.preview.Preview
-import com.github.maklumi.catur.model.game.state.Game
+import com.github.maklumi.catur.model.game.state.GameAction
+import com.github.maklumi.catur.model.game.controller.GameController
 import com.github.maklumi.catur.ui.ChessBoard
 
 @Composable
 @Preview
 fun App() {
-    var game by remember {
-        mutableStateOf(Game())
-    }
+    val controller = remember { GameController() }
+    val state by controller.state.collectAsState()
 
     val focusRequester = remember { FocusRequester() }
 
@@ -34,11 +34,11 @@ fun App() {
                     if (keyEvent.type == KeyEventType.KeyDown) {
                         when (keyEvent.key) {
                             Key.DirectionLeft -> {
-                                game = game.goBack()
+                                controller.dispatch(GameAction.StepBack)
                                 true
                             }
                             Key.DirectionRight -> {
-                                game = game.goForward()
+                                controller.dispatch(GameAction.StepForward)
                                 true
                             }
                             else -> false
@@ -49,22 +49,8 @@ fun App() {
                 .focusable()
         ) {
             ChessBoard(
-                game = game,
-                onPositionClick = { position ->
-                    game = game.move(position)
-                },
-                onPromotionChoice = { move ->
-                    game = game.promote(move)
-                },
-                onBack = {
-                    game = game.goBack()
-                },
-                onForward = {
-                    game = game.goForward()
-                },
-                onHistoryClick = { index ->
-                    game = game.jumpTo(index)
-                }
+                state = state,
+                onAction = { controller.dispatch(it) }
             )
         }
     }

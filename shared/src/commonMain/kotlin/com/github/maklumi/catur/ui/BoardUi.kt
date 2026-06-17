@@ -20,7 +20,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.board.isLightSquare
-import com.github.maklumi.catur.model.game.state.Game
+import com.github.maklumi.catur.model.game.state.GameAction
+import com.github.maklumi.catur.model.game.state.GameState
 import com.github.maklumi.catur.model.game.state.GameSnapshotState
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.move.BoardMove
@@ -28,14 +29,10 @@ import com.github.maklumi.catur.model.piece.Piece
 
 @Composable
 fun ChessBoard(
-    game: Game,
-    onPositionClick: (Position) -> Unit = {},
-    onPromotionChoice: (BoardMove) -> Unit = {},
-    onBack: () -> Unit = {},
-    onForward: () -> Unit = {},
-    onHistoryClick: (Int) -> Unit = {}
+    state: GameState,
+    onAction: (GameAction) -> Unit
 ) {
-    val state = game.currentSnapshot
+    val snapshot = state.currentSnapshot
     Box {
         Row(modifier = Modifier.padding(16.dp)) {
             Column {
@@ -44,13 +41,13 @@ fun ChessBoard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Turn: ${state.activeColor}",
+                        text = "Turn: ${snapshot.activeColor}",
                         modifier = Modifier.padding(8.dp),
                         fontSize = 20.sp
                     )
-                    if (state.status != GameStatus.ONGOING) {
+                    if (snapshot.status != GameStatus.ONGOING) {
                         Text(
-                            text = " - ${state.status}",
+                            text = " - ${snapshot.status}",
                             color = Color.Red,
                             fontSize = 20.sp,
                             modifier = Modifier.padding(8.dp)
@@ -64,8 +61,8 @@ fun ChessBoard(
                             val position = Position.from(file, rank)
                             SquareView(
                                 position = position,
-                                state = state,
-                                onClick = { onPositionClick(position) }
+                                snapshot = snapshot,
+                                onClick = { onAction(GameAction.SquareClick(position)) }
                             )
                         }
                     }
@@ -75,14 +72,14 @@ fun ChessBoard(
                     modifier = Modifier.padding(8.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Button(onClick = onBack, enabled = game.canGoBack()) {
+                    Button(onClick = { onAction(GameAction.StepBack) }, enabled = state.canGoBack()) {
                         Text("Back")
                     }
                     Text(
-                        text = "${game.currentIndex} / ${game.snapshots.size - 1}",
+                        text = "${state.currentIndex} / ${state.snapshots.size - 1}",
                         modifier = Modifier.align(Alignment.CenterVertically)
                     )
-                    Button(onClick = onForward, enabled = game.canGoForward()) {
+                    Button(onClick = { onAction(GameAction.StepForward) }, enabled = state.canGoForward()) {
                         Text("Forward")
                     }
                 }
@@ -91,22 +88,22 @@ fun ChessBoard(
             Spacer(modifier = Modifier.width(32.dp))
 
             Column(modifier = Modifier.width(200.dp).fillMaxHeight()) {
-                CapturedPiecesView(pieces = state.capturedWhite)
+                CapturedPiecesView(pieces = snapshot.capturedWhite)
                 Spacer(modifier = Modifier.height(8.dp))
                 MoveHistoryList(
-                    game = game,
-                    onHistoryClick = onHistoryClick,
+                    state = state,
+                    onAction = onAction,
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                CapturedPiecesView(pieces = state.capturedBlack)
+                CapturedPiecesView(pieces = snapshot.capturedBlack)
             }
         }
 
-        state.pendingPromotion?.let { moves ->
+        snapshot.pendingPromotion?.let { moves ->
             PromotionDialog(
                 moves = moves,
-                onChoice = onPromotionChoice
+                onChoice = { onAction(GameAction.PromotionChoice(it)) }
             )
         }
     }
@@ -137,8 +134,8 @@ fun CapturedPiecesView(pieces: List<Piece>) {
 
 @Composable
 fun MoveHistoryList(
-    game: Game,
-    onHistoryClick: (Int) -> Unit,
+    state: GameState,
+    onAction: (GameAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -156,13 +153,13 @@ fun MoveHistoryList(
         // Starting position
         Text(
             text = "Start",
-            fontWeight = if (game.currentIndex == 0) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = if (state.currentIndex == 0) FontWeight.Bold else FontWeight.Normal,
             modifier = Modifier
-                .clickable { onHistoryClick(0) }
+                .clickable { onAction(GameAction.JumpToHistory(0)) }
                 .padding(vertical = 4.dp)
         )
 
-        val historySnapshots = game.snapshots.drop(1)
+        val historySnapshots = state.snapshots.drop(1)
         for (i in historySnapshots.indices step 2) {
             val turnNumber = i / 2 + 1
             val whiteMoveIdx = i + 1
@@ -179,18 +176,18 @@ fun MoveHistoryList(
                 )
                 Text(
                     text = whiteMove,
-                    fontWeight = if (game.currentIndex == whiteMoveIdx) FontWeight.Bold else FontWeight.Normal,
+                    fontWeight = if (state.currentIndex == whiteMoveIdx) FontWeight.Bold else FontWeight.Normal,
                     modifier = Modifier
                         .width(64.dp)
-                        .clickable { onHistoryClick(whiteMoveIdx) }
+                        .clickable { onAction(GameAction.JumpToHistory(whiteMoveIdx)) }
                 )
                 if (blackMove.isNotEmpty()) {
                     Text(
                         text = blackMove,
-                        fontWeight = if (game.currentIndex == blackMoveIdx) FontWeight.Bold else FontWeight.Normal,
+                        fontWeight = if (state.currentIndex == blackMoveIdx) FontWeight.Bold else FontWeight.Normal,
                         modifier = Modifier
                             .width(64.dp)
-                            .clickable { onHistoryClick(blackMoveIdx) }
+                            .clickable { onAction(GameAction.JumpToHistory(blackMoveIdx)) }
                     )
                 }
             }
@@ -236,12 +233,12 @@ fun PromotionDialog(
 @Composable
 fun SquareView(
     position: Position,
-    state: GameSnapshotState,
+    snapshot: GameSnapshotState,
     onClick: () -> Unit
 ) {
-    val square = state.board[position]
-    val isSelected = state.selectedPosition == position
-    val isLegalMove = state.isLegalMove(position)
+    val square = snapshot.board[position]
+    val isSelected = snapshot.selectedPosition == position
+    val isLegalMove = snapshot.isLegalMove(position)
 
     val backgroundColor = when {
         isSelected -> Color.Yellow
