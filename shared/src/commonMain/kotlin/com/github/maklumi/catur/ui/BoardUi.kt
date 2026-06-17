@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,19 +17,26 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.board.isLightSquare
+import com.github.maklumi.catur.model.game.state.Game
 import com.github.maklumi.catur.model.game.state.GameSnapshotState
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.move.BoardMove
 
 @Composable
 fun ChessBoard(
-    state: GameSnapshotState,
+    game: Game,
     onPositionClick: (Position) -> Unit = {},
-    onPromotionChoice: (BoardMove) -> Unit = {}
+    onPromotionChoice: (BoardMove) -> Unit = {},
+    onBack: () -> Unit = {},
+    onForward: () -> Unit = {}
 ) {
+    val state = game.currentSnapshot
     Box {
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 Text(
                     text = "Turn: ${state.activeColor}",
                     modifier = Modifier.padding(8.dp),
@@ -43,6 +51,7 @@ fun ChessBoard(
                     )
                 }
             }
+
             for (rank in 8 downTo 1) {
                 Row {
                     for (file in 1..8) {
@@ -53,6 +62,22 @@ fun ChessBoard(
                             onClick = { onPositionClick(position) }
                         )
                     }
+                }
+            }
+
+            Row(
+                modifier = Modifier.padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Button(onClick = onBack, enabled = game.canGoBack()) {
+                    Text("Back")
+                }
+                Text(
+                    text = "${game.currentIndex} / ${game.snapshots.size - 1}",
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+                Button(onClick = onForward, enabled = game.canGoForward()) {
+                    Text("Forward")
                 }
             }
         }

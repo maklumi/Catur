@@ -3,37 +3,30 @@ package com.github.maklumi.catur
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.tooling.preview.Preview
-import com.github.maklumi.catur.model.board.Board
-import com.github.maklumi.catur.model.board.Position
-import com.github.maklumi.catur.model.game.state.GameSnapshotState
-import com.github.maklumi.catur.model.piece.King
-import com.github.maklumi.catur.model.piece.PieceColor
-import com.github.maklumi.catur.model.piece.Queen
+import com.github.maklumi.catur.model.game.state.Game
 import com.github.maklumi.catur.ui.ChessBoard
 
 @Composable
 @Preview
 fun App() {
-    var state by remember {
-        mutableStateOf(
-            GameSnapshotState(
-                board = Board()
-                    .withPiece(Position.h8, King(PieceColor.BLACK))
-                    .withPiece(Position.f7, King(PieceColor.WHITE))
-                    .withPiece(Position.g1, Queen(PieceColor.WHITE)),
-                activeColor = PieceColor.BLACK
-            )
-        )
+    var game by remember {
+        mutableStateOf(Game())
     }
 
     MaterialTheme {
         ChessBoard(
-            state = state,
+            game = game,
             onPositionClick = { position ->
-                state = state.move(position)
+                game = game.move(position)
             },
             onPromotionChoice = { move ->
-                state = state.promote(move)
+                game = game.promote(move)
+            },
+            onBack = {
+                game = game.goBack()
+            },
+            onForward = {
+                game = game.goForward()
             }
         )
     }
