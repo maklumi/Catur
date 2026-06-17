@@ -7,8 +7,8 @@ import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.state.GameSnapshotState
 import com.github.maklumi.catur.model.piece.King
-import com.github.maklumi.catur.model.piece.Pawn
 import com.github.maklumi.catur.model.piece.PieceColor
+import com.github.maklumi.catur.model.piece.Queen
 import com.github.maklumi.catur.ui.ChessBoard
 
 @Composable
@@ -18,9 +18,10 @@ fun App() {
         mutableStateOf(
             GameSnapshotState(
                 board = Board()
-                    .withPiece(Position.e1, King(PieceColor.WHITE))
-                    .withPiece(Position.e8, King(PieceColor.BLACK))
-                    .withPiece(Position.a7, Pawn(PieceColor.WHITE)),
+                    .withPiece(Position.h8, King(PieceColor.BLACK))
+                    .withPiece(Position.f7, King(PieceColor.WHITE))
+                    .withPiece(Position.g1, Queen(PieceColor.WHITE)),
+                activeColor = PieceColor.BLACK
             )
         )
     }

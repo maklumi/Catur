@@ -17,6 +17,7 @@ import androidx.compose.ui.window.Dialog
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.board.isLightSquare
 import com.github.maklumi.catur.model.game.state.GameSnapshotState
+import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.move.BoardMove
 
 @Composable
@@ -27,11 +28,21 @@ fun ChessBoard(
 ) {
     Box {
         Column {
-            Text(
-                text = "Turn: ${state.activeColor}",
-                modifier = Modifier.padding(8.dp),
-                fontSize = 20.sp
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Turn: ${state.activeColor}",
+                    modifier = Modifier.padding(8.dp),
+                    fontSize = 20.sp
+                )
+                if (state.status != GameStatus.ONGOING) {
+                    Text(
+                        text = " - ${state.status}",
+                        color = Color.Red,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+            }
             for (rank in 8 downTo 1) {
                 Row {
                     for (file in 1..8) {

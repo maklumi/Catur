@@ -5,6 +5,12 @@ import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.move.BoardMove
 import com.github.maklumi.catur.model.piece.PieceColor
 
+enum class GameStatus {
+    ONGOING,
+    CHECKMATE,
+    STALEMATE
+}
+
 data class GameSnapshotState(
     val board: Board = Board(),
     val selectedPosition: Position? = null,
@@ -16,19 +22,43 @@ data class GameSnapshotState(
     val legalMoves: List<BoardMove> = if (pendingPromotion != null) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos].piece
         if (piece?.pieceColor == activeColor) {
-            piece.pseudoLegalMoves(board, lastMove, movedPositions).filter { boardMove ->
-                val nextBoard = boardMove.move.applyOn(board)
-                !nextBoard.isInCheck(activeColor)
-            }
+            getLegalMovesForPiece(pos)
         } else {
             null
         }
     } ?: emptyList()
 
+    private fun getLegalMovesForPiece(pos: Position): List<BoardMove> {
+        val piece = board[pos].piece ?: return emptyList()
+        return piece.pseudoLegalMoves(board, lastMove, movedPositions).filter { boardMove ->
+            val nextBoard = boardMove.move.applyOn(board)
+            !nextBoard.isInCheck(piece.pieceColor)
+        }
+    }
+
+    val status: GameStatus by lazy {
+        val hasAnyLegalMove = board.piecesMap.keys.any { pos ->
+            val piece = board[pos].piece
+            piece?.pieceColor == activeColor && getLegalMovesForPiece(pos).isNotEmpty()
+        }
+
+        if (hasAnyLegalMove) {
+            GameStatus.ONGOING
+        } else {
+            if (board.isInCheck(activeColor)) {
+                GameStatus.CHECKMATE
+            } else {
+                GameStatus.STALEMATE
+            }
+        }
+    }
+
     fun isLegalMove(position: Position): Boolean =
         legalMoves.any { it.move.to == position }
 
     fun move(to: Position): GameSnapshotState {
+        if (status != GameStatus.ONGOING) return this
+
         val possibleMoves = legalMoves.filter { it.move.to == to }
         
         return when {
