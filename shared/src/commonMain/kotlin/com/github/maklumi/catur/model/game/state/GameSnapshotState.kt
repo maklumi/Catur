@@ -3,6 +3,8 @@ package com.github.maklumi.catur.model.game.state
 import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.move.BoardMove
+import com.github.maklumi.catur.model.move.EnPassantMove
+import com.github.maklumi.catur.model.piece.Piece
 import com.github.maklumi.catur.model.piece.PieceColor
 
 enum class GameStatus {
@@ -19,6 +21,8 @@ data class GameSnapshotState(
     val movedPositions: Set<Position> = emptySet(),
     val pendingPromotion: List<BoardMove>? = null,
     val notation: String? = null,
+    val capturedWhite: List<Piece> = emptyList(),
+    val capturedBlack: List<Piece> = emptyList(),
 ) {
     val legalMoves: List<BoardMove> = if (pendingPromotion != null) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos].piece
@@ -87,12 +91,28 @@ data class GameSnapshotState(
     }
 
     private fun applyMove(boardMove: BoardMove): GameSnapshotState {
+        val move = boardMove.move
+        val capturedPiece = when (move) {
+            is EnPassantMove -> board[move.capturedPosition].piece
+            else -> board[move.to].piece
+        }
+
+        val newCapturedWhite = if (capturedPiece?.pieceColor == PieceColor.WHITE) {
+            capturedWhite + capturedPiece
+        } else capturedWhite
+
+        val newCapturedBlack = if (capturedPiece?.pieceColor == PieceColor.BLACK) {
+            capturedBlack + capturedPiece
+        } else capturedBlack
+
         return copy(
-            board = boardMove.move.applyOn(board),
+            board = move.applyOn(board),
             selectedPosition = null,
             lastMove = boardMove,
             activeColor = activeColor.opposite(),
-            movedPositions = movedPositions + boardMove.move.from + boardMove.move.to
+            movedPositions = movedPositions + move.from + move.to,
+            capturedWhite = newCapturedWhite,
+            capturedBlack = newCapturedBlack
         )
     }
 }

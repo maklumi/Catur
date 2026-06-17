@@ -24,6 +24,7 @@ import com.github.maklumi.catur.model.game.state.Game
 import com.github.maklumi.catur.model.game.state.GameSnapshotState
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.move.BoardMove
+import com.github.maklumi.catur.model.piece.Piece
 
 @Composable
 fun ChessBoard(
@@ -89,7 +90,17 @@ fun ChessBoard(
 
             Spacer(modifier = Modifier.width(32.dp))
 
-            MoveHistoryList(game, onHistoryClick)
+            Column(modifier = Modifier.width(200.dp).fillMaxHeight()) {
+                CapturedPiecesView(pieces = state.capturedWhite)
+                Spacer(modifier = Modifier.height(8.dp))
+                MoveHistoryList(
+                    game = game,
+                    onHistoryClick = onHistoryClick,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                CapturedPiecesView(pieces = state.capturedBlack)
+            }
         }
 
         state.pendingPromotion?.let { moves ->
@@ -102,14 +113,37 @@ fun ChessBoard(
 }
 
 @Composable
+fun CapturedPiecesView(pieces: List<Piece>) {
+    val sortedPieces = pieces.sortedBy { it.value }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(32.dp)
+            .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+            .padding(horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
+    ) {
+        sortedPieces.forEach { piece ->
+            Text(
+                text = piece.symbol,
+                fontSize = 20.sp,
+                color = Color.Black,
+                modifier = Modifier.padding(horizontal = 1.dp)
+            )
+        }
+    }
+}
+
+@Composable
 fun MoveHistoryList(
     game: Game,
-    onHistoryClick: (Int) -> Unit
+    onHistoryClick: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
-            .width(200.dp)
-            .fillMaxHeight()
+        modifier = modifier
+            .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
         Text(
