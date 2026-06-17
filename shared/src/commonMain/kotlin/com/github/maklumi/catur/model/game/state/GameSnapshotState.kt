@@ -11,8 +11,9 @@ data class GameSnapshotState(
     val lastMove: BoardMove? = null,
     val activeColor: PieceColor = PieceColor.WHITE,
     val movedPositions: Set<Position> = emptySet(),
+    val pendingPromotion: List<BoardMove>? = null,
 ) {
-    val legalMoves: List<BoardMove> = selectedPosition?.let { pos ->
+    val legalMoves: List<BoardMove> = if (pendingPromotion != null) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos].piece
         if (piece?.pieceColor == activeColor) {
             piece.pseudoLegalMoves(board, lastMove, movedPositions).filter { boardMove ->
@@ -28,23 +29,40 @@ data class GameSnapshotState(
         legalMoves.any { it.move.to == position }
 
     fun move(to: Position): GameSnapshotState {
-        val boardMove = legalMoves.find { it.move.to == to }
-        return if (boardMove != null) {
-            copy(
-                board = boardMove.move.applyOn(board),
-                selectedPosition = null,
-                lastMove = boardMove,
-                activeColor = activeColor.opposite(),
-                movedPositions = movedPositions + boardMove.move.from + boardMove.move.to
-            )
-        } else {
-            val piece = board[to].piece
-            if (piece != null && piece.pieceColor == activeColor) {
-                copy(selectedPosition = to)
-            } else {
-                copy(selectedPosition = null)
+        val possibleMoves = legalMoves.filter { it.move.to == to }
+        
+        return when {
+            possibleMoves.size > 1 -> {
+                // Promotion case
+                copy(pendingPromotion = possibleMoves)
+            }
+            possibleMoves.size == 1 -> {
+                val boardMove = possibleMoves.first()
+                applyMove(boardMove)
+            }
+            else -> {
+                val piece = board[to].piece
+                if (piece != null && piece.pieceColor == activeColor) {
+                    copy(selectedPosition = to, pendingPromotion = null)
+                } else {
+                    copy(selectedPosition = null, pendingPromotion = null)
+                }
             }
         }
+    }
+
+    fun promote(boardMove: BoardMove): GameSnapshotState {
+        return applyMove(boardMove).copy(pendingPromotion = null)
+    }
+
+    private fun applyMove(boardMove: BoardMove): GameSnapshotState {
+        return copy(
+            board = boardMove.move.applyOn(board),
+            selectedPosition = null,
+            lastMove = boardMove,
+            activeColor = activeColor.opposite(),
+            movedPositions = movedPositions + boardMove.move.from + boardMove.move.to
+        )
     }
 }
 
