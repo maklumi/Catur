@@ -14,6 +14,8 @@ class King(override val pieceColor: PieceColor) : Piece {
 
     override val textSymbol: String = "K"
 
+    override val resName: String = if (pieceColor == PieceColor.WHITE) "dubrovny_wk" else "dubrovny_bk"
+
     override val value: Int = 100
 
     override fun pseudoLegalMoves(

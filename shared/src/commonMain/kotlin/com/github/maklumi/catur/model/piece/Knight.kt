@@ -13,6 +13,8 @@ class Knight(override val pieceColor: PieceColor) : Piece {
 
     override val textSymbol: String = "N"
 
+    override val resName: String = if (pieceColor == PieceColor.WHITE) "dubrovny_wn" else "dubrovny_bn"
+
     override val value: Int = 3
 
     override fun pseudoLegalMoves(

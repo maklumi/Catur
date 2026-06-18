@@ -13,6 +13,8 @@ class Bishop(override val pieceColor: PieceColor) : Piece {
 
     override val textSymbol: String = "B"
 
+    override val resName: String = if (pieceColor == PieceColor.WHITE) "dubrovny_wb" else "dubrovny_bb"
+
     override val value: Int = 3
 
     override fun pseudoLegalMoves(

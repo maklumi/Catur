@@ -17,6 +17,8 @@ class Pawn(override val pieceColor: PieceColor) : Piece {
 
     override val textSymbol: String = "P"
 
+    override val resName: String = if (pieceColor == PieceColor.WHITE) "dubrovny_wp" else "dubrovny_bp"
+
     override val value: Int = 1
 
     override fun pseudoLegalMoves(

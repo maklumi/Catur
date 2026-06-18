@@ -13,6 +13,8 @@ class Rook(override val pieceColor: PieceColor) : Piece {
 
     override val textSymbol: String = "R"
 
+    override val resName: String = if (pieceColor == PieceColor.WHITE) "dubrovny_wr" else "dubrovny_br"
+
     override val value: Int = 5
 
     override fun pseudoLegalMoves(

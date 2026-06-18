@@ -13,6 +13,8 @@ class Queen(override val pieceColor: PieceColor) : Piece {
 
     override val textSymbol: String = "Q"
 
+    override val resName: String = if (pieceColor == PieceColor.WHITE) "dubrovny_wq" else "dubrovny_bq"
+
     override val value: Int = 9
 
     override fun pseudoLegalMoves(

@@ -1,5 +1,6 @@
 package com.github.maklumi.catur.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,6 +27,32 @@ import com.github.maklumi.catur.model.game.state.GameSnapshotState
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.move.BoardMove
 import com.github.maklumi.catur.model.piece.Piece
+import org.jetbrains.compose.resources.painterResource
+import catur.shared.generated.resources.*
+
+@Composable
+fun PieceImage(piece: Piece, modifier: Modifier = Modifier) {
+    val resource = when (piece.resName) {
+        "dubrovny_bb" -> Res.drawable.dubrovny_bb
+        "dubrovny_bk" -> Res.drawable.dubrovny_bk
+        "dubrovny_bn" -> Res.drawable.dubrovny_bn
+        "dubrovny_bp" -> Res.drawable.dubrovny_bp
+        "dubrovny_bq" -> Res.drawable.dubrovny_bq
+        "dubrovny_br" -> Res.drawable.dubrovny_br
+        "dubrovny_wb" -> Res.drawable.dubrovny_wb
+        "dubrovny_wk" -> Res.drawable.dubrovny_wk
+        "dubrovny_wn" -> Res.drawable.dubrovny_wn
+        "dubrovny_wp" -> Res.drawable.dubrovny_wp
+        "dubrovny_wq" -> Res.drawable.dubrovny_wq
+        "dubrovny_wr" -> Res.drawable.dubrovny_wr
+        else -> Res.drawable.compose_multiplatform
+    }
+    Image(
+        painter = painterResource(resource),
+        contentDescription = piece.symbol,
+        modifier = modifier
+    )
+}
 
 @Composable
 fun ChessBoard(
@@ -122,11 +149,9 @@ fun CapturedPiecesView(pieces: List<Piece>) {
         horizontalArrangement = Arrangement.Start
     ) {
         sortedPieces.forEach { piece ->
-            Text(
-                text = piece.symbol,
-                fontSize = 20.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(horizontal = 1.dp)
+            PieceImage(
+                piece = piece,
+                modifier = Modifier.size(24.dp).padding(horizontal = 1.dp)
             )
         }
     }
@@ -218,10 +243,9 @@ fun PromotionDialog(
                             .clickable { onChoice(move) },
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = move.move.piece.symbol,
-                            fontSize = 40.sp,
-                            color = Color.Black
+                        PieceImage(
+                            piece = move.move.piece,
+                            modifier = Modifier.size(48.dp)
                         )
                     }
                 }
@@ -236,7 +260,6 @@ fun SquareView(
     snapshot: GameSnapshotState,
     onClick: () -> Unit
 ) {
-    val square = snapshot.board[position]
     val isSelected = snapshot.selectedPosition == position
     val isLegalMove = snapshot.isLegalMove(position)
 
@@ -254,11 +277,10 @@ fun SquareView(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        square.piece?.let { piece ->
-            Text(
-                text = piece.symbol,
-                fontSize = 32.sp,
-                color = Color.Black
+        snapshot.board[position].piece?.let { piece ->
+            PieceImage(
+                piece = piece,
+                modifier = Modifier.size(40.dp)
             )
         }
     }

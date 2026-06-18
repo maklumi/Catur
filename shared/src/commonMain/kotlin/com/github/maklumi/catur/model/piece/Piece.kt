@@ -12,6 +12,8 @@ interface Piece {
 
     val textSymbol: String
 
+    val resName: String
+
     val value: Int
 
     /**
