@@ -3,10 +3,17 @@ package com.github.maklumi.catur.model.game.state
 import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.move.BoardMove
+import com.github.maklumi.catur.model.piece.PieceColor
+
+enum class PlayerType {
+    HUMAN, ENGINE
+}
 
 data class GameState(
     val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(board = Board.initial)),
-    val currentIndex: Int = 0
+    val currentIndex: Int = 0,
+    val whitePlayer: PlayerType = PlayerType.HUMAN,
+    val blackPlayer: PlayerType = PlayerType.ENGINE,
 ) {
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
 
@@ -14,6 +21,11 @@ data class GameState(
 
     fun canGoBack(): Boolean = currentIndex > 0
     fun canGoForward(): Boolean = currentIndex < snapshots.size - 1
+
+    val isEngineTurn: Boolean get() = !isViewingHistory && 
+        currentSnapshot.status == GameStatus.ONGOING &&
+        ((currentSnapshot.activeColor == PieceColor.WHITE && whitePlayer == PlayerType.ENGINE) ||
+         (currentSnapshot.activeColor == PieceColor.BLACK && blackPlayer == PlayerType.ENGINE))
 }
 
 sealed class GameAction {
@@ -22,4 +34,5 @@ sealed class GameAction {
     object StepBack : GameAction()
     object StepForward : GameAction()
     data class JumpToHistory(val index: Int) : GameAction()
+    data class EngineMove(val moveUci: String) : GameAction()
 }

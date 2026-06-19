@@ -11,13 +11,13 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.maklumi.catur.model.game.state.GameAction
-import com.github.maklumi.catur.model.game.controller.GameController
 import com.github.maklumi.catur.ui.ChessBoard
 
 @Composable
 @Preview
 fun App() {
-    val controller = remember { GameController() }
+    val scope = rememberCoroutineScope()
+    val controller = remember { getPlatform().createGameController(scope) }
     val state by controller.state.collectAsState()
 
     val focusRequester = remember { FocusRequester() }

@@ -4,6 +4,7 @@ import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.move.BoardMove
 import com.github.maklumi.catur.model.move.EnPassantMove
+import com.github.maklumi.catur.model.move.toUciString
 import com.github.maklumi.catur.model.piece.Piece
 import com.github.maklumi.catur.model.piece.PieceColor
 
@@ -21,6 +22,7 @@ data class GameSnapshotState(
     val movedPositions: Set<Position> = emptySet(),
     val pendingPromotion: List<BoardMove>? = null,
     val notation: String? = null,
+    val lastMoveUci: String? = null,
     val capturedWhite: List<Piece> = emptyList(),
     val capturedBlack: List<Piece> = emptyList(),
 ) {
@@ -60,6 +62,15 @@ data class GameSnapshotState(
 
     fun isLegalMove(position: Position): Boolean =
         legalMoves.any { it.move.to == position }
+
+    fun findMoveByUci(uci: String): BoardMove? {
+        val candidates = board.piecesMap.keys
+            .filter { board[it].piece?.pieceColor == activeColor }
+            .flatMap { getLegalMovesForPiece(it) }
+            .filter { it.move.toUciString() == uci }
+        
+        return candidates.firstOrNull()
+    }
 
     fun move(to: Position): GameSnapshotState {
         if (status != GameStatus.ONGOING) return this
@@ -112,7 +123,8 @@ data class GameSnapshotState(
             activeColor = activeColor.opposite(),
             movedPositions = movedPositions + move.from + move.to,
             capturedWhite = newCapturedWhite,
-            capturedBlack = newCapturedBlack
+            capturedBlack = newCapturedBlack,
+            lastMoveUci = move.toUciString()
         )
     }
 }

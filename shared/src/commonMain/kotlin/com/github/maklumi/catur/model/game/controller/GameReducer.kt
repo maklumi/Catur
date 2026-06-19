@@ -61,5 +61,22 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                 state.copy(currentIndex = action.index)
             } else state
         }
+        is GameAction.EngineMove -> {
+            if (state.isViewingHistory) return state
+            val currentSnapshot = state.currentSnapshot
+            val boardMove = currentSnapshot.findMoveByUci(action.moveUci) ?: return state
+            
+            val nextSnapshotBeforeNotation = currentSnapshot.promote(boardMove)
+            
+            val isCheck = nextSnapshotBeforeNotation.board.isInCheck(nextSnapshotBeforeNotation.activeColor)
+            val isMate = nextSnapshotBeforeNotation.status == GameStatus.CHECKMATE
+            val notation = currentSnapshot.board.getNotation(boardMove, isCheck, isMate)
+            val nextSnapshot = nextSnapshotBeforeNotation.copy(notation = notation)
+
+            state.copy(
+                snapshots = state.snapshots + nextSnapshot,
+                currentIndex = state.currentIndex + 1
+            )
+        }
     }
 }
