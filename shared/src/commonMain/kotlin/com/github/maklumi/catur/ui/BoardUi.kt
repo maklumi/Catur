@@ -319,10 +319,12 @@ fun SquareView(
 ) {
     val isSelected = snapshot.selectedPosition == position
     val isLegalMove = snapshot.isLegalMove(position)
+    val isLastMove = snapshot.lastMove?.let { it.move.from == position || it.move.to == position } ?: false
 
     val backgroundColor = when {
         isSelected -> Color.Yellow
         isLegalMove -> Color.Green.copy(alpha = 0.5f)
+        isLastMove -> Color(0xFFF6F682)
         position.isLightSquare() -> Color(0xFFEEEED2)
         else -> Color(0xFF769656)
     }
