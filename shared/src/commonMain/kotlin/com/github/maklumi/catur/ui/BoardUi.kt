@@ -74,6 +74,14 @@ fun ChessBoard(
                         modifier = Modifier.padding(8.dp),
                         fontSize = 20.sp
                     )
+                    if (state.isEngineThinking) {
+                        Text(
+                            text = "(Thinking...)",
+                            color = Color.Gray,
+                            fontSize = 16.sp,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
                     if (snapshot.status != GameStatus.ONGOING) {
                         Text(
                             text = " - ${snapshot.status}",

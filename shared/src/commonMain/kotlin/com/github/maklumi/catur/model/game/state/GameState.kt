@@ -17,6 +17,7 @@ data class GameState(
     val whiteName: String = "Human",
     val blackName: String = "Maia",
     val isBoardFlipped: Boolean = false,
+    val isEngineThinking: Boolean = false,
 ) {
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
 
@@ -43,4 +44,5 @@ sealed class GameAction {
     object OfferDraw : GameAction()
     object AcceptDraw : GameAction()
     object DeclineDraw : GameAction()
+    data class SetEngineThinking(val isThinking: Boolean) : GameAction()
 }

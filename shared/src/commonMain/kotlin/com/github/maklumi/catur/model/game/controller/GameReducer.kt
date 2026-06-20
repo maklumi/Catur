@@ -122,5 +122,8 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                 snapshots = state.snapshots.toMutableList().apply { set(state.currentIndex, nextSnapshot) }
             )
         }
+        is GameAction.SetEngineThinking -> {
+            state.copy(isEngineThinking = action.isThinking)
+        }
     }
 }

@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -19,17 +18,33 @@ class GameController(
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
 
+    private var lastEngineTurnIndex = -1
+
     init {
         scope.launch {
-            state.collectLatest { currentState ->
-                if (currentState.isEngineTurn && engine != null) {
-                    val moves = currentState.snapshots
-                        .drop(1) // Drop initial state
-                        .mapNotNull { it.lastMoveUci }
+            state.collect { currentState ->
+                val currentSnapshotIndex = currentState.snapshots.size
+                if (currentState.isEngineTurn && 
+                    engine != null && 
+                    !currentState.isEngineThinking && 
+                    currentSnapshotIndex != lastEngineTurnIndex
+                ) {
+                    lastEngineTurnIndex = currentSnapshotIndex
                     
-                    val bestMove = engine.getBestMove(moves)
-                    if (bestMove != null) {
-                        dispatch(GameAction.EngineMove(bestMove))
+                    launch {
+                        dispatch(GameAction.SetEngineThinking(true))
+                        
+                        val moves = currentState.snapshots
+                            .drop(1)
+                            .mapNotNull { it.lastMoveUci }
+                        
+                        val bestMove = engine.getBestMove(moves)
+
+                        dispatch(GameAction.SetEngineThinking(false))
+                        
+                        if (bestMove != null) {
+                            dispatch(GameAction.EngineMove(bestMove))
+                        }
                     }
                 }
             }
