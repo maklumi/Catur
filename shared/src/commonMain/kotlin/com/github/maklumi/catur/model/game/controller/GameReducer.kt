@@ -78,5 +78,12 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                 currentIndex = state.currentIndex + 1
             )
         }
+        is GameAction.ReverseSides -> {
+            state.copy(
+                whitePlayer = state.blackPlayer,
+                blackPlayer = state.whitePlayer,
+                isBoardFlipped = !state.isBoardFlipped
+            )
+        }
     }
 }

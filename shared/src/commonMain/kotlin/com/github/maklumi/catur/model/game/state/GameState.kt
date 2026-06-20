@@ -14,6 +14,7 @@ data class GameState(
     val currentIndex: Int = 0,
     val whitePlayer: PlayerType = PlayerType.HUMAN,
     val blackPlayer: PlayerType = PlayerType.ENGINE,
+    val isBoardFlipped: Boolean = false,
 ) {
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
 
@@ -35,4 +36,5 @@ sealed class GameAction {
     object StepForward : GameAction()
     data class JumpToHistory(val index: Int) : GameAction()
     data class EngineMove(val moveUci: String) : GameAction()
+    object ReverseSides : GameAction()
 }

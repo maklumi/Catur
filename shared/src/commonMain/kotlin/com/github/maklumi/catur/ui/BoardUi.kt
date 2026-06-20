@@ -80,11 +80,17 @@ fun ChessBoard(
                             modifier = Modifier.padding(8.dp)
                         )
                     }
+                    Button(onClick = { onAction(GameAction.ReverseSides) }) {
+                        Text("Reverse Sides")
+                    }
                 }
 
-                for (rank in 8 downTo 1) {
+                val ranks = if (state.isBoardFlipped) 1..8 else 8 downTo 1
+                val files = if (state.isBoardFlipped) 8 downTo 1 else 1..8
+
+                for (rank in ranks) {
                     Row {
-                        for (file in 1..8) {
+                        for (file in files) {
                             val position = Position.from(file, rank)
                             SquareView(
                                 position = position,
