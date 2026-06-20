@@ -14,6 +14,8 @@ data class GameState(
     val currentIndex: Int = 0,
     val whitePlayer: PlayerType = PlayerType.HUMAN,
     val blackPlayer: PlayerType = PlayerType.ENGINE,
+    val whiteName: String = "Human",
+    val blackName: String = "Maia",
     val isBoardFlipped: Boolean = false,
 ) {
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]

@@ -27,6 +27,7 @@ import com.github.maklumi.catur.model.game.state.GameSnapshotState
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.move.BoardMove
 import com.github.maklumi.catur.model.piece.Piece
+import com.github.maklumi.catur.model.piece.PieceColor
 import org.jetbrains.compose.resources.painterResource
 import catur.shared.generated.resources.*
 
@@ -60,15 +61,16 @@ fun ChessBoard(
     onAction: (GameAction) -> Unit
 ) {
     val snapshot = state.currentSnapshot
-    Box {
-        Row(modifier = Modifier.padding(16.dp)) {
-            Column {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Row(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    val activeName = if (snapshot.activeColor == PieceColor.WHITE) state.whiteName else state.blackName
                     Text(
-                        text = "Turn: ${snapshot.activeColor}",
+                        text = "Turn: $activeName",
                         modifier = Modifier.padding(8.dp),
                         fontSize = 20.sp
                     )
@@ -114,15 +116,27 @@ fun ChessBoard(
                 val ranks = if (state.isBoardFlipped) 1..8 else 8 downTo 1
                 val files = if (state.isBoardFlipped) 8 downTo 1 else 1..8
 
-                for (rank in ranks) {
-                    Row {
-                        for (file in files) {
-                            val position = Position.from(file, rank)
-                            SquareView(
-                                position = position,
-                                snapshot = snapshot,
-                                onClick = { onAction(GameAction.SquareClick(position)) }
-                            )
+                Box(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .aspectRatio(1f)
+                    ) {
+                        for (rank in ranks) {
+                            Row(modifier = Modifier.weight(1f)) {
+                                for (file in files) {
+                                    val position = Position.from(file, rank)
+                                    SquareView(
+                                        position = position,
+                                        snapshot = snapshot,
+                                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                                        onClick = { onAction(GameAction.SquareClick(position)) }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -147,7 +161,15 @@ fun ChessBoard(
             Spacer(modifier = Modifier.width(32.dp))
 
             Column(modifier = Modifier.width(200.dp).fillMaxHeight()) {
-                CapturedPiecesView(pieces = snapshot.capturedWhite)
+                val topName = if (state.isBoardFlipped) state.whiteName else state.blackName
+                val topCaptured = if (state.isBoardFlipped) snapshot.capturedBlack else snapshot.capturedWhite
+                
+                val bottomName = if (state.isBoardFlipped) state.blackName else state.whiteName
+                val bottomCaptured = if (state.isBoardFlipped) snapshot.capturedWhite else snapshot.capturedBlack
+
+                Text(text = topName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                CapturedPiecesView(pieces = topCaptured)
+                
                 Spacer(modifier = Modifier.height(8.dp))
                 MoveHistoryList(
                     state = state,
@@ -155,7 +177,9 @@ fun ChessBoard(
                     modifier = Modifier.weight(1f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                CapturedPiecesView(pieces = snapshot.capturedBlack)
+
+                Text(text = bottomName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                CapturedPiecesView(pieces = bottomCaptured)
             }
         }
 
@@ -290,6 +314,7 @@ fun PromotionDialog(
 fun SquareView(
     position: Position,
     snapshot: GameSnapshotState,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     val isSelected = snapshot.selectedPosition == position
@@ -303,8 +328,7 @@ fun SquareView(
     }
 
     Box(
-        modifier = Modifier
-            .size(48.dp)
+        modifier = modifier
             .background(backgroundColor)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
@@ -312,7 +336,7 @@ fun SquareView(
         snapshot.board[position].piece?.let { piece ->
             PieceImage(
                 piece = piece,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.fillMaxSize(0.85f)
             )
         }
     }
