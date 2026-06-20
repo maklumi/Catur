@@ -83,6 +83,32 @@ fun ChessBoard(
                     Button(onClick = { onAction(GameAction.ReverseSides) }) {
                         Text("Reverse Sides")
                     }
+                    if (snapshot.status == GameStatus.ONGOING) {
+                        Button(onClick = { onAction(GameAction.Resign) }) {
+                            Text("Resign")
+                        }
+                        if (snapshot.drawOfferedBy == null) {
+                            Button(onClick = { onAction(GameAction.OfferDraw) }) {
+                                Text("Offer Draw")
+                            }
+                        }
+                    }
+                }
+
+                if (snapshot.status == GameStatus.ONGOING && snapshot.drawOfferedBy != null && snapshot.drawOfferedBy != snapshot.activeColor) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(8.dp)
+                    ) {
+                        Text("Draw offered by ${snapshot.drawOfferedBy}")
+                        Button(onClick = { onAction(GameAction.AcceptDraw) }) {
+                            Text("Accept")
+                        }
+                        Button(onClick = { onAction(GameAction.DeclineDraw) }) {
+                            Text("Decline")
+                        }
+                    }
                 }
 
                 val ranks = if (state.isBoardFlipped) 1..8 else 8 downTo 1

@@ -37,4 +37,8 @@ sealed class GameAction {
     data class JumpToHistory(val index: Int) : GameAction()
     data class EngineMove(val moveUci: String) : GameAction()
     object ReverseSides : GameAction()
+    object Resign : GameAction()
+    object OfferDraw : GameAction()
+    object AcceptDraw : GameAction()
+    object DeclineDraw : GameAction()
 }

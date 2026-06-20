@@ -11,7 +11,10 @@ import com.github.maklumi.catur.model.piece.PieceColor
 enum class GameStatus {
     ONGOING,
     CHECKMATE,
-    STALEMATE
+    STALEMATE,
+    WHITE_RESIGNED,
+    BLACK_RESIGNED,
+    DRAW
 }
 
 data class GameSnapshotState(
@@ -25,8 +28,10 @@ data class GameSnapshotState(
     val lastMoveUci: String? = null,
     val capturedWhite: List<Piece> = emptyList(),
     val capturedBlack: List<Piece> = emptyList(),
+    val forcedStatus: GameStatus? = null,
+    val drawOfferedBy: PieceColor? = null,
 ) {
-    val legalMoves: List<BoardMove> = if (pendingPromotion != null) emptyList() else selectedPosition?.let { pos ->
+    val legalMoves: List<BoardMove> = if (pendingPromotion != null || forcedStatus != null) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos].piece
         if (piece?.pieceColor == activeColor) {
             getLegalMovesForPiece(pos)
@@ -44,18 +49,20 @@ data class GameSnapshotState(
     }
 
     val status: GameStatus by lazy {
-        val hasAnyLegalMove = board.piecesMap.keys.any { pos ->
-            val piece = board[pos].piece
-            piece?.pieceColor == activeColor && getLegalMovesForPiece(pos).isNotEmpty()
-        }
+        forcedStatus ?: run {
+            val hasAnyLegalMove = board.piecesMap.keys.any { pos ->
+                val piece = board[pos].piece
+                piece?.pieceColor == activeColor && getLegalMovesForPiece(pos).isNotEmpty()
+            }
 
-        if (hasAnyLegalMove) {
-            GameStatus.ONGOING
-        } else {
-            if (board.isInCheck(activeColor)) {
-                GameStatus.CHECKMATE
+            if (hasAnyLegalMove) {
+                GameStatus.ONGOING
             } else {
-                GameStatus.STALEMATE
+                if (board.isInCheck(activeColor)) {
+                    GameStatus.CHECKMATE
+                } else {
+                    GameStatus.STALEMATE
+                }
             }
         }
     }

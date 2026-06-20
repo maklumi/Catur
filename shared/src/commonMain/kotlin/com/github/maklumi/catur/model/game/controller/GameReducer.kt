@@ -5,6 +5,7 @@ import com.github.maklumi.catur.model.game.state.GameState
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.game.state.getNotation
 import com.github.maklumi.catur.model.game.state.isInCheck
+import com.github.maklumi.catur.model.piece.PieceColor
 
 fun gameReducer(state: GameState, action: GameAction): GameState {
     return when (action) {
@@ -83,6 +84,42 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                 whitePlayer = state.blackPlayer,
                 blackPlayer = state.whitePlayer,
                 isBoardFlipped = !state.isBoardFlipped
+            )
+        }
+        is GameAction.Resign -> {
+            if (state.isViewingHistory || state.currentSnapshot.status != GameStatus.ONGOING) return state
+            val snapshot = state.currentSnapshot
+            val forcedStatus = if (snapshot.activeColor == PieceColor.WHITE) GameStatus.WHITE_RESIGNED else GameStatus.BLACK_RESIGNED
+            val nextSnapshot = snapshot.copy(forcedStatus = forcedStatus)
+            state.copy(
+                snapshots = state.snapshots.toMutableList().apply { set(state.currentIndex, nextSnapshot) }
+            )
+        }
+        is GameAction.OfferDraw -> {
+            if (state.isViewingHistory || state.currentSnapshot.status != GameStatus.ONGOING) return state
+            val snapshot = state.currentSnapshot
+            if (snapshot.drawOfferedBy != null) return state
+            val nextSnapshot = snapshot.copy(drawOfferedBy = snapshot.activeColor)
+            state.copy(
+                snapshots = state.snapshots.toMutableList().apply { set(state.currentIndex, nextSnapshot) }
+            )
+        }
+        is GameAction.AcceptDraw -> {
+            if (state.isViewingHistory || state.currentSnapshot.status != GameStatus.ONGOING) return state
+            val snapshot = state.currentSnapshot
+            if (snapshot.drawOfferedBy == null || snapshot.drawOfferedBy == snapshot.activeColor) return state
+            val nextSnapshot = snapshot.copy(forcedStatus = GameStatus.DRAW)
+            state.copy(
+                snapshots = state.snapshots.toMutableList().apply { set(state.currentIndex, nextSnapshot) }
+            )
+        }
+        is GameAction.DeclineDraw -> {
+            if (state.isViewingHistory || state.currentSnapshot.status != GameStatus.ONGOING) return state
+            val snapshot = state.currentSnapshot
+            if (snapshot.drawOfferedBy == null || snapshot.drawOfferedBy == snapshot.activeColor) return state
+            val nextSnapshot = snapshot.copy(drawOfferedBy = null)
+            state.copy(
+                snapshots = state.snapshots.toMutableList().apply { set(state.currentIndex, nextSnapshot) }
             )
         }
     }
