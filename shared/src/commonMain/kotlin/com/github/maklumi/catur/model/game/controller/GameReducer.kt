@@ -24,10 +24,11 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                 val notation = currentSnapshot.board.getNotation(boardMove, isCheck, isMate)
                 val nextSnapshot = nextSnapshotBeforeNotation.copy(notation = notation)
                 
-                state.copy(
-                    snapshots = state.snapshots + nextSnapshot,
-                    currentIndex = state.currentIndex + 1
-                )
+                state.applyIncrement()
+                    .copy(
+                        snapshots = state.snapshots + nextSnapshot,
+                        currentIndex = state.currentIndex + 1
+                    )
             } else {
                 state.copy(
                     snapshots = state.snapshots.toMutableList().apply { 
@@ -46,10 +47,11 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
             val notation = currentSnapshot.board.getNotation(action.move, isCheck, isMate)
             val nextSnapshot = nextSnapshotBeforeNotation.copy(notation = notation)
 
-            state.copy(
-                snapshots = state.snapshots + nextSnapshot,
-                currentIndex = state.currentIndex + 1
-            )
+            state.applyIncrement()
+                .copy(
+                    snapshots = state.snapshots + nextSnapshot,
+                    currentIndex = state.currentIndex + 1
+                )
         }
         is GameAction.StepBack -> {
             if (state.canGoBack()) state.copy(currentIndex = state.currentIndex - 1) else state
@@ -74,10 +76,11 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
             val notation = currentSnapshot.board.getNotation(boardMove, isCheck, isMate)
             val nextSnapshot = nextSnapshotBeforeNotation.copy(notation = notation)
 
-            state.copy(
-                snapshots = state.snapshots + nextSnapshot,
-                currentIndex = state.currentIndex + 1
-            )
+            state.applyIncrement()
+                .copy(
+                    snapshots = state.snapshots + nextSnapshot,
+                    currentIndex = state.currentIndex + 1
+                )
         }
         is GameAction.ReverseSides -> {
             state.copy(
@@ -125,5 +128,37 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
         is GameAction.SetEngineThinking -> {
             state.copy(isEngineThinking = action.isThinking)
         }
+        is GameAction.Tick -> {
+            if (state.isViewingHistory || state.currentSnapshot.status != GameStatus.ONGOING) return state
+            
+            val activeColor = state.currentSnapshot.activeColor
+            val newState = if (activeColor == PieceColor.WHITE) {
+                val newTime = (state.whiteTimeMillis - action.millis).coerceAtLeast(0L)
+                state.copy(whiteTimeMillis = newTime)
+            } else {
+                val newTime = (state.blackTimeMillis - action.millis).coerceAtLeast(0L)
+                state.copy(blackTimeMillis = newTime)
+            }
+            
+            if ((activeColor == PieceColor.WHITE && newState.whiteTimeMillis == 0L) ||
+                (activeColor == PieceColor.BLACK && newState.blackTimeMillis == 0L)) {
+                val forcedStatus = if (activeColor == PieceColor.WHITE) GameStatus.WHITE_OUT_OF_TIME else GameStatus.BLACK_OUT_OF_TIME
+                val nextSnapshot = newState.currentSnapshot.copy(forcedStatus = forcedStatus)
+                newState.copy(
+                    snapshots = newState.snapshots.toMutableList().apply { set(newState.currentIndex, nextSnapshot) }
+                )
+            } else {
+                newState
+            }
+        }
+    }
+}
+
+private fun GameState.applyIncrement(): GameState {
+    val justMovedColor = currentSnapshot.activeColor
+    return if (justMovedColor == PieceColor.WHITE) {
+        copy(whiteTimeMillis = whiteTimeMillis + 3000L)
+    } else {
+        copy(blackTimeMillis = blackTimeMillis + 3000L)
     }
 }

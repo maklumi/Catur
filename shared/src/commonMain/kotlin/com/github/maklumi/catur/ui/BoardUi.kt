@@ -31,6 +31,13 @@ import com.github.maklumi.catur.model.piece.PieceColor
 import org.jetbrains.compose.resources.painterResource
 import catur.shared.generated.resources.*
 
+private fun formatTime(millis: Long): String {
+    val totalSeconds = millis / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"
+}
+
 @Composable
 fun PieceImage(piece: Piece, modifier: Modifier = Modifier) {
     val resource = when (piece.resName) {
@@ -171,11 +178,25 @@ fun ChessBoard(
             Column(modifier = Modifier.width(200.dp).fillMaxHeight()) {
                 val topName = if (state.isBoardFlipped) state.whiteName else state.blackName
                 val topCaptured = if (state.isBoardFlipped) snapshot.capturedBlack else snapshot.capturedWhite
+                val topTime = if (state.isBoardFlipped) state.whiteTimeMillis else state.blackTimeMillis
                 
                 val bottomName = if (state.isBoardFlipped) state.blackName else state.whiteName
                 val bottomCaptured = if (state.isBoardFlipped) snapshot.capturedWhite else snapshot.capturedBlack
+                val bottomTime = if (state.isBoardFlipped) state.blackTimeMillis else state.whiteTimeMillis
 
-                Text(text = topName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = topName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        text = formatTime(topTime),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = if (topTime < 30000) Color.Red else Color.Unspecified
+                    )
+                }
                 CapturedPiecesView(pieces = topCaptured)
                 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -186,7 +207,19 @@ fun ChessBoard(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                Text(text = bottomName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = bottomName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(
+                        text = formatTime(bottomTime),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = if (bottomTime < 30000) Color.Red else Color.Unspecified
+                    )
+                }
                 CapturedPiecesView(pieces = bottomCaptured)
             }
         }

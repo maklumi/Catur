@@ -16,6 +16,8 @@ data class GameState(
     val blackPlayer: PlayerType = PlayerType.ENGINE,
     val whiteName: String = "Human",
     val blackName: String = "Maia",
+    val whiteTimeMillis: Long = 600_000L,
+    val blackTimeMillis: Long = 600_000L,
     val isBoardFlipped: Boolean = false,
     val isEngineThinking: Boolean = false,
 ) {
@@ -45,4 +47,5 @@ sealed class GameAction {
     object AcceptDraw : GameAction()
     object DeclineDraw : GameAction()
     data class SetEngineThinking(val isThinking: Boolean) : GameAction()
+    data class Tick(val millis: Long) : GameAction()
 }

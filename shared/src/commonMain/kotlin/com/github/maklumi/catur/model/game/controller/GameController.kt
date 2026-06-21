@@ -10,8 +10,10 @@ import com.github.maklumi.catur.model.game.state.isInCheck
 import com.github.maklumi.catur.model.move.EnPassantMove
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class GameController(
     private val engine: ChessEngine? = null,
@@ -23,6 +25,17 @@ class GameController(
     private var lastEngineTurnIndex = -1
 
     init {
+        // Clock timer logic
+        scope.launch {
+            while (true) {
+                delay(100.milliseconds)
+                val currentState = state.value
+                if (!currentState.isViewingHistory && currentState.currentSnapshot.status == GameStatus.ONGOING) {
+                    dispatch(GameAction.Tick(100))
+                }
+            }
+        }
+
         // Sound effects logic
         scope.launch {
             state

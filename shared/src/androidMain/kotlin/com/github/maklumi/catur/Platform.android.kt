@@ -16,7 +16,7 @@ class AndroidPlatform : Platform {
     }
 
     override fun playSound(type: SoundType) {
-        // TODO: Implement Android sound playing
+        // Implement Android sound playing
     }
 }
 

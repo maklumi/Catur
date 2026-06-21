@@ -14,6 +14,8 @@ enum class GameStatus {
     STALEMATE,
     WHITE_RESIGNED,
     BLACK_RESIGNED,
+    WHITE_OUT_OF_TIME,
+    BLACK_OUT_OF_TIME,
     DRAW
 }
 
