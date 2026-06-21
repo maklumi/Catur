@@ -1,6 +1,7 @@
 package com.github.maklumi.catur
 
 import android.os.Build
+import com.github.maklumi.catur.model.game.audio.SoundType
 import com.github.maklumi.catur.model.game.controller.GameController
 import kotlinx.coroutines.CoroutineScope
 
@@ -12,6 +13,10 @@ class AndroidPlatform : Platform {
             engine = null,
             scope = scope
         )
+    }
+
+    override fun playSound(type: SoundType) {
+        // TODO: Implement Android sound playing
     }
 }
 
