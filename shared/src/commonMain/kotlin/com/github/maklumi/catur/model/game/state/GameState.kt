@@ -18,6 +18,7 @@ data class GameState(
     val blackName: String = "Maia",
     val whiteTimeMillis: Long = 600_000L,
     val blackTimeMillis: Long = 600_000L,
+    val engineModel: String = "maia3-5m",
     val isBoardFlipped: Boolean = false,
     val isEngineThinking: Boolean = false,
 ) {
@@ -48,4 +49,5 @@ sealed class GameAction {
     object DeclineDraw : GameAction()
     data class SetEngineThinking(val isThinking: Boolean) : GameAction()
     data class Tick(val millis: Long) : GameAction()
+    data class ChangeEngineLevel(val model: String) : GameAction()
 }

@@ -86,7 +86,7 @@ class GameController(
                             .drop(1)
                             .mapNotNull { it.lastMoveUci }
                         
-                        val bestMove = engine.getBestMove(moves)
+                        val bestMove = engine.getBestMove(moves, currentState.engineModel)
 
                         dispatch(GameAction.SetEngineThinking(false))
                         
@@ -103,5 +103,9 @@ class GameController(
         _state.update { currentState ->
             gameReducer(currentState, action)
         }
+    }
+
+    fun dispose() {
+        engine?.stop()
     }
 }

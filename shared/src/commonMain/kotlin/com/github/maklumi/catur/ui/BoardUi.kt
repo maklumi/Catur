@@ -10,7 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -221,6 +221,12 @@ fun ChessBoard(
                     )
                 }
                 CapturedPiecesView(pieces = bottomCaptured)
+
+                Spacer(modifier = Modifier.height(16.dp))
+                EngineLevelSelector(
+                    currentModel = state.engineModel,
+                    onModelChange = { onAction(GameAction.ChangeEngineLevel(it)) }
+                )
             }
         }
 
@@ -229,6 +235,41 @@ fun ChessBoard(
                 moves = moves,
                 onChoice = { onAction(GameAction.PromotionChoice(it)) }
             )
+        }
+    }
+}
+
+@Composable
+fun EngineLevelSelector(
+    currentModel: String,
+    onModelChange: (String) -> Unit
+) {
+    val models = listOf(
+        "maia3-3m-ablation" to "3M Ablation",
+        "maia3-5m" to "5M (Standard)",
+        "maia3-23m" to "23M (Strong)",
+        "maia3-79m" to "79M (Expert)"
+    )
+
+    Column {
+        Text(text = "Engine Level", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Spacer(modifier = Modifier.height(4.dp))
+        models.forEach { (model, label) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onModelChange(model) }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .background(if (currentModel == model) Color.Green else Color.LightGray, RoundedCornerShape(6.dp))
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = label, fontSize = 14.sp)
+            }
         }
     }
 }

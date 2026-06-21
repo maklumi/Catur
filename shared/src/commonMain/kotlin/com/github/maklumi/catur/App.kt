@@ -26,6 +26,12 @@ fun App() {
         focusRequester.requestFocus()
     }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            controller.dispose()
+        }
+    }
+
     MaterialTheme {
         Box(
             modifier = Modifier

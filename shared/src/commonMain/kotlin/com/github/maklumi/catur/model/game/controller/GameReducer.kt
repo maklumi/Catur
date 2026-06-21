@@ -128,6 +128,9 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
         is GameAction.SetEngineThinking -> {
             state.copy(isEngineThinking = action.isThinking)
         }
+        is GameAction.ChangeEngineLevel -> {
+            state.copy(engineModel = action.model)
+        }
         is GameAction.Tick -> {
             if (state.isViewingHistory || state.currentSnapshot.status != GameStatus.ONGOING) return state
             
