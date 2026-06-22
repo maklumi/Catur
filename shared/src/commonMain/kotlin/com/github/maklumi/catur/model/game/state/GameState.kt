@@ -9,21 +9,42 @@ enum class PlayerType {
     HUMAN, ENGINE
 }
 
-data class GameState(
-    val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(board = Board.initial)),
-    val currentIndex: Int = 0,
-    val whitePlayer: PlayerType = PlayerType.HUMAN,
-    val blackPlayer: PlayerType = PlayerType.ENGINE,
-    val whiteName: String = "Human",
-    val blackName: String = "Maia",
-    val whiteTimeMillis: Long = 600_000L,
-    val blackTimeMillis: Long = 600_000L,
-    val engineModel: String = "maia3-5m",
+data class PlayerConfig(
+    val type: PlayerType,
+    val name: String,
+    val timeMillis: Long = 600_000L,
+)
+
+data class EngineSettings(
+    val model: String = "maia3-5m",
+    val isThinking: Boolean = false,
+)
+
+data class UiState(
     val isBoardFlipped: Boolean = false,
-    val isEngineThinking: Boolean = false,
     val longPressedPosition: Position? = null,
-    val moveEvaluations: Map<String, Int> = emptyMap(), // UCI move -> score
+    val moveEvaluations: Map<String, Int> = emptyMap(),
+)
+
+data class GameState(
+    val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(context = ChessContext(board = Board.initial))),
+    val currentIndex: Int = 0,
+    val whitePlayer: PlayerConfig = PlayerConfig(PlayerType.HUMAN, "Human"),
+    val blackPlayer: PlayerConfig = PlayerConfig(PlayerType.ENGINE, "Maia"),
+    val engine: EngineSettings = EngineSettings(),
+    val ui: UiState = UiState(),
 ) {
+    // Helpers
+    val whiteName get() = whitePlayer.name
+    val blackName get() = blackPlayer.name
+    val whiteTimeMillis get() = whitePlayer.timeMillis
+    val blackTimeMillis get() = blackPlayer.timeMillis
+    val engineModel get() = engine.model
+    val isEngineThinking get() = engine.isThinking
+    val isBoardFlipped get() = ui.isBoardFlipped
+    val longPressedPosition get() = ui.longPressedPosition
+    val moveEvaluations get() = ui.moveEvaluations
+
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
 
     val isViewingHistory: Boolean get() = currentIndex < snapshots.size - 1
@@ -33,8 +54,8 @@ data class GameState(
 
     val isEngineTurn: Boolean get() = !isViewingHistory && 
         currentSnapshot.status == GameStatus.ONGOING &&
-        ((currentSnapshot.activeColor == PieceColor.WHITE && whitePlayer == PlayerType.ENGINE) ||
-         (currentSnapshot.activeColor == PieceColor.BLACK && blackPlayer == PlayerType.ENGINE))
+        ((currentSnapshot.activeColor == PieceColor.WHITE && whitePlayer.type == PlayerType.ENGINE) ||
+         (currentSnapshot.activeColor == PieceColor.BLACK && blackPlayer.type == PlayerType.ENGINE))
 }
 
 sealed class GameAction {

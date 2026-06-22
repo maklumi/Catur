@@ -19,20 +19,43 @@ enum class GameStatus {
     DRAW
 }
 
-data class GameSnapshotState(
+data class ChessContext(
     val board: Board = Board(),
-    val selectedPosition: Position? = null,
-    val lastMove: BoardMove? = null,
     val activeColor: PieceColor = PieceColor.WHITE,
-    val movedPositions: Set<Position> = emptySet(),
-    val pendingPromotion: List<BoardMove>? = null,
-    val notation: String? = null,
+    val selectedPosition: Position? = null,
+)
+
+data class ChessHistory(
+    val lastMove: BoardMove? = null,
     val lastMoveUci: String? = null,
+    val movedPositions: Set<Position> = emptySet(),
+    val notation: String? = null,
+)
+
+data class ChessMaterial(
     val capturedWhite: List<Piece> = emptyList(),
     val capturedBlack: List<Piece> = emptyList(),
+)
+
+data class GameSnapshotState(
+    val context: ChessContext = ChessContext(),
+    val history: ChessHistory = ChessHistory(),
+    val material: ChessMaterial = ChessMaterial(),
+    val pendingPromotion: List<BoardMove>? = null,
     val forcedStatus: GameStatus? = null,
     val drawOfferedBy: PieceColor? = null,
 ) {
+    // Helpers for cleaner access
+    val board get() = context.board
+    val activeColor get() = context.activeColor
+    val selectedPosition get() = context.selectedPosition
+    val lastMove get() = history.lastMove
+    val lastMoveUci get() = history.lastMoveUci
+    val movedPositions get() = history.movedPositions
+    val notation get() = history.notation
+    val capturedWhite get() = material.capturedWhite
+    val capturedBlack get() = material.capturedBlack
+
     val legalMoves: List<BoardMove> = if (pendingPromotion != null || forcedStatus != null) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos].piece
         if (piece?.pieceColor == activeColor) {
@@ -69,9 +92,6 @@ data class GameSnapshotState(
         }
     }
 
-    fun isLegalMove(position: Position): Boolean =
-        legalMoves.any { it.move.to == position }
-
     fun findMoveByUci(uci: String): BoardMove? {
         val candidates = board.piecesMap.keys
             .filter { board[it].piece?.pieceColor == activeColor }
@@ -98,9 +118,9 @@ data class GameSnapshotState(
             else -> {
                 val piece = board[to].piece
                 if (piece != null && piece.pieceColor == activeColor) {
-                    copy(selectedPosition = to, pendingPromotion = null)
+                    copy(context = context.copy(selectedPosition = to), pendingPromotion = null)
                 } else {
-                    copy(selectedPosition = null, pendingPromotion = null)
+                    copy(context = context.copy(selectedPosition = null), pendingPromotion = null)
                 }
             }
         }
@@ -126,14 +146,20 @@ data class GameSnapshotState(
         } else capturedBlack
 
         return copy(
-            board = move.applyOn(board),
-            selectedPosition = null,
-            lastMove = boardMove,
-            activeColor = activeColor.opposite(),
-            movedPositions = movedPositions + move.from + move.to,
-            capturedWhite = newCapturedWhite,
-            capturedBlack = newCapturedBlack,
-            lastMoveUci = move.toUciString()
+            context = context.copy(
+                board = move.applyOn(board),
+                activeColor = activeColor.opposite(),
+                selectedPosition = null,
+            ),
+            history = history.copy(
+                lastMove = boardMove,
+                lastMoveUci = move.toUciString(),
+                movedPositions = movedPositions + move.from + move.to,
+            ),
+            material = material.copy(
+                capturedWhite = newCapturedWhite,
+                capturedBlack = newCapturedBlack,
+            )
         )
     }
 }
