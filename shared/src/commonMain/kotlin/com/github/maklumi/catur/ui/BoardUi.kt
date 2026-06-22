@@ -2,10 +2,12 @@ package com.github.maklumi.catur.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -146,10 +148,15 @@ fun ChessBoard(
                             Row(modifier = Modifier.weight(1f)) {
                                 for (file in files) {
                                     val position = Position.from(file, rank)
+                                    val isLeftmost = file == (if (state.isBoardFlipped) 8 else 1)
+                                    val isBottom = rank == (if (state.isBoardFlipped) 8 else 1)
+                                    
                                     SquareView(
                                         position = position,
                                         gameState = state,
                                         modifier = Modifier.weight(1f).fillMaxHeight(),
+                                        showRank = isLeftmost,
+                                        showFile = isBottom,
                                         onAction = { onAction(it) }
                                     )
                                 }
@@ -399,11 +406,16 @@ fun SquareView(
     position: Position,
     gameState: GameState,
     modifier: Modifier = Modifier,
+    showRank: Boolean = false,
+    showFile: Boolean = false,
     onAction: (GameAction) -> Unit
 ) {
     val snapshot = gameState.currentSnapshot
     val eval = gameState.moveEvaluations.entries.find { it.key.substring(2, 4) == position.toString() }?.value
     val isLastMove = snapshot.lastMove?.let { it.move.from == position || it.move.to == position } ?: false
+    val isLegalMove = snapshot.legalMoves.any { it.move.to == position }
+    val hasPiece = snapshot.board[position].isNotEmpty
+    val isLight = position.isLightSquare()
 
     val backgroundColor = when {
         snapshot.selectedPosition == position || gameState.longPressedPosition == position -> Color.Yellow
@@ -413,9 +425,11 @@ fun SquareView(
             Color(red = normalized, green = 1f - normalized, blue = 0f, alpha = 0.6f)
         }
         isLastMove -> Color(0xFFF6F682)
-        position.isLightSquare() -> Color(0xFFEEEED2)
+        isLight -> Color(0xFFEEEED2)
         else -> Color(0xFF769656)
     }
+
+    val labelColor = if (isLight) Color(0xFF769656) else Color(0xFFEEEED2)
 
     Box(
         modifier = modifier
@@ -428,13 +442,61 @@ fun SquareView(
                     },
                     onLongPress = { onAction(GameAction.SquareLongPress(position)) }
                 )
-            }
+            },
+        contentAlignment = Alignment.Center
     ) {
+        if (showRank) {
+            Text(
+                text = position.rank.toString(),
+                color = labelColor,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 2.dp, top = 1.dp)
+            )
+        }
+        
+        if (showFile) {
+            Text(
+                text = position.toString().take(1),
+                color = labelColor,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 2.dp, bottom = 1.dp)
+            )
+        }
+
         snapshot.board[position].piece?.let { piece ->
             PieceImage(
                 piece = piece,
                 modifier = Modifier.fillMaxSize(0.85f)
             )
+        }
+
+        if (isLegalMove) {
+            if (!hasPiece) {
+                // Dot for empty square
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .background(Color.Black.copy(alpha = 0.15f), CircleShape)
+                )
+            } else {
+                // Border for capture
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(4.dp)
+                        .border(
+                            width = 4.dp,
+                            color = Color.Black.copy(alpha = 0.1f),
+                            shape = CircleShape
+                        )
+                )
+            }
         }
     }
 }
