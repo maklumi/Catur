@@ -21,6 +21,8 @@ data class GameState(
     val engineModel: String = "maia3-5m",
     val isBoardFlipped: Boolean = false,
     val isEngineThinking: Boolean = false,
+    val longPressedPosition: Position? = null,
+    val moveEvaluations: Map<String, Int> = emptyMap(), // UCI move -> score
 ) {
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
 
@@ -50,4 +52,7 @@ sealed class GameAction {
     data class SetEngineThinking(val isThinking: Boolean) : GameAction()
     data class Tick(val millis: Long) : GameAction()
     data class ChangeEngineLevel(val model: String) : GameAction()
+    data class SquareLongPress(val position: Position) : GameAction()
+    object ClearLongPress : GameAction()
+    data class SetMoveEvaluations(val evaluations: Map<String, Int>) : GameAction()
 }

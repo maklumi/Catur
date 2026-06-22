@@ -3,6 +3,7 @@ package com.github.maklumi.catur.ui
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -146,9 +148,9 @@ fun ChessBoard(
                                     val position = Position.from(file, rank)
                                     SquareView(
                                         position = position,
-                                        snapshot = snapshot,
+                                        gameState = state,
                                         modifier = Modifier.weight(1f).fillMaxHeight(),
-                                        onClick = { onAction(GameAction.SquareClick(position)) }
+                                        onAction = { onAction(it) }
                                     )
                                 }
                             }
@@ -395,17 +397,21 @@ fun PromotionDialog(
 @Composable
 fun SquareView(
     position: Position,
-    snapshot: GameSnapshotState,
+    gameState: GameState,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onAction: (GameAction) -> Unit
 ) {
-    val isSelected = snapshot.selectedPosition == position
-    val isLegalMove = snapshot.isLegalMove(position)
+    val snapshot = gameState.currentSnapshot
+    val eval = gameState.moveEvaluations.entries.find { it.key.substring(2, 4) == position.toString() }?.value
     val isLastMove = snapshot.lastMove?.let { it.move.from == position || it.move.to == position } ?: false
 
     val backgroundColor = when {
-        isSelected -> Color.Yellow
-        isLegalMove -> Color.Green.copy(alpha = 0.5f)
+        snapshot.selectedPosition == position || gameState.longPressedPosition == position -> Color.Yellow
+        eval != null -> {
+            // Map eval (-300 to 300) to Red-Green gradient
+            val normalized = ((eval + 300) / 600f).coerceIn(0f, 1f)
+            Color(red = normalized, green = 1f - normalized, blue = 0f, alpha = 0.6f)
+        }
         isLastMove -> Color(0xFFF6F682)
         position.isLightSquare() -> Color(0xFFEEEED2)
         else -> Color(0xFF769656)
@@ -414,8 +420,15 @@ fun SquareView(
     Box(
         modifier = modifier
             .background(backgroundColor)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+            .pointerInput(position) {
+                detectTapGestures(
+                    onTap = { 
+                        onAction(GameAction.ClearLongPress)
+                        onAction(GameAction.SquareClick(position)) 
+                    },
+                    onLongPress = { onAction(GameAction.SquareLongPress(position)) }
+                )
+            }
     ) {
         snapshot.board[position].piece?.let { piece ->
             PieceImage(

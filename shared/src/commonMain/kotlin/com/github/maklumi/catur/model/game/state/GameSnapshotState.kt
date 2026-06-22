@@ -36,13 +36,13 @@ data class GameSnapshotState(
     val legalMoves: List<BoardMove> = if (pendingPromotion != null || forcedStatus != null) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos].piece
         if (piece?.pieceColor == activeColor) {
-            getLegalMovesForPiece(pos)
+            getLegalMovesForPosition(pos)
         } else {
             null
         }
     } ?: emptyList()
 
-    private fun getLegalMovesForPiece(pos: Position): List<BoardMove> {
+    fun getLegalMovesForPosition(pos: Position): List<BoardMove> {
         val piece = board[pos].piece ?: return emptyList()
         return piece.pseudoLegalMoves(board, lastMove, movedPositions).filter { boardMove ->
             val nextBoard = boardMove.move.applyOn(board)
@@ -54,7 +54,7 @@ data class GameSnapshotState(
         forcedStatus ?: run {
             val hasAnyLegalMove = board.piecesMap.keys.any { pos ->
                 val piece = board[pos].piece
-                piece?.pieceColor == activeColor && getLegalMovesForPiece(pos).isNotEmpty()
+                piece?.pieceColor == activeColor && getLegalMovesForPosition(pos).isNotEmpty()
             }
 
             if (hasAnyLegalMove) {
@@ -75,7 +75,7 @@ data class GameSnapshotState(
     fun findMoveByUci(uci: String): BoardMove? {
         val candidates = board.piecesMap.keys
             .filter { board[it].piece?.pieceColor == activeColor }
-            .flatMap { getLegalMovesForPiece(it) }
+            .flatMap { getLegalMovesForPosition(it) }
             .filter { it.move.toUciString() == uci }
         
         return candidates.firstOrNull()

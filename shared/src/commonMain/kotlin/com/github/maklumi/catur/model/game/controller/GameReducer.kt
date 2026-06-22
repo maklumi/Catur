@@ -27,13 +27,17 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                 state.applyIncrement()
                     .copy(
                         snapshots = state.snapshots + nextSnapshot,
-                        currentIndex = state.currentIndex + 1
+                        currentIndex = state.currentIndex + 1,
+                        longPressedPosition = null,
+                        moveEvaluations = emptyMap()
                     )
             } else {
                 state.copy(
                     snapshots = state.snapshots.toMutableList().apply { 
                         set(state.currentIndex, nextSnapshotBeforeNotation) 
-                    }
+                    },
+                    longPressedPosition = null,
+                    moveEvaluations = emptyMap()
                 )
             }
         }
@@ -153,6 +157,15 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
             } else {
                 newState
             }
+        }
+        is GameAction.SquareLongPress -> {
+            state.copy(longPressedPosition = action.position)
+        }
+        is GameAction.ClearLongPress -> {
+            state.copy(longPressedPosition = null, moveEvaluations = emptyMap())
+        }
+        is GameAction.SetMoveEvaluations -> {
+            state.copy(moveEvaluations = action.evaluations)
         }
     }
 }

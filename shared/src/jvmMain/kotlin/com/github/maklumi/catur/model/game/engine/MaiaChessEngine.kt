@@ -78,6 +78,40 @@ class MaiaChessEngine : ChessEngine {
         null
     }
 
+    override suspend fun evaluate(moves: List<String>): Int = withContext(Dispatchers.IO) {
+        if (process == null || !process!!.isAlive) {
+            startProcess(currentModel ?: "maia3-5m")
+        }
+
+        val out = output ?: return@withContext 0
+        val inp = input ?: return@withContext 0
+
+        try {
+            val positionCmd = if (moves.isEmpty()) "position startpos\n" else "position startpos moves ${moves.joinToString(" ")}\n"
+            out.write(positionCmd)
+            out.write("go movetime 100\n")
+            out.flush()
+
+            var score = 0
+            while (inp.hasNextLine()) {
+                val line = inp.nextLine()
+                if (line.contains("score cp")) {
+                    val parts = line.split("score cp ")
+                    if (parts.size > 1) {
+                        score = parts[1].split(" ")[0].toIntOrNull() ?: 0
+                    }
+                }
+                if (line.startsWith("bestmove")) {
+                    return@withContext score
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            stop()
+        }
+        0
+    }
+
     override fun stop() {
         try {
             output?.write("quit\n")
