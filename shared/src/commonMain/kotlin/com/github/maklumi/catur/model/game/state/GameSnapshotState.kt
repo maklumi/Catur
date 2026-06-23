@@ -56,6 +56,14 @@ data class GameSnapshotState(
     val capturedWhite get() = material.capturedWhite
     val capturedBlack get() = material.capturedBlack
 
+    val whiteCapturedValue get() = capturedWhite.sumOf { it.value }
+    val blackCapturedValue get() = capturedBlack.sumOf { it.value }
+
+    /**
+     * Returns positive value if White is ahead, negative if Black is ahead.
+     */
+    val materialImbalance get() = blackCapturedValue - whiteCapturedValue
+
     val legalMoves: List<BoardMove> = if (pendingPromotion != null || forcedStatus != null) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos].piece
         if (piece?.pieceColor == activeColor) {

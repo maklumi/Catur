@@ -102,6 +102,7 @@ class GameController(
                         dispatch(GameAction.SetEngineThinking(false))
                         
                         if (bestMove != null) {
+                            delay(1000.milliseconds) // Delay engine move by 1 second for realism
                             dispatch(GameAction.EngineMove(bestMove))
                         }
                     }

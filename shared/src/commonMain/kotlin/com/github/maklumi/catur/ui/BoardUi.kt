@@ -5,7 +5,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,7 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,17 +35,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import catur.shared.generated.resources.Res
+import catur.shared.generated.resources.compose_multiplatform
+import catur.shared.generated.resources.dubrovny_bb
+import catur.shared.generated.resources.dubrovny_bk
+import catur.shared.generated.resources.dubrovny_bn
+import catur.shared.generated.resources.dubrovny_bp
+import catur.shared.generated.resources.dubrovny_bq
+import catur.shared.generated.resources.dubrovny_br
+import catur.shared.generated.resources.dubrovny_wb
+import catur.shared.generated.resources.dubrovny_wk
+import catur.shared.generated.resources.dubrovny_wn
+import catur.shared.generated.resources.dubrovny_wp
+import catur.shared.generated.resources.dubrovny_wq
+import catur.shared.generated.resources.dubrovny_wr
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.board.isLightSquare
 import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.GameState
-import com.github.maklumi.catur.model.game.state.GameSnapshotState
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.move.BoardMove
 import com.github.maklumi.catur.model.piece.Piece
 import com.github.maklumi.catur.model.piece.PieceColor
 import org.jetbrains.compose.resources.painterResource
-import catur.shared.generated.resources.*
 
 private fun formatTime(millis: Long): String {
     val totalSeconds = millis / 1000
@@ -193,6 +217,18 @@ fun ChessBoard(
                 val bottomCaptured = if (state.isBoardFlipped) snapshot.capturedWhite else snapshot.capturedBlack
                 val bottomTime = if (state.isBoardFlipped) state.blackTimeMillis else state.whiteTimeMillis
 
+                val topImbalance = if (state.isBoardFlipped) {
+                    if (snapshot.materialImbalance > 0) snapshot.materialImbalance else 0
+                } else {
+                    if (snapshot.materialImbalance < 0) -snapshot.materialImbalance else 0
+                }
+
+                val bottomImbalance = if (state.isBoardFlipped) {
+                    if (snapshot.materialImbalance < 0) -snapshot.materialImbalance else 0
+                } else {
+                    if (snapshot.materialImbalance > 0) snapshot.materialImbalance else 0
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -206,7 +242,7 @@ fun ChessBoard(
                         color = if (topTime < 30000) Color.Red else Color.Unspecified
                     )
                 }
-                CapturedPiecesView(pieces = topCaptured)
+                CapturedPiecesView(pieces = topCaptured, imbalance = topImbalance)
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 MoveHistoryList(
@@ -229,7 +265,7 @@ fun ChessBoard(
                         color = if (bottomTime < 30000) Color.Red else Color.Unspecified
                     )
                 }
-                CapturedPiecesView(pieces = bottomCaptured)
+                CapturedPiecesView(pieces = bottomCaptured, imbalance = bottomImbalance)
 
                 Spacer(modifier = Modifier.height(16.dp))
                 EngineLevelSelector(
@@ -284,7 +320,7 @@ fun EngineLevelSelector(
 }
 
 @Composable
-fun CapturedPiecesView(pieces: List<Piece>) {
+fun CapturedPiecesView(pieces: List<Piece>, imbalance: Int = 0) {
     val sortedPieces = pieces.sortedBy { it.value }
     Row(
         modifier = Modifier
@@ -299,6 +335,15 @@ fun CapturedPiecesView(pieces: List<Piece>) {
             PieceImage(
                 piece = piece,
                 modifier = Modifier.size(24.dp).padding(horizontal = 1.dp)
+            )
+        }
+        if (imbalance > 0) {
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "+$imbalance",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.DarkGray
             )
         }
     }
