@@ -1,5 +1,8 @@
 package com.github.maklumi.catur.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,15 +30,23 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import catur.shared.generated.resources.Res
 import catur.shared.generated.resources.compose_multiplatform
 import catur.shared.generated.resources.dubrovny_bb
@@ -158,6 +170,7 @@ fun ChessBoard(
 
                 val ranks = if (state.isBoardFlipped) 1..8 else 8 downTo 1
                 val files = if (state.isBoardFlipped) 8 downTo 1 else 1..8
+                val lastMoveToRank = snapshot.lastMove?.move?.to?.rank
 
                 Box(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
@@ -169,7 +182,12 @@ fun ChessBoard(
                             .aspectRatio(1f)
                     ) {
                         for (rank in ranks) {
-                            Row(modifier = Modifier.weight(1f)) {
+                            val isDestinationRank = rank == lastMoveToRank
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .zIndex(if (isDestinationRank) 5f else 0f)
+                            ) {
                                 for (file in files) {
                                     val position = Position.from(file, rank)
                                     val isLeftmost = file == (if (state.isBoardFlipped) 8 else 1)
@@ -459,8 +477,41 @@ fun SquareView(
     val eval = gameState.moveEvaluations.entries.find { it.key.substring(2, 4) == position.toString() }?.value
     val isLastMove = snapshot.lastMove?.let { it.move.from == position || it.move.to == position } ?: false
     val isLegalMove = snapshot.legalMoves.any { it.move.to == position }
-    val hasPiece = snapshot.board[position].isNotEmpty
+    val piece = snapshot.board[position].piece
+    val hasPiece = piece != null
     val isLight = position.isLightSquare()
+
+    // --- Animation Logic ---
+    var squareSize by remember { mutableIntStateOf(0) }
+    val ranks = if (gameState.isBoardFlipped) 1..8 else 8 downTo 1
+    val files = if (gameState.isBoardFlipped) 8 downTo 1 else 1..8
+    
+    val rankIdx = ranks.indexOf(position.rank)
+    val fileIdx = files.indexOf(position.file)
+    
+    val lastMove = snapshot.lastMove?.move
+    val lastMoveId = snapshot.lastMove?.id
+    val wasJustMovedTo = lastMove?.to == position
+    
+    val animOffset = remember(lastMoveId) {
+        val initialOffset = if (wasJustMovedTo && squareSize > 0) {
+            val fromRankIdx = ranks.indexOf(lastMove.from.rank)
+            val fromFileIdx = files.indexOf(lastMove.from.file)
+            val dx = (fromFileIdx - fileIdx) * squareSize.toFloat()
+            val dy = (fromRankIdx - rankIdx) * squareSize.toFloat()
+            androidx.compose.ui.geometry.Offset(dx, dy)
+        } else {
+            androidx.compose.ui.geometry.Offset.Zero
+        }
+        Animatable(initialOffset, androidx.compose.ui.geometry.Offset.VectorConverter)
+    }
+    
+    LaunchedEffect(lastMoveId) {
+        if (wasJustMovedTo && squareSize > 0) {
+            animOffset.animateTo(androidx.compose.ui.geometry.Offset.Zero, animationSpec = tween(300))
+        }
+    }
+    // -----------------------
 
     val backgroundColor = when {
         snapshot.selectedPosition == position || gameState.longPressedPosition == position -> Color.Yellow
@@ -478,7 +529,9 @@ fun SquareView(
 
     Box(
         modifier = modifier
+            .zIndex(if (wasJustMovedTo) 10f else 0f)
             .background(backgroundColor)
+            .onGloballyPositioned { squareSize = it.size.width }
             .pointerInput(position) {
                 detectTapGestures(
                     onTap = { 
@@ -514,10 +567,15 @@ fun SquareView(
             )
         }
 
-        snapshot.board[position].piece?.let { piece ->
+        piece?.let { p ->
             PieceImage(
-                piece = piece,
-                modifier = Modifier.fillMaxSize(0.85f)
+                piece = p,
+                modifier = Modifier
+                    .fillMaxSize(0.85f)
+                    .zIndex(10f)
+                    .offset {
+                        IntOffset(animOffset.value.x.toInt(), animOffset.value.y.toInt())
+                    }
             )
         }
 
