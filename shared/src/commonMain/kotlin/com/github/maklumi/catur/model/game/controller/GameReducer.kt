@@ -24,14 +24,14 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                     .copy(
                         snapshots = state.snapshots + nextSnapshot,
                         currentIndex = state.currentIndex + 1,
-                        ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap())
+                        ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null)
                     )
             } else {
                 state.copy(
                     snapshots = state.snapshots.toMutableList().apply { 
                         set(state.currentIndex, nextSnapshotBeforeNotation) 
                     },
-                    ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap())
+                    ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null)
                 )
             }
         }
@@ -48,18 +48,19 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
             state.applyIncrement()
                 .copy(
                     snapshots = state.snapshots + nextSnapshot,
-                    currentIndex = state.currentIndex + 1
+                    currentIndex = state.currentIndex + 1,
+                    ui = state.ui.copy(bestMoveArrow = null)
                 )
         }
         is GameAction.StepBack -> {
-            if (state.canGoBack()) state.copy(currentIndex = state.currentIndex - 1) else state
+            if (state.canGoBack()) state.copy(currentIndex = state.currentIndex - 1, ui = state.ui.copy(bestMoveArrow = null)) else state
         }
         is GameAction.StepForward -> {
-            if (state.canGoForward()) state.copy(currentIndex = state.currentIndex + 1) else state
+            if (state.canGoForward()) state.copy(currentIndex = state.currentIndex + 1, ui = state.ui.copy(bestMoveArrow = null)) else state
         }
         is GameAction.JumpToHistory -> {
             if (action.index in state.snapshots.indices) {
-                state.copy(currentIndex = action.index)
+                state.copy(currentIndex = action.index, ui = state.ui.copy(bestMoveArrow = null))
             } else state
         }
         is GameAction.EngineMove -> {
@@ -77,7 +78,8 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
             state.applyIncrement()
                 .copy(
                     snapshots = state.snapshots + nextSnapshot,
-                    currentIndex = state.currentIndex + 1
+                    currentIndex = state.currentIndex + 1,
+                    ui = state.ui.copy(bestMoveArrow = null)
                 )
         }
         is GameAction.ReverseSides -> {
@@ -160,6 +162,10 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
         }
         is GameAction.SetMoveEvaluations -> {
             state.copy(ui = state.ui.copy(moveEvaluations = action.evaluations))
+        }
+        is GameAction.SetBestMoveArrow -> {
+            val arrow = if (action.from != null && action.to != null) action.from to action.to else null
+            state.copy(ui = state.ui.copy(bestMoveArrow = arrow))
         }
     }
 }

@@ -24,6 +24,7 @@ data class UiState(
     val isBoardFlipped: Boolean = false,
     val longPressedPosition: Position? = null,
     val moveEvaluations: Map<String, Int> = emptyMap(),
+    val bestMoveArrow: Pair<Position, Position>? = null,
 )
 
 data class GameState(
@@ -44,6 +45,7 @@ data class GameState(
     val isBoardFlipped get() = ui.isBoardFlipped
     val longPressedPosition get() = ui.longPressedPosition
     val moveEvaluations get() = ui.moveEvaluations
+    val bestMoveArrow get() = ui.bestMoveArrow
 
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
 
@@ -76,4 +78,5 @@ sealed class GameAction {
     data class SquareLongPress(val position: Position) : GameAction()
     object ClearLongPress : GameAction()
     data class SetMoveEvaluations(val evaluations: Map<String, Int>) : GameAction()
+    data class SetBestMoveArrow(val from: Position?, val to: Position?) : GameAction()
 }

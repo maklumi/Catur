@@ -3,25 +3,13 @@ package com.github.maklumi.catur.ui
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,16 +17,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.zIndex
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 import catur.shared.generated.resources.Res
 import catur.shared.generated.resources.compose_multiplatform
 import catur.shared.generated.resources.dubrovny_bb
@@ -176,33 +165,45 @@ fun ChessBoard(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Column(
+                    Box(
                         modifier = Modifier
                             .fillMaxHeight()
                             .aspectRatio(1f)
                     ) {
-                        for (rank in ranks) {
-                            val isDestinationRank = rank == lastMoveToRank
-                            Row(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .zIndex(if (isDestinationRank) 5f else 0f)
-                            ) {
-                                for (file in files) {
-                                    val position = Position.from(file, rank)
-                                    val isLeftmost = file == (if (state.isBoardFlipped) 8 else 1)
-                                    val isBottom = rank == (if (state.isBoardFlipped) 8 else 1)
-                                    
-                                    SquareView(
-                                        position = position,
-                                        gameState = state,
-                                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                                        showRank = isLeftmost,
-                                        showFile = isBottom,
-                                        onAction = { onAction(it) }
-                                    )
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            for (rank in ranks) {
+                                val isDestinationRank = rank == lastMoveToRank
+                                Row(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .zIndex(if (isDestinationRank) 5f else 0f)
+                                ) {
+                                    for (file in files) {
+                                        val position = Position.from(file, rank)
+                                        val isLeftmost = file == (if (state.isBoardFlipped) 8 else 1)
+                                        val isBottom = rank == (if (state.isBoardFlipped) 8 else 1)
+                                        
+                                        SquareView(
+                                            position = position,
+                                            gameState = state,
+                                            modifier = Modifier.weight(1f).fillMaxHeight(),
+                                            showRank = isLeftmost,
+                                            showFile = isBottom,
+                                            onAction = { onAction(it) }
+                                        )
+                                    }
                                 }
                             }
+                        }
+
+                        // Arrow Overlay
+                        state.bestMoveArrow?.let { arrow ->
+                            ChessBoardOverlay(
+                                from = arrow.first,
+                                to = arrow.second,
+                                isBoardFlipped = state.isBoardFlipped,
+                                color = Color.Green.copy(alpha = 0.5f)
+                            )
                         }
                     }
                 }
@@ -431,6 +432,60 @@ fun MoveHistoryList(
 }
 
 @Composable
+fun ChessBoardOverlay(
+    from: Position,
+    to: Position,
+    isBoardFlipped: Boolean,
+    color: Color
+) {
+    Canvas(modifier = Modifier.fillMaxSize().zIndex(20f)) {
+        val squareWidth = size.width / 8
+        val squareHeight = size.height / 8
+
+        fun getCenter(pos: Position): androidx.compose.ui.geometry.Offset {
+            val file = if (isBoardFlipped) 8 - (pos.ordinal / 8) else (pos.ordinal / 8) + 1
+            val rank = if (isBoardFlipped) (pos.ordinal % 8) + 1 else 8 - (pos.ordinal % 8)
+            
+            return androidx.compose.ui.geometry.Offset(
+                x = (file - 0.5f) * squareWidth,
+                y = (rank - 0.5f) * squareHeight
+            )
+        }
+
+        val start = getCenter(from)
+        val end = getCenter(to)
+
+        // Draw Arrow
+        val strokeWidth = 8.dp.toPx()
+        val headSize = 20.dp.toPx()
+
+        drawLine(
+            color = color,
+            start = start,
+            end = end,
+            strokeWidth = strokeWidth,
+            cap = StrokeCap.Round
+        )
+
+        // Arrow head
+        val angle = atan2(end.y - start.y, end.x - start.x)
+        val path = Path().apply {
+            moveTo(end.x, end.y)
+            lineTo(
+                end.x - headSize * cos(angle - 0.5f),
+                end.y - headSize * sin(angle - 0.5f)
+            )
+            lineTo(
+                end.x - headSize * cos(angle + 0.5f),
+                end.y - headSize * sin(angle + 0.5f)
+            )
+            close()
+        }
+        drawPath(path, color)
+    }
+}
+
+@Composable
 fun PromotionDialog(
     moves: List<BoardMove>,
     onChoice: (BoardMove) -> Unit
@@ -474,7 +529,9 @@ fun SquareView(
     onAction: (GameAction) -> Unit
 ) {
     val snapshot = gameState.currentSnapshot
-    val eval = gameState.moveEvaluations.entries.find { it.key.substring(2, 4) == position.toString() }?.value
+    val eval = gameState.moveEvaluations.entries.find { 
+        it.key.length >= 4 && it.key.substring(2, 4) == position.toString() 
+    }?.value
     val isLastMove = snapshot.lastMove?.let { it.move.from == position || it.move.to == position } ?: false
     val isLegalMove = snapshot.legalMoves.any { it.move.to == position }
     val piece = snapshot.board[position].piece

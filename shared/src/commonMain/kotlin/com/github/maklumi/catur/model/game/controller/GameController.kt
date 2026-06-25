@@ -1,6 +1,7 @@
 package com.github.maklumi.catur.model.game.controller
 
 import com.github.maklumi.catur.getPlatform
+import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.audio.SoundType
 import com.github.maklumi.catur.model.game.engine.ChessEngine
 import com.github.maklumi.catur.model.game.engine.StockfishChessEngine
@@ -81,16 +82,12 @@ class GameController(
         }
 
         scope.launch {
-            state.collect { currentState ->
-                val currentSnapshotIndex = currentState.snapshots.size
-                if (currentState.isEngineTurn && 
-                    engine != null && 
-                    !currentState.isEngineThinking && 
-                    currentSnapshotIndex != lastEngineTurnIndex
-                ) {
-                    lastEngineTurnIndex = currentSnapshotIndex
-                    
-                    launch {
+            state
+                .map { it.snapshots.size to it.isEngineTurn }
+                .distinctUntilChanged()
+                .collectLatest { (snapshotSize, isEngineTurn) ->
+                    val currentState = state.value
+                    if (isEngineTurn && engine != null && !currentState.isEngineThinking) {
                         dispatch(GameAction.SetEngineThinking(true))
                         
                         val moves = currentState.snapshots
@@ -102,12 +99,25 @@ class GameController(
                         dispatch(GameAction.SetEngineThinking(false))
                         
                         if (bestMove != null) {
-                            delay(1000.milliseconds) // Delay engine move by 1 second for realism
+                            delay(1000.milliseconds)
                             dispatch(GameAction.EngineMove(bestMove))
+                        }
+                    } else if (!isEngineTurn && engine != null && !currentState.isEngineThinking) {
+                        // Background analysis for best move arrow
+                        val moves = currentState.snapshots
+                            .drop(1)
+                            .mapNotNull { it.lastMoveUci }
+                        
+                        val bestMove = engine.getBestMove(moves, currentState.engineModel)
+                        if (bestMove != null && bestMove.length >= 4) {
+                            try {
+                                val from = Position.valueOf(bestMove.substring(0, 2))
+                                val to = Position.valueOf(bestMove.substring(2, 4))
+                                dispatch(GameAction.SetBestMoveArrow(from, to))
+                            } catch (_: Exception) {}
                         }
                     }
                 }
-            }
         }
 
         scope.launch {
