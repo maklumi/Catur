@@ -24,14 +24,14 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                     .copy(
                         snapshots = state.snapshots + nextSnapshot,
                         currentIndex = state.currentIndex + 1,
-                        ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null)
+                        ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null, threats = emptyList())
                     )
             } else {
                 state.copy(
                     snapshots = state.snapshots.toMutableList().apply { 
                         set(state.currentIndex, nextSnapshotBeforeNotation) 
                     },
-                    ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null)
+                    ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null, threats = emptyList())
                 )
             }
         }
@@ -49,18 +49,18 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                 .copy(
                     snapshots = state.snapshots + nextSnapshot,
                     currentIndex = state.currentIndex + 1,
-                    ui = state.ui.copy(bestMoveArrow = null)
+                    ui = state.ui.copy(bestMoveArrow = null, threats = emptyList())
                 )
         }
         is GameAction.StepBack -> {
-            if (state.canGoBack()) state.copy(currentIndex = state.currentIndex - 1, ui = state.ui.copy(bestMoveArrow = null)) else state
+            if (state.canGoBack()) state.copy(currentIndex = state.currentIndex - 1, ui = state.ui.copy(bestMoveArrow = null, threats = emptyList())) else state
         }
         is GameAction.StepForward -> {
-            if (state.canGoForward()) state.copy(currentIndex = state.currentIndex + 1, ui = state.ui.copy(bestMoveArrow = null)) else state
+            if (state.canGoForward()) state.copy(currentIndex = state.currentIndex + 1, ui = state.ui.copy(bestMoveArrow = null, threats = emptyList())) else state
         }
         is GameAction.JumpToHistory -> {
             if (action.index in state.snapshots.indices) {
-                state.copy(currentIndex = action.index, ui = state.ui.copy(bestMoveArrow = null))
+                state.copy(currentIndex = action.index, ui = state.ui.copy(bestMoveArrow = null, threats = emptyList()))
             } else state
         }
         is GameAction.EngineMove -> {
@@ -79,7 +79,7 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
                 .copy(
                     snapshots = state.snapshots + nextSnapshot,
                     currentIndex = state.currentIndex + 1,
-                    ui = state.ui.copy(bestMoveArrow = null)
+                    ui = state.ui.copy(bestMoveArrow = null, threats = emptyList())
                 )
         }
         is GameAction.ReverseSides -> {
@@ -158,7 +158,7 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
             state.copy(ui = state.ui.copy(longPressedPosition = action.position))
         }
         is GameAction.ClearLongPress -> {
-            state.copy(ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap()))
+            state.copy(ui = state.ui.copy(longPressedPosition = null, moveEvaluations = emptyMap(), threats = emptyList()))
         }
         is GameAction.SetMoveEvaluations -> {
             state.copy(ui = state.ui.copy(moveEvaluations = action.evaluations))
@@ -166,6 +166,9 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
         is GameAction.SetBestMoveArrow -> {
             val arrow = if (action.from != null && action.to != null) action.from to action.to else null
             state.copy(ui = state.ui.copy(bestMoveArrow = arrow))
+        }
+        is GameAction.SetThreats -> {
+            state.copy(ui = state.ui.copy(threats = action.threats))
         }
     }
 }

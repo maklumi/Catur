@@ -3,20 +3,7 @@ package com.github.maklumi.catur.ui
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import catur.shared.generated.resources.Res
-import catur.shared.generated.resources.compose_multiplatform
-import catur.shared.generated.resources.dubrovny_bb
-import catur.shared.generated.resources.dubrovny_bk
-import catur.shared.generated.resources.dubrovny_bn
-import catur.shared.generated.resources.dubrovny_bp
-import catur.shared.generated.resources.dubrovny_bq
-import catur.shared.generated.resources.dubrovny_br
-import catur.shared.generated.resources.dubrovny_wb
-import catur.shared.generated.resources.dubrovny_wk
-import catur.shared.generated.resources.dubrovny_wn
-import catur.shared.generated.resources.dubrovny_wp
-import catur.shared.generated.resources.dubrovny_wq
-import catur.shared.generated.resources.dubrovny_wr
+import catur.shared.generated.resources.*
 import com.github.maklumi.catur.model.piece.Piece
 import org.jetbrains.compose.resources.painterResource
 

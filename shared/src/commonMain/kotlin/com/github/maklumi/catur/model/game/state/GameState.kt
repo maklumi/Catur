@@ -25,6 +25,7 @@ data class UiState(
     val longPressedPosition: Position? = null,
     val moveEvaluations: Map<String, Int> = emptyMap(),
     val bestMoveArrow: Pair<Position, Position>? = null,
+    val threats: List<Position> = emptyList(),
 )
 
 data class GameState(
@@ -46,6 +47,7 @@ data class GameState(
     val longPressedPosition get() = ui.longPressedPosition
     val moveEvaluations get() = ui.moveEvaluations
     val bestMoveArrow get() = ui.bestMoveArrow
+    val threats get() = ui.threats
 
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
 
@@ -79,4 +81,5 @@ sealed class GameAction {
     object ClearLongPress : GameAction()
     data class SetMoveEvaluations(val evaluations: Map<String, Int>) : GameAction()
     data class SetBestMoveArrow(val from: Position?, val to: Position?) : GameAction()
+    data class SetThreats(val threats: List<Position>) : GameAction()
 }

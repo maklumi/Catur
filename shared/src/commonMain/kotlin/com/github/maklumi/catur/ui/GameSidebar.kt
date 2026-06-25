@@ -79,7 +79,7 @@ fun MoveHistoryList(
             val turnNumber = i / 2 + 1
             val whiteMoveIdx = i + 1
             val blackMoveIdx = i + 2
-
+            
             val whiteMove = historySnapshots[i].notation ?: ""
             val blackMove = historySnapshots.getOrNull(i + 1)?.notation ?: ""
 
@@ -136,10 +136,7 @@ fun EngineLevelSelector(
                 Box(
                     modifier = Modifier
                         .size(12.dp)
-                        .background(
-                            if (currentModel == model) Color.Green else Color.LightGray,
-                            RoundedCornerShape(6.dp)
-                        )
+                        .background(if (currentModel == model) Color.Green else Color.LightGray, RoundedCornerShape(6.dp))
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = label, fontSize = 14.sp)

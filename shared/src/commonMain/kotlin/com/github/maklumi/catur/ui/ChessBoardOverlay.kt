@@ -4,7 +4,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -26,11 +25,11 @@ fun ChessBoardOverlay(
         val squareWidth = size.width / 8
         val squareHeight = size.height / 8
 
-        fun getCenter(pos: Position): Offset {
+        fun getCenter(pos: Position): androidx.compose.ui.geometry.Offset {
             val file = if (isBoardFlipped) 8 - (pos.ordinal / 8) else (pos.ordinal / 8) + 1
             val rank = if (isBoardFlipped) (pos.ordinal % 8) + 1 else 8 - (pos.ordinal % 8)
-
-            return Offset(
+            
+            return androidx.compose.ui.geometry.Offset(
                 x = (file - 0.5f) * squareWidth,
                 y = (rank - 0.5f) * squareHeight
             )

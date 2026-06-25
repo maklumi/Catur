@@ -149,7 +149,7 @@ class MaiaChessEngine : ChessEngine {
         
         p?.destroy()
         if (p?.isAlive == true) {
-            p?.destroyForcibly()
+            p.destroyForcibly()
         }
         
         process = null

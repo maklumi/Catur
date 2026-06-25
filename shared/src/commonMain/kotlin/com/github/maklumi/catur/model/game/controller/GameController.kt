@@ -34,8 +34,6 @@ class GameController(
 
     private val stockfishChessEngine = StockfishChessEngine()
 
-    private var lastEngineTurnIndex = -1
-
     init {
         // Clock timer logic
         scope.launch {
@@ -103,7 +101,19 @@ class GameController(
                             dispatch(GameAction.EngineMove(bestMove))
                         }
                     } else if (!isEngineTurn && engine != null && !currentState.isEngineThinking) {
-                        // Background analysis for best move arrow
+                        // Background analysis for best move arrow and threats
+                        
+                        // Calculate Threats
+                        val snapshot = currentState.currentSnapshot
+                        val activeColor = snapshot.activeColor
+                        val opponentColor = activeColor.opposite()
+                        val threats = snapshot.board.piecesMap.keys.filter { pos ->
+                            val piece = snapshot.board[pos].piece
+                            piece?.pieceColor == activeColor && snapshot.board.isAttacked(pos, opponentColor)
+                        }
+                        dispatch(GameAction.SetThreats(threats))
+
+                        // Best move arrow
                         val moves = currentState.snapshots
                             .drop(1)
                             .mapNotNull { it.lastMoveUci }
