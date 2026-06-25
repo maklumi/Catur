@@ -18,3 +18,4 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 /desktopApp/window.properties
+/desktopApp/gradle/wrapper/gradle-wrapper.properties
