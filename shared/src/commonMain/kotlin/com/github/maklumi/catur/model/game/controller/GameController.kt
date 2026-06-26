@@ -4,7 +4,6 @@ import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.audio.SoundType
 import com.github.maklumi.catur.model.game.engine.ChessEngine
-import com.github.maklumi.catur.model.game.engine.StockfishChessEngine
 import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.GameState
 import com.github.maklumi.catur.model.game.state.GameStatus
@@ -31,8 +30,6 @@ class GameController(
 ) {
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
-
-    private val stockfishChessEngine = StockfishChessEngine()
 
     init {
         // Clock timer logic
@@ -140,8 +137,8 @@ class GameController(
 
                     for (boardMove in legalMoves) {
                         val uci = boardMove.move.toUciString()
-                        val score = stockfishChessEngine.evaluate(currentMoves + uci)
-                        evals[uci] = score
+                        val score = engine?.evaluate(currentMoves + uci)
+                        evals[uci] = score ?: 0
                         dispatch(GameAction.SetMoveEvaluations(evals.toMap()))
                     }
                 }
@@ -157,6 +154,5 @@ class GameController(
 
     fun dispose() {
         engine?.stop()
-        stockfishChessEngine.stop()
     }
 }

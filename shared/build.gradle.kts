@@ -45,6 +45,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
         }
+        jvmMain.dependencies {
+            implementation(libs.logback.classic)
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
