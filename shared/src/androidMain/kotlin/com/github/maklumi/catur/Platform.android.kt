@@ -3,6 +3,7 @@ package com.github.maklumi.catur
 import android.os.Build
 import com.github.maklumi.catur.model.game.audio.SoundType
 import com.github.maklumi.catur.model.game.controller.GameController
+import com.github.maklumi.catur.model.game.engine.RemoteChessEngine
 import kotlinx.coroutines.CoroutineScope
 
 class AndroidPlatform : Platform {
@@ -10,7 +11,7 @@ class AndroidPlatform : Platform {
 
     override fun createGameController(scope: CoroutineScope): GameController {
         return GameController(
-            engine = null,
+            engine = RemoteChessEngine("http://10.0.2.2:8000"),
             scope = scope
         )
     }

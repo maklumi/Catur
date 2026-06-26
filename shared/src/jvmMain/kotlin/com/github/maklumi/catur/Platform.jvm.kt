@@ -2,7 +2,7 @@ package com.github.maklumi.catur
 
 import com.github.maklumi.catur.model.game.audio.SoundType
 import com.github.maklumi.catur.model.game.controller.GameController
-import com.github.maklumi.catur.model.game.engine.MaiaChessEngine
+import com.github.maklumi.catur.model.game.engine.RemoteChessEngine
 import kotlinx.coroutines.CoroutineScope
 import java.awt.Toolkit
 import javax.sound.sampled.AudioSystem
@@ -13,7 +13,7 @@ class JVMPlatform: Platform {
 
     override fun createGameController(scope: CoroutineScope): GameController {
         return GameController(
-            engine = MaiaChessEngine(),
+            engine = RemoteChessEngine("http://127.0.0.1:8000"),
             scope = scope
         )
     }

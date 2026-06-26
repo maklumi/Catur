@@ -1,0 +1,108 @@
+import subprocess
+import threading
+from fastapi import FastAPI, Query
+import uvicorn
+import os
+
+app = FastAPI()
+
+# --- CONFIGURATION (Ensure these paths match your machine) ---
+MAIA_CWD = r"E:\maia3"
+STOCKFISH_PATH = r"E:\stockfish-windows-x86-64-avx2\stockfish\stockfish-windows-x86-64-avx2.exe"
+
+class EngineWrapper:
+    def __init__(self, command, cwd=None):
+        self.lock = threading.Lock()
+        self.command = command
+        self.cwd = cwd
+        self.process = None
+        self._start()
+
+    def _start(self):
+        """Starts or restarts the engine process."""
+        if self.process:
+            print("Stopping current engine process...")
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+
+        print(f"Starting engine with command: {' '.join(self.command)}")
+        self.process = subprocess.Popen(
+            self.command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            cwd=self.cwd
+        )
+        self._send("uci")
+        self._read_until("uciok")
+
+    def _send(self, cmd):
+        self.process.stdin.write(f"{cmd}\n")
+        self.process.stdin.flush()
+
+    def _read_until(self, target):
+        while True:
+            line = self.process.stdout.readline().strip()
+            if not line: break
+            if target in line: return line
+        return None
+
+    def update_model_if_needed(self, model_name: str):
+        """Restarts Maia only if the requested model is different from the running one."""
+        with self.lock:
+            new_command = ["python", "-m", "maia3.uci", "--model", model_name]
+            if self.command != new_command:
+                print(f"Difficulty changed! Switching model to: {model_name}")
+                self.command = new_command
+                self._start()
+
+    def get_best_move(self, moves_str: str):
+        with self.lock:
+            cmd = f"position startpos moves {moves_str}" if moves_str else "position startpos"
+            self._send(cmd)
+            self._send("go movetime 1000")
+            line = self._read_until("bestmove")
+            if not line: return None
+            move = line.split()[1]
+            return None if move == "(none)" else move
+
+    def get_evaluation(self, moves_str: str):
+        with self.lock:
+            cmd = f"position startpos moves {moves_str}" if moves_str else "position startpos"
+            self._send(cmd)
+            self._send("go depth 10")
+            score = 0
+            while True:
+                line = self.process.stdout.readline().strip()
+                if "score cp" in line:
+                    parts = line.split("score cp ")
+                    score = int(parts[1].split()[0])
+                if "bestmove" in line:
+                    break
+            return score
+
+# Global engine instances
+print("Initializing engines...")
+maia = EngineWrapper(["python", "-m", "maia3.uci", "--model", "maia3-5m"], cwd=MAIA_CWD)
+stockfish = EngineWrapper([STOCKFISH_PATH])
+print("Engines ready!")
+
+@app.get("/best-move")
+def best_move(moves: str = "", model: str = "maia3-5m"):
+    # Check for model change before calculating the move
+    maia.update_model_if_needed(model)
+    move = maia.get_best_move(moves)
+    return {"move": move}
+
+@app.get("/evaluate")
+def evaluate(moves: str = ""):
+    score = stockfish.get_evaluation(moves)
+    return {"score": score}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)

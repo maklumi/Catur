@@ -75,7 +75,7 @@ class MaiaChessEngine : ChessEngine {
                 val positionCmd = if (moves.isEmpty()) "position startpos\n" else "position startpos moves ${moves.joinToString(" ")}\n"
                 println("[Maia] Sending: $positionCmd")
                 out.write(positionCmd)
-                out.write("go movetime 1000\n")
+                out.write("go movetime 2000\n")
                 out.flush()
 
                 while (true) {
