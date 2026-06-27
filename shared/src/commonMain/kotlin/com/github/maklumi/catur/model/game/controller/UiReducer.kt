@@ -57,6 +57,7 @@ internal fun GameState.reduceUi(action: GameAction): GameState {
                 engine = engine.copy(isThinking = false),
                 ui = ui.copy(
                     currentPuzzleIndex = action.index,
+                    currentPuzzleStep = 0,
                     bestMoveArrow = null,
                     threats = emptyList(),
                     moveEvaluations = emptyMap(),

@@ -37,8 +37,7 @@ class RemoteChessEngine(
                 parameter("model", model)
             }
             response.body<MoveResponse>().move
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (_: Exception) {
             null
         }
     }

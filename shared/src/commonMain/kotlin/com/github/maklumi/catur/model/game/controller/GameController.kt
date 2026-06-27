@@ -4,13 +4,14 @@ import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.audio.SoundType
 import com.github.maklumi.catur.model.game.engine.ChessEngine
+import com.github.maklumi.catur.model.game.puzzle.PuzzleLoader
 import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.GameState
 import com.github.maklumi.catur.model.game.state.GameStatus
+import com.github.maklumi.catur.model.game.state.findMoveByNotation
 import com.github.maklumi.catur.model.game.state.isInCheck
 import com.github.maklumi.catur.model.move.EnPassantMove
 import com.github.maklumi.catur.model.move.toUciString
-import com.github.maklumi.catur.model.game.puzzle.PuzzleLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -63,21 +64,24 @@ class GameController(
                     if (currentState.snapshots.size < 2) return@collect
                     val lastSnapshot = currentState.snapshots.last()
                     val prevSnapshot = currentState.snapshots[currentState.snapshots.size - 2]
-                    
+
                     val move = lastSnapshot.lastMove?.move
                     if (move != null) {
                         val platform = getPlatform()
                         when {
-                            lastSnapshot.status == GameStatus.CHECKMATE || 
-                            lastSnapshot.status == GameStatus.STALEMATE -> {
+                            lastSnapshot.status == GameStatus.CHECKMATE ||
+                                    lastSnapshot.status == GameStatus.STALEMATE -> {
                                 platform.playSound(SoundType.GAME_END)
                             }
+
                             lastSnapshot.board.isInCheck(lastSnapshot.activeColor) -> {
                                 platform.playSound(SoundType.CHECK)
                             }
+
                             prevSnapshot.board[move.to].isNotEmpty || move is EnPassantMove -> {
                                 platform.playSound(SoundType.CAPTURE)
                             }
+
                             else -> {
                                 platform.playSound(SoundType.MOVE)
                             }
@@ -94,44 +98,49 @@ class GameController(
                     val currentState = state.value
                     if (isEngineTurn && engine != null && !currentState.isEngineThinking) {
                         dispatch(GameAction.SetEngineThinking(true))
-                        
+
                         val moves = currentState.snapshots
                             .drop(1)
                             .mapNotNull { it.lastMoveUci }
-                        
+
                         val bestMove = engine.getBestMove(moves, currentState.engineModel)
 
                         dispatch(GameAction.SetEngineThinking(false))
-                        
+
                         if (bestMove != null) {
                             delay(1000.milliseconds)
                             dispatch(GameAction.EngineMove(bestMove))
                         }
                     } else if (!isEngineTurn && engine != null && !currentState.isEngineThinking) {
-                        // Background analysis for best move arrow and threats
-                        
-                        // Calculate Threats
-                        val snapshot = currentState.currentSnapshot
-                        val activeColor = snapshot.activeColor
-                        val opponentColor = activeColor.opposite()
-                        val threats = snapshot.board.piecesMap.keys.filter { pos ->
-                            val piece = snapshot.board[pos].piece
-                            piece?.pieceColor == activeColor && snapshot.board.isAttacked(pos, opponentColor)
-                        }
-                        dispatch(GameAction.SetThreats(threats))
+                        // Background analysis for best move arrow and threats (Disabled during puzzles)
+                        if (currentState.currentPuzzleIndex == null) {
+                            // Calculate Threats
+                            val snapshot = currentState.currentSnapshot
+                            val activeColor = snapshot.activeColor
+                            val opponentColor = activeColor.opposite()
+                            val threats = snapshot.board.piecesMap.keys.filter { pos ->
+                                val piece = snapshot.board[pos].piece
+                                piece?.pieceColor == activeColor && snapshot.board.isAttacked(
+                                    pos,
+                                    opponentColor
+                                )
+                            }
+                            dispatch(GameAction.SetThreats(threats))
 
-                        // Best move arrow
-                        val moves = currentState.snapshots
-                            .drop(1)
-                            .mapNotNull { it.lastMoveUci }
-                        
-                        val bestMove = engine.getBestMove(moves, currentState.engineModel)
-                        if (bestMove != null && bestMove.length >= 4) {
-                            try {
-                                val from = Position.valueOf(bestMove.substring(0, 2))
-                                val to = Position.valueOf(bestMove.substring(2, 4))
-                                dispatch(GameAction.SetBestMoveArrow(from, to))
-                            } catch (_: Exception) {}
+                            // Best move arrow
+                            val moves = currentState.snapshots
+                                .drop(1)
+                                .mapNotNull { it.lastMoveUci }
+
+                            val bestMove = engine.getBestMove(moves, currentState.engineModel)
+                            if (bestMove != null && bestMove.length >= 4) {
+                                try {
+                                    val from = Position.valueOf(bestMove.substring(0, 2))
+                                    val to = Position.valueOf(bestMove.substring(2, 4))
+                                    dispatch(GameAction.SetBestMoveArrow(from, to))
+                                } catch (_: Exception) {
+                                }
+                            }
                         }
                     }
                 }
@@ -150,6 +159,29 @@ class GameController(
                         val score = engine?.evaluate(currentMoves + uci)
                         evals[uci] = score ?: 0
                         dispatch(GameAction.SetMoveEvaluations(evals.toMap()))
+                    }
+                }
+            }
+        }
+
+        scope.launch {
+            state.map { it.ui.currentPuzzleStep }.distinctUntilChanged().collect { step ->
+                val puzzle = state.value.puzzles.getOrNull(state.value.currentPuzzleIndex ?: -1)
+                // If it's an odd step (0 = user, 1 = opponent, 2 = user...), play automatically
+                if (puzzle != null && step % 2 != 0) {
+                    val nextNotation = puzzle.solutionMoves.getOrNull(step)
+                    if (nextNotation != null) {
+                        delay(1000.milliseconds) // Wait for realism
+                        val snapshot = state.value.currentSnapshot
+                        val boardMove = snapshot.board.findMoveByNotation(
+                            nextNotation,
+                            snapshot.activeColor,
+                            snapshot.lastMove,
+                            snapshot.movedPositions
+                        )
+                        if (boardMove != null) {
+                            dispatch(GameAction.EngineMove(boardMove.move.toUciString()))
+                        }
                     }
                 }
             }

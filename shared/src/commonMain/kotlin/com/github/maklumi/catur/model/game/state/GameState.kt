@@ -29,6 +29,7 @@ data class UiState(
     val threats: List<Position> = emptyList(),
     val puzzles: List<Puzzle> = emptyList(),
     val currentPuzzleIndex: Int? = null,
+    val currentPuzzleStep: Int = 0,
 )
 
 data class GameState(
