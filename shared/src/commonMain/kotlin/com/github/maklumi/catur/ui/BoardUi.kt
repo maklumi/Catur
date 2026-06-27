@@ -212,6 +212,16 @@ fun ChessBoard(
                     currentModel = state.engineModel,
                     onModelChange = { onAction(GameAction.ChangeEngineLevel(it)) })
             }
+
+            Spacer(modifier = Modifier.width(32.dp))
+
+            Column(modifier = Modifier.width(200.dp).fillMaxHeight()) {
+                PuzzleList(
+                    state = state,
+                    onAction = onAction,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
 
         snapshot.pendingPromotion?.let { moves ->

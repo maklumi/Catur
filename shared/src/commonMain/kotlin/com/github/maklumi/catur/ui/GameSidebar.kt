@@ -144,3 +144,36 @@ fun EngineLevelSelector(
         }
     }
 }
+
+@Composable
+fun PuzzleList(
+    state: GameState,
+    onAction: (GameAction) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+    ) {
+        Text(
+            text = "Puzzles",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        state.puzzles.forEachIndexed { index, puzzle ->
+            Text(
+                text = "${index+1}.  ${puzzle.title}",
+                fontSize = 12.sp,
+                fontWeight = if (state.currentPuzzleIndex == index) FontWeight.Bold else FontWeight.Normal,
+                color = if (state.currentPuzzleIndex == index) Color.Blue else Color.Black,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onAction(GameAction.SelectPuzzle(index)) }
+                    .padding(vertical = 4.dp)
+            )
+        }
+    }
+}

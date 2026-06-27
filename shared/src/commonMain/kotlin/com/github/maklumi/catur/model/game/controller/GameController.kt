@@ -10,6 +10,7 @@ import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.game.state.isInCheck
 import com.github.maklumi.catur.model.move.EnPassantMove
 import com.github.maklumi.catur.model.move.toUciString
+import com.github.maklumi.catur.model.game.puzzle.PuzzleLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -32,6 +33,14 @@ class GameController(
     val state: StateFlow<GameState> = _state.asStateFlow()
 
     init {
+        // Load puzzles
+        scope.launch {
+            val puzzles = PuzzleLoader.loadPuzzles()
+            if (puzzles.isNotEmpty()) {
+                dispatch(GameAction.SetPuzzles(puzzles))
+            }
+        }
+
         // Clock timer logic
         scope.launch {
             while (true) {
@@ -51,6 +60,7 @@ class GameController(
                 .drop(1) // Skip initial state
                 .collect {
                     val currentState = state.value
+                    if (currentState.snapshots.size < 2) return@collect
                     val lastSnapshot = currentState.snapshots.last()
                     val prevSnapshot = currentState.snapshots[currentState.snapshots.size - 2]
                     

@@ -1,0 +1,41 @@
+package com.github.maklumi.catur.model.game.puzzle
+
+import catur.shared.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+
+data class Puzzle(
+    val title: String,
+    val initialFen: String,
+    val solution: String
+)
+
+object PuzzleLoader {
+    @OptIn(ExperimentalResourceApi::class)
+    suspend fun loadPuzzles(): List<Puzzle> {
+        return try {
+            val bytes = Res.readBytes("files/m8n4.txt")
+            val content = bytes.decodeToString()
+            parse(content)
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun parse(content: String): List<Puzzle> {
+        val lines = content.lines().filter { it.isNotBlank() }
+        val puzzles = mutableListOf<Puzzle>()
+        
+        // The file has a 3-line block per puzzle (Metadata, FEN, Solution)
+        // separated by whitespace which we filtered out.
+        for (i in lines.indices step 3) {
+            if (i + 2 < lines.size) {
+                puzzles.add(Puzzle(
+                    title = lines[i].trim(),
+                    initialFen = lines[i+1].trim(),
+                    solution = lines[i+2].trim()
+                ))
+            }
+        }
+        return puzzles
+    }
+}

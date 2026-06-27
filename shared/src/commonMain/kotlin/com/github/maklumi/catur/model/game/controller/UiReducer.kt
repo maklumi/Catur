@@ -1,6 +1,8 @@
 package com.github.maklumi.catur.model.game.controller
 
+import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.game.state.*
+import com.github.maklumi.catur.model.piece.PieceColor
 
 internal fun GameState.reduceUi(action: GameAction): GameState {
     return when (action) {
@@ -32,6 +34,34 @@ internal fun GameState.reduceUi(action: GameAction): GameState {
         }
         is GameAction.ChangeEngineLevel -> {
             copy(engine = engine.copy(model = action.model))
+        }
+        is GameAction.SetPuzzles -> {
+            copy(ui = ui.copy(puzzles = action.puzzles))
+        }
+        is GameAction.SelectPuzzle -> {
+            val puzzle = ui.puzzles.getOrNull(action.index) ?: return this
+            val board = Board.fromFen(puzzle.initialFen)
+            val activeColor = Board.parseActiveColor(puzzle.initialFen)
+
+            // 1. Parse names: "White vs Black, Venue, Date"
+            val namesPart = puzzle.title.split(",").firstOrNull() ?: ""
+            val names = namesPart.split(" vs ")
+            val whiteName = names.getOrNull(0)?.trim() ?: "White"
+            val blackName = names.getOrNull(1)?.trim() ?: "Black"
+
+            copy(
+                snapshots = listOf(GameSnapshotState(context = ChessContext(board = board, activeColor = activeColor))),
+                currentIndex = 0,
+                whitePlayer = whitePlayer.copy(name = whiteName),
+                blackPlayer = blackPlayer.copy(name = blackName),
+                engine = engine.copy(isThinking = false),
+                ui = ui.copy(
+                    currentPuzzleIndex = action.index,
+                    bestMoveArrow = null,
+                    threats = emptyList(),
+                    moveEvaluations = emptyMap(),
+                    isBoardFlipped = activeColor == PieceColor.BLACK)
+            )
         }
         else -> this
     }

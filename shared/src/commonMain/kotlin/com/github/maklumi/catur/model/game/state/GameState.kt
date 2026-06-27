@@ -2,6 +2,7 @@ package com.github.maklumi.catur.model.game.state
 
 import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.board.Position
+import com.github.maklumi.catur.model.game.puzzle.Puzzle
 import com.github.maklumi.catur.model.move.BoardMove
 import com.github.maklumi.catur.model.piece.PieceColor
 
@@ -26,6 +27,8 @@ data class UiState(
     val moveEvaluations: Map<String, Int> = emptyMap(),
     val bestMoveArrow: Pair<Position, Position>? = null,
     val threats: List<Position> = emptyList(),
+    val puzzles: List<Puzzle> = emptyList(),
+    val currentPuzzleIndex: Int? = null,
 )
 
 data class GameState(
@@ -48,6 +51,8 @@ data class GameState(
     val moveEvaluations get() = ui.moveEvaluations
     val bestMoveArrow get() = ui.bestMoveArrow
     val threats get() = ui.threats
+    val puzzles get() = ui.puzzles
+    val currentPuzzleIndex get() = ui.currentPuzzleIndex
 
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
 
@@ -82,4 +87,6 @@ sealed class GameAction {
     data class SetMoveEvaluations(val evaluations: Map<String, Int>) : GameAction()
     data class SetBestMoveArrow(val from: Position?, val to: Position?) : GameAction()
     data class SetThreats(val threats: List<Position>) : GameAction()
+    data class SetPuzzles(val puzzles: List<Puzzle>) : GameAction()
+    data class SelectPuzzle(val index: Int) : GameAction()
 }

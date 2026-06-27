@@ -39,12 +39,6 @@ data class Board(
     fun findKing(color: PieceColor): Square? =
         squares.values.firstOrNull { it.piece is King && it.piece.pieceColor == color }
 
-    fun withPiece(position: Position, piece: Piece?): Board {
-        return copy(
-            piecesMap = if (piece == null) piecesMap - position else piecesMap + (position to piece)
-        )
-    }
-
     fun isAttacked(position: Position, byColor: PieceColor): Boolean {
         return squares.values.any { square ->
             val piece = square.piece
@@ -89,6 +83,54 @@ data class Board(
         )
 
         val initial = Board(initialPieces)
+
+        /**
+         * Creates a Board from a FEN string piece placement part.
+         * Note: Currently only parses piece placement.
+         */
+        fun fromFen(fen: String): Board {
+            val piecePlacement = fen.split(" ").firstOrNull() ?: return initial
+            val piecesMap = mutableMapOf<Position, Piece>()
+
+            val ranks = piecePlacement.split("/")
+            if (ranks.size != 8) return initial
+
+            ranks.forEachIndexed { index, rankStr ->
+                val rank = 8 - index
+                var file = 1
+
+                rankStr.forEach { char ->
+                    if (char.isDigit()) {
+                        file += char.digitToInt()
+                    } else {
+                        val color = if (char.isUpperCase()) PieceColor.WHITE else PieceColor.BLACK
+                        val piece = when (char.lowercaseChar()) {
+                            'p' -> Pawn(color)
+                            'r' -> Rook(color)
+                            'n' -> Knight(color)
+                            'b' -> Bishop(color)
+                            'q' -> Queen(color)
+                            'k' -> King(color)
+                            else -> null
+                        }
+
+                        if (piece != null) {
+                            try {
+                                piecesMap[Position.from(file, rank)] = piece
+                            } catch (_: Exception) {
+                            }
+                        }
+                        file++
+                    }
+                }
+            }
+            return Board(piecesMap)
+        }
+
+        fun parseActiveColor(fen: String): PieceColor {
+            val parts = fen.split(" ")
+            return if (parts.size > 1 && parts[1] == "b") PieceColor.BLACK else PieceColor.WHITE
+        }
     }
 
 }

@@ -18,6 +18,8 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
         is GameAction.DeclineDraw,
         is GameAction.Tick -> state.reduceGameFlow(action)
 
+        is GameAction.SelectPuzzle,
+        is GameAction.SetPuzzles,
         is GameAction.SquareLongPress,
         is GameAction.ClearLongPress,
         is GameAction.SetMoveEvaluations,
