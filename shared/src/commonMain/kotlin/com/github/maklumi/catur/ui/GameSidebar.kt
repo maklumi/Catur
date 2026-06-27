@@ -6,16 +6,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.GameState
+import com.github.maklumi.catur.model.game.state.PgnUtils
 import com.github.maklumi.catur.model.piece.Piece
 
 @Composable
@@ -54,17 +59,43 @@ fun MoveHistoryList(
     onAction: (GameAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val clipboardManager = LocalClipboardManager.current
+    
     Column(
         modifier = modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
     ) {
-        Text(
-            text = "Move History",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Move History",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            
+            Button(
+                onClick = {
+                    val pgn = PgnUtils.generatePgn(state)
+                    println(pgn)
+                    clipboardManager.setText(AnnotatedString(pgn))
+                },
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.height(32.dp),
+                shape = RoundedCornerShape(4.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.LightGray.copy(alpha = 0.5f),
+                    contentColor = Color.Black
+                )
+            ) {
+                Text("Copy PGN", fontSize = 10.sp)
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = "Start",
