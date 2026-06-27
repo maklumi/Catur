@@ -1,0 +1,59 @@
+package com.github.maklumi.catur.ui.theme
+
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
+
+@Immutable
+data class BoardColors(
+    val lightSquare: Color = BoardLight,
+    val darkSquare: Color = BoardDark,
+    val lastMove: Color = BoardLastMove,
+    val selected: Color = BoardSelected,
+    val threatenedLight: Color = BoardThreatenedLight,
+    val threatenedDark: Color = BoardThreatenedDark
+)
+
+val LocalBoardColors = staticCompositionLocalOf { BoardColors() }
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Purple80,
+    secondary = PurpleGrey80,
+    tertiary = Pink80
+)
+
+private val LightColorScheme = lightColorScheme(
+    primary = Purple40,
+    secondary = PurpleGrey40,
+    tertiary = Pink40
+)
+
+@Composable
+fun CaturTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+
+    val boardColors = BoardColors() // Could be different for dark mode if needed
+
+    CompositionLocalProvider(LocalBoardColors provides boardColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            content = content
+        )
+    }
+}
+
+object CaturTheme {
+    val board: BoardColors
+        @Composable
+        get() = LocalBoardColors.current
+}

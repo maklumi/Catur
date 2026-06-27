@@ -24,6 +24,7 @@ import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.board.isLightSquare
 import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.GameState
+import com.github.maklumi.catur.ui.theme.CaturTheme
 
 @Composable
 fun SquareView(
@@ -44,6 +45,8 @@ fun SquareView(
     val hasPiece = piece != null
     val isLight = position.isLightSquare()
     val isThreatened = gameState.threats.contains(position)
+
+    val boardColors = CaturTheme.board
 
     // --- Animation Logic ---
     var squareSize by remember { mutableIntStateOf(0) }
@@ -77,18 +80,18 @@ fun SquareView(
     }
 
     val backgroundColor = when {
-        snapshot.selectedPosition == position || gameState.longPressedPosition == position -> Color.Yellow
+        snapshot.selectedPosition == position || gameState.longPressedPosition == position -> boardColors.selected
         eval != null -> {
             val normalized = ((eval + 300) / 600f).coerceIn(0f, 1f)
             Color(red = normalized, green = 1f - normalized, blue = 0f, alpha = 0.6f)
         }
-        isLastMove -> Color(0xFFF6F682)
-        isThreatened -> if (isLight) Color(0xFFE69191) else Color(0xFFC95B5B)
-        isLight -> Color(0xFFEEEED2)
-        else -> Color(0xFF769656)
+        isLastMove -> boardColors.lastMove
+        isThreatened -> if (isLight) boardColors.threatenedLight else boardColors.threatenedDark
+        isLight -> boardColors.lightSquare
+        else -> boardColors.darkSquare
     }
 
-    val labelColor = if (isLight) Color(0xFF769656) else Color(0xFFEEEED2)
+    val labelColor = if (isLight) boardColors.darkSquare else boardColors.lightSquare
 
     Box(
         modifier = modifier

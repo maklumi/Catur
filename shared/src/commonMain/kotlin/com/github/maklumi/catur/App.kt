@@ -12,6 +12,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.ui.ChessBoard
+import com.github.maklumi.catur.ui.theme.CaturTheme
 
 @Composable
 @Preview
@@ -32,7 +33,7 @@ fun App() {
         }
     }
 
-    MaterialTheme {
+    CaturTheme {
         Box(
             modifier = Modifier
                 .fillMaxSize()
