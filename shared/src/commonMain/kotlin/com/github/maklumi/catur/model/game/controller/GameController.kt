@@ -1,5 +1,6 @@
 package com.github.maklumi.catur.model.game.controller
 
+import com.github.maklumi.catur.Platform
 import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.audio.SoundType
@@ -28,7 +29,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 class GameController(
     private val engine: ChessEngine? = null,
-    scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+    scope: CoroutineScope = CoroutineScope(Dispatchers.Main),
+    private val platform: Platform = getPlatform()
 ) {
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
@@ -36,9 +38,17 @@ class GameController(
     init {
         // Load puzzles
         scope.launch {
-            val puzzles = PuzzleLoader.loadPuzzles()
+            val completed = platform.persistenceManager.loadCompletedPuzzles()
+            val puzzles = PuzzleLoader.loadPuzzles(completed)
             if (puzzles.isNotEmpty()) {
                 dispatch(GameAction.SetPuzzles(puzzles))
+            }
+        }
+
+        // Save completed puzzles when they change
+        scope.launch {
+            state.collect { currentState ->
+                platform.persistenceManager.saveCompletedPuzzles(currentState.completedPuzzleIndices)
             }
         }
 

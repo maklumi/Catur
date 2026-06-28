@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -216,16 +217,32 @@ fun PuzzleList(
 
         state.puzzles.forEachIndexed { index, puzzle ->
             val isSelected = state.currentPuzzleIndex == index
-            Text(
-                text = "${index+1}.  ${puzzle.title}",
-                fontSize = 12.sp,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) colorScheme.primary else colorScheme.onBackground,
+            val isCompleted = puzzle.isCompleted
+            
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onAction(GameAction.SelectPuzzle(index)) }
-                    .padding(vertical = 4.dp)
-            )
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "${index + 1}.  ${puzzle.title}",
+                    fontSize = 12.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isSelected) colorScheme.primary else colorScheme.onBackground,
+                    modifier = Modifier.weight(1f)
+                )
+                if (isCompleted) {
+                    Text(
+                        text = "✓",
+                        color = Color(0xFF4CAF50), // Material Green
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
+            }
         }
     }
 }

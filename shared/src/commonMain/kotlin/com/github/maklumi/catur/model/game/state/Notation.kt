@@ -18,14 +18,42 @@ fun Board.getNotation(boardMove: BoardMove, isCheck: Boolean, isMate: Boolean): 
             if (move.rookTo.file > move.from.file) "O-O" else "O-O-O"
         }
         else -> {
-            val piecePrefix = if (piece is Pawn) "" else piece.textSymbol
-            val capture = if (this[move.to].isNotEmpty || move is EnPassantMove) {
-                if (piece is Pawn) move.from.toString()[0] + "x" else "x"
-            } else ""
-            
-            val promotion = if (move is PromotionMove) "=" + move.promotedPiece.textSymbol else ""
-            
-            piecePrefix + capture + move.to.toString() + promotion
+            if (piece is Pawn) {
+                val capture = if (this[move.to].isNotEmpty || move is EnPassantMove) {
+                    move.from.toString()[0] + "x"
+                } else ""
+                val promotion = if (move is PromotionMove) "=" + move.promotedPiece.textSymbol else ""
+                capture + move.to.toString() + promotion
+            } else {
+                val piecePrefix = piece.textSymbol
+                
+                // Disambiguation
+                val others = piecesMap.filter { 
+                    it.value.pieceColor == piece.pieceColor && 
+                    it.value::class == piece::class && 
+                    it.key != move.from 
+                }
+                
+                val canAlsoReach = others.filter { (_, p) ->
+                    // Simplified check: can it reach the 'to' square? 
+                    // To be perfect we'd check legality (not pinned, etc)
+                    p.pseudoLegalMoves(this, null, emptySet()).any { it.move.to == move.to }
+                }
+                
+                val disambiguation = if (canAlsoReach.isNotEmpty()) {
+                    val sameFile = canAlsoReach.any { it.key.file == move.from.file }
+                    val sameRank = canAlsoReach.any { it.key.rank == move.from.rank }
+                    
+                    when {
+                        !sameFile -> move.from.toString()[0].toString()
+                        !sameRank -> move.from.toString()[1].toString()
+                        else -> move.from.toString()
+                    }
+                } else ""
+                
+                val capture = if (this[move.to].isNotEmpty || move is EnPassantMove) "x" else ""
+                piecePrefix + disambiguation + capture + move.to.toString()
+            }
         }
     }
     
@@ -38,24 +66,61 @@ fun Board.findMoveByNotation(
     lastMove: BoardMove?,
     movedPositions: Set<Position>
 ): BoardMove? {
-    val currentPieces = piecesMap.filter { it.value.pieceColor == activeColor }
+    val clean = notation.replace("+", "").replace("#", "")
+    
+    // Castling
+    if (clean == "O-O" || clean == "0-0") {
+        val kingPos = if (activeColor == PieceColor.WHITE) Position.e1 else Position.e8
+        val piece = this[kingPos].piece ?: return null
+        return piece.pseudoLegalMoves(this, lastMove, movedPositions)
+            .find { 
+                val m = it.move
+                m is CastlingMove && m.rookTo.file > m.from.file 
+            }
+    }
+    if (clean == "O-O-O" || clean == "0-0-0") {
+        val kingPos = if (activeColor == PieceColor.WHITE) Position.e1 else Position.e8
+        val piece = this[kingPos].piece ?: return null
+        return piece.pseudoLegalMoves(this, lastMove, movedPositions)
+            .find { 
+                val m = it.move
+                m is CastlingMove && m.rookTo.file < m.from.file 
+            }
+    }
 
-    // Find all legal moves for the current player
-    val allLegalMoves = currentPieces.flatMap { (_, piece) ->
+    // Parse Target Square
+    val cleanNoPromo = clean.replace(Regex("=[QRBN]"), "")
+    val targetStr = cleanNoPromo.takeLast(2)
+    val target = try { Position.valueOf(targetStr) } catch (_: Exception) { return null }
+
+    // Parse Piece Type
+    val firstChar = cleanNoPromo[0]
+    val pieceType = if (firstChar.isUpperCase() && firstChar != 'O') firstChar.toString() else ""
+    
+    // Parse Disambiguation
+    val remainder = if (pieceType.isEmpty()) {
+        cleanNoPromo.dropLast(2).replace("x", "")
+    } else {
+        cleanNoPromo.drop(1).dropLast(2).replace("x", "")
+    }
+
+    val currentPieces = piecesMap.filter { it.value.pieceColor == activeColor }
+    val candidates = currentPieces.flatMap { (pos, piece) ->
+        val pieceSymbol = if (piece is Pawn) "" else piece.textSymbol
+        if (pieceSymbol != pieceType) return@flatMap emptyList<BoardMove>()
+        
         piece.pseudoLegalMoves(this, lastMove, movedPositions).filter { boardMove ->
-            val nextBoard = boardMove.move.applyOn(this)
-            !nextBoard.isInCheck(activeColor)
+            boardMove.move.to == target && !boardMove.move.applyOn(this).isInCheck(activeColor)
         }
     }
 
-    // Find the one that matches the notation
-    return allLegalMoves.find { candidate ->
-        val nextBoard = candidate.move.applyOn(this)
-        val isCheck = nextBoard.isInCheck(activeColor.opposite())
-        val isMate = false // You can implement a full mate check here
-
-        // Use your existing getNotation utility to compare
-        getNotation(candidate, isCheck, isMate).replace("+", "").replace("#", "") ==
-                notation.replace("+", "").replace("#", "")
+    return candidates.find { cand ->
+        if (remainder.isEmpty()) return@find true
+        val fromStr = cand.move.from.toString()
+        if (remainder.length == 1) {
+            fromStr.contains(remainder)
+        } else {
+            fromStr == remainder
+        }
     }
 }

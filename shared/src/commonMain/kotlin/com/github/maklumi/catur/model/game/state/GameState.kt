@@ -30,6 +30,7 @@ data class UiState(
     val puzzles: List<Puzzle> = emptyList(),
     val currentPuzzleIndex: Int? = null,
     val currentPuzzleStep: Int = 0,
+    val completedPuzzleIndices: Set<Int> = emptySet(),
 )
 
 data class GameState(
@@ -54,6 +55,7 @@ data class GameState(
     val threats get() = ui.threats
     val puzzles get() = ui.puzzles
     val currentPuzzleIndex get() = ui.currentPuzzleIndex
+    val completedPuzzleIndices get() = ui.completedPuzzleIndices
 
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
 
@@ -90,4 +92,5 @@ sealed class GameAction {
     data class SetThreats(val threats: List<Position>) : GameAction()
     data class SetPuzzles(val puzzles: List<Puzzle>) : GameAction()
     data class SelectPuzzle(val index: Int) : GameAction()
+    data class PuzzleCompleted(val index: Int) : GameAction()
 }

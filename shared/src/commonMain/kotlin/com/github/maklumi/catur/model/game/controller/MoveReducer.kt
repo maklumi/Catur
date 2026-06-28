@@ -34,7 +34,9 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
                         return this
                     }
                     // CORRECT MOVE: Update the step and apply move
-                    return applyIncrement()
+                    val isPuzzleFinished = ui.currentPuzzleStep + 1 >= puzzle.solutionMoves.size
+                    
+                    val intermediateState = applyIncrement()
                         .copy(
                             snapshots = snapshots + nextSnapshot,
                             currentIndex = currentIndex + 1,
@@ -46,6 +48,12 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
                                 threats = emptyList()
                             )
                         )
+                    
+                    return if (isPuzzleFinished && currentPuzzleIndex != null) {
+                        intermediateState.reduceUi(GameAction.PuzzleCompleted(currentPuzzleIndex!!))
+                    } else {
+                        intermediateState
+                    }
                 }
 
                 applyIncrement()

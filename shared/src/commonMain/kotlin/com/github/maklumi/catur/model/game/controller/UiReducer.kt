@@ -38,6 +38,15 @@ internal fun GameState.reduceUi(action: GameAction): GameState {
         is GameAction.SetPuzzles -> {
             copy(ui = ui.copy(puzzles = action.puzzles))
         }
+        is GameAction.PuzzleCompleted -> {
+            val updatedPuzzles = ui.puzzles.mapIndexed { index, puzzle ->
+                if (index == action.index) puzzle.copy(isCompleted = true) else puzzle
+            }
+            copy(ui = ui.copy(
+                puzzles = updatedPuzzles,
+                completedPuzzleIndices = ui.completedPuzzleIndices + action.index
+            ))
+        }
         is GameAction.SelectPuzzle -> {
             val puzzle = ui.puzzles.getOrNull(action.index) ?: return this
             val board = Board.fromFen(puzzle.initialFen)
@@ -52,8 +61,8 @@ internal fun GameState.reduceUi(action: GameAction): GameState {
             copy(
                 snapshots = listOf(GameSnapshotState(context = ChessContext(board = board, activeColor = activeColor))),
                 currentIndex = 0,
-                whitePlayer = whitePlayer.copy(name = whiteName),
-                blackPlayer = blackPlayer.copy(name = blackName),
+                whitePlayer = whitePlayer.copy(name = whiteName, timeMillis = 600_000L),
+                blackPlayer = blackPlayer.copy(name = blackName, timeMillis = 600_000L),
                 engine = engine.copy(isThinking = false),
                 ui = ui.copy(
                     currentPuzzleIndex = action.index,

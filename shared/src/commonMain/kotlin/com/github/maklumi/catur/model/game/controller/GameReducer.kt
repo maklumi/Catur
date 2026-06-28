@@ -20,6 +20,7 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
 
         is GameAction.SelectPuzzle,
         is GameAction.SetPuzzles,
+        is GameAction.PuzzleCompleted,
         is GameAction.SquareLongPress,
         is GameAction.ClearLongPress,
         is GameAction.SetMoveEvaluations,
