@@ -21,8 +21,14 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.github.maklumi.catur"
-            packageVersion = "1.0.0"
+            packageName = "Mate in 4"
+            packageVersion = "1.26.6"
+            description = "Apalagi mate in 4 lah."
+            copyright = "MIT"
+            vendor = "Makl"
+            windows {
+                iconFile.set(project.file("icon.ico"))
+            }
         }
     }
 }
