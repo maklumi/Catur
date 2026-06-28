@@ -24,10 +24,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,6 +40,11 @@ import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.PgnUtils
 import com.github.maklumi.catur.model.game.state.PuzzleState
 import com.github.maklumi.catur.model.piece.Piece
+import kotlinx.coroutines.launch
+
+// Simple helper to create a ClipEntry from a string (currently internal in some versions of CMP)
+@OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+private fun String.toClipEntry(): ClipEntry = ClipEntry(AnnotatedString(this))
 
 @Composable
 fun CapturedPiecesView(pieces: List<Piece>, imbalance: Int = 0) {
@@ -76,7 +83,8 @@ fun MoveHistoryList(
     modifier: Modifier = Modifier
 ) {
     val boardState by controller.boardState.collectAsState(BoardState())
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     val colorScheme = MaterialTheme.colorScheme
     
     Column(
@@ -101,7 +109,9 @@ fun MoveHistoryList(
                     val currentState = controller.state.value
                     val pgn = PgnUtils.generatePgn(currentState)
                     println(pgn)
-                    clipboardManager.setText(AnnotatedString(pgn))
+                    scope.launch {
+                        clipboard.setClipEntry(pgn.toClipEntry())
+                    }
                 },
                 contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                 modifier = Modifier.height(32.dp),

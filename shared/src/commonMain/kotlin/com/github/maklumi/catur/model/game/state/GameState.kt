@@ -10,17 +10,6 @@ enum class PlayerType {
     HUMAN, ENGINE
 }
 
-data class PlayerConfig(
-    val type: PlayerType,
-    val name: String,
-    val timeMillis: Long = 600_000L,
-)
-
-data class EngineSettings(
-    val model: String = "maia3-5m",
-    val isThinking: Boolean = false,
-)
-
 data class BoardState(
     val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(context = ChessContext(board = Board.initial))),
     val currentIndex: Int = 0,
@@ -78,15 +67,10 @@ data class GameState(
     val currentSnapshot get() = board.currentSnapshot
     val isViewingHistory get() = board.isViewingHistory
     val isBoardFlipped get() = board.isBoardFlipped
-    
-    val whitePlayer get() = PlayerConfig(match.whiteType, match.whiteName, clock.whiteTimeMillis)
-    val blackPlayer get() = PlayerConfig(match.blackType, match.blackName, clock.blackTimeMillis)
-    
+
     val whiteName get() = match.whiteName
     val blackName get() = match.blackName
-    val whiteTimeMillis get() = clock.whiteTimeMillis
-    val blackTimeMillis get() = clock.blackTimeMillis
-    
+
     val engineModel get() = engine.model
     val isEngineThinking get() = engine.isThinking
     
@@ -95,9 +79,6 @@ data class GameState(
     val completedPuzzleIndices get() = puzzle.completedPuzzleIndices
     
     val longPressedPosition get() = uiVisual.longPressedPosition
-    val moveEvaluations get() = uiVisual.moveEvaluations
-    val bestMoveArrow get() = uiVisual.bestMoveArrow
-    val threats get() = uiVisual.threats
 
     fun canGoBack() = board.canGoBack()
     fun canGoForward() = board.canGoForward()

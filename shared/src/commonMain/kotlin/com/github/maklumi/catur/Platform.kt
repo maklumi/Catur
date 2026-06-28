@@ -10,6 +10,7 @@ interface Platform {
     val persistenceManager: PersistenceManager
     fun createGameController(scope: CoroutineScope): GameController
     fun playSound(type: SoundType)
+    fun getCurrentDate(): String
 }
 
 expect fun getPlatform(): Platform

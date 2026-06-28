@@ -1,5 +1,6 @@
 package com.github.maklumi.catur.model.game.state
 
+import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.model.piece.PieceColor
 
 object PgnUtils {
@@ -10,7 +11,7 @@ object PgnUtils {
         // Headers
         pgn.append("[Event \"${if (state.currentPuzzleIndex != null) "Catur Puzzle" else "Casual Game"}\"]\n")
         pgn.append("[Site \"Android/Desktop\"]\n")
-        pgn.append("[Date \"????.??.??\"]\n")
+        pgn.append("[Date \"${getPlatform().getCurrentDate()}\"]\n")
         pgn.append("[White \"${state.whiteName}\"]\n")
         pgn.append("[Black \"${state.blackName}\"]\n")
         

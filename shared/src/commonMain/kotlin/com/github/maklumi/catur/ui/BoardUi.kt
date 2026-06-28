@@ -1,22 +1,39 @@
 package com.github.maklumi.catur.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.controller.GameController
-import com.github.maklumi.catur.model.game.state.*
+import com.github.maklumi.catur.model.game.state.BoardState
+import com.github.maklumi.catur.model.game.state.ClockState
+import com.github.maklumi.catur.model.game.state.EngineState
+import com.github.maklumi.catur.model.game.state.GameAction
+import com.github.maklumi.catur.model.game.state.GameStatus
+import com.github.maklumi.catur.model.game.state.MatchState
+import com.github.maklumi.catur.model.game.state.UiVisualState
 import com.github.maklumi.catur.model.piece.PieceColor
-import com.github.maklumi.catur.ui.theme.CaturTheme
 
 private fun formatTime(millis: Long): String {
     val totalSeconds = millis / 1000

@@ -8,12 +8,16 @@ import com.github.maklumi.catur.model.game.audio.SoundType
 import com.github.maklumi.catur.model.game.controller.GameController
 import com.github.maklumi.catur.model.game.engine.RemoteChessEngine
 import kotlinx.coroutines.CoroutineScope
+import androidx.core.content.edit
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
-class AndroidPersistenceManager(private val context: Context) : PersistenceManager {
+class AndroidPersistenceManager(context: Context) : PersistenceManager {
     private val prefs: SharedPreferences = context.getSharedPreferences("catur_prefs", Context.MODE_PRIVATE)
 
     override fun saveCompletedPuzzles(indices: Set<Int>) {
-        prefs.edit().putString("completed_puzzles", indices.joinToString(",")).apply()
+        prefs.edit { putString("completed_puzzles", indices.joinToString(",")) }
     }
 
     override fun loadCompletedPuzzles(): Set<Int> {
@@ -23,7 +27,7 @@ class AndroidPersistenceManager(private val context: Context) : PersistenceManag
     }
 }
 
-class AndroidPlatform(private val context: Context) : Platform {
+class AndroidPlatform(context: Context) : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
     override val persistenceManager: PersistenceManager = AndroidPersistenceManager(context)
 
@@ -37,6 +41,10 @@ class AndroidPlatform(private val context: Context) : Platform {
 
     override fun playSound(type: SoundType) {
         // Implement Android sound playing
+    }
+
+    override fun getCurrentDate(): String {
+        return SimpleDateFormat("yyyy.MM.dd", Locale.US).format(Date())
     }
 }
 

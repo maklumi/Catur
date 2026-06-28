@@ -105,7 +105,7 @@ fun Board.findMoveByNotation(
     }
 
     val currentPieces = piecesMap.filter { it.value.pieceColor == activeColor }
-    val candidates = currentPieces.flatMap { (pos, piece) ->
+    val candidates = currentPieces.flatMap { (_, piece) ->
         val pieceSymbol = if (piece is Pawn) "" else piece.textSymbol
         if (pieceSymbol != pieceType) return@flatMap emptyList<BoardMove>()
         

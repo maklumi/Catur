@@ -8,6 +8,9 @@ import kotlinx.coroutines.CoroutineScope
 import java.awt.Toolkit
 import javax.sound.sampled.AudioSystem
 import java.io.BufferedInputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.util.prefs.Preferences
 
 class JVMPersistenceManager : PersistenceManager {
@@ -59,6 +62,10 @@ class JVMPlatform: Platform {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    override fun getCurrentDate(): String {
+        return SimpleDateFormat("yyyy.MM.dd", Locale.US).format(Date())
     }
 }
 
