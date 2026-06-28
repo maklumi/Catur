@@ -2,17 +2,28 @@ package com.github.maklumi.catur.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -26,11 +37,12 @@ import com.github.maklumi.catur.model.piece.Piece
 @Composable
 fun CapturedPiecesView(pieces: List<Piece>, imbalance: Int = 0) {
     val sortedPieces = pieces.sortedBy { it.value }
+    val colorScheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(32.dp)
-            .background(Color.LightGray.copy(alpha = 0.3f), RoundedCornerShape(4.dp))
+            .background(colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start
@@ -47,7 +59,7 @@ fun CapturedPiecesView(pieces: List<Piece>, imbalance: Int = 0) {
                 text = "+$imbalance",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.DarkGray
+                color = colorScheme.onSurfaceVariant
             )
         }
     }
@@ -60,6 +72,7 @@ fun MoveHistoryList(
     modifier: Modifier = Modifier
 ) {
     val clipboardManager = LocalClipboardManager.current
+    val colorScheme = MaterialTheme.colorScheme
     
     Column(
         modifier = modifier
@@ -75,6 +88,7 @@ fun MoveHistoryList(
                 text = "Move History",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
+                color = colorScheme.onBackground
             )
             
             Button(
@@ -87,8 +101,8 @@ fun MoveHistoryList(
                 modifier = Modifier.height(32.dp),
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.LightGray.copy(alpha = 0.5f),
-                    contentColor = Color.Black
+                    containerColor = colorScheme.secondaryContainer,
+                    contentColor = colorScheme.onSecondaryContainer
                 )
             ) {
                 Text("Copy PGN", fontSize = 10.sp)
@@ -100,6 +114,7 @@ fun MoveHistoryList(
         Text(
             text = "Start",
             fontWeight = if (state.currentIndex == 0) FontWeight.Bold else FontWeight.Normal,
+            color = if (state.currentIndex == 0) colorScheme.primary else colorScheme.onBackground,
             modifier = Modifier
                 .clickable { onAction(GameAction.JumpToHistory(0)) }
                 .padding(vertical = 4.dp)
@@ -117,12 +132,13 @@ fun MoveHistoryList(
             Row(modifier = Modifier.padding(vertical = 2.dp)) {
                 Text(
                     text = "$turnNumber. ",
-                    color = Color.Gray,
+                    color = colorScheme.outline,
                     modifier = Modifier.width(32.dp)
                 )
                 Text(
                     text = whiteMove,
                     fontWeight = if (state.currentIndex == whiteMoveIdx) FontWeight.Bold else FontWeight.Normal,
+                    color = if (state.currentIndex == whiteMoveIdx) colorScheme.primary else colorScheme.onBackground,
                     modifier = Modifier
                         .width(64.dp)
                         .clickable { onAction(GameAction.JumpToHistory(whiteMoveIdx)) }
@@ -131,6 +147,7 @@ fun MoveHistoryList(
                     Text(
                         text = blackMove,
                         fontWeight = if (state.currentIndex == blackMoveIdx) FontWeight.Bold else FontWeight.Normal,
+                        color = if (state.currentIndex == blackMoveIdx) colorScheme.primary else colorScheme.onBackground,
                         modifier = Modifier
                             .width(64.dp)
                             .clickable { onAction(GameAction.JumpToHistory(blackMoveIdx)) }
@@ -152,9 +169,10 @@ fun EngineLevelSelector(
         "maia3-23m" to "23M (Strong)",
         "maia3-79m" to "79M (Expert)"
     )
+    val colorScheme = MaterialTheme.colorScheme
 
     Column {
-        Text(text = "Engine Level", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Text(text = "Engine Level", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colorScheme.onBackground)
         Spacer(modifier = Modifier.height(4.dp))
         models.forEach { (model, label) ->
             Row(
@@ -167,10 +185,10 @@ fun EngineLevelSelector(
                 Box(
                     modifier = Modifier
                         .size(12.dp)
-                        .background(if (currentModel == model) Color.Green else Color.LightGray, RoundedCornerShape(6.dp))
+                        .background(if (currentModel == model) colorScheme.primary else colorScheme.outlineVariant, CircleShape)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = label, fontSize = 14.sp)
+                Text(text = label, fontSize = 14.sp, color = colorScheme.onBackground)
             }
         }
     }
@@ -182,6 +200,7 @@ fun PuzzleList(
     onAction: (GameAction) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -191,15 +210,17 @@ fun PuzzleList(
             text = "Puzzles",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp),
+            color = colorScheme.onBackground
         )
 
         state.puzzles.forEachIndexed { index, puzzle ->
+            val isSelected = state.currentPuzzleIndex == index
             Text(
                 text = "${index+1}.  ${puzzle.title}",
                 fontSize = 12.sp,
-                fontWeight = if (state.currentPuzzleIndex == index) FontWeight.Bold else FontWeight.Normal,
-                color = if (state.currentPuzzleIndex == index) Color.Blue else Color.Black,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                color = if (isSelected) colorScheme.primary else colorScheme.onBackground,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onAction(GameAction.SelectPuzzle(index)) }

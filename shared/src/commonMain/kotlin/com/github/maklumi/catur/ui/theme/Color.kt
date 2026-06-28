@@ -3,10 +3,10 @@ package com.github.maklumi.catur.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Chess Board Colors
-val BoardLight = Color(0xFFEEEED2)
-val BoardDark = Color(0xFF769656)
-val BoardLastMove = Color(0xFFF6F682)
-val BoardSelected = Color.Yellow
+val BoardLight = Color(0xFFEBECD0)
+val BoardDark = Color(0xFF779556)
+val BoardLastMove = Color(0xFFF7F782)
+val BoardSelected = Color(0xFFFFD700) // Slightly warmer yellow
 val BoardThreatenedLight = Color(0xFFE69191)
 val BoardThreatenedDark = Color(0xFFC95B5B)
 

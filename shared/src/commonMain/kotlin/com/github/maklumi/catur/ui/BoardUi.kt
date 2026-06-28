@@ -2,6 +2,7 @@ package com.github.maklumi.catur.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,6 +17,7 @@ import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.GameState
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.piece.PieceColor
+import com.github.maklumi.catur.ui.theme.CaturTheme
 
 private fun formatTime(millis: Long): String {
     val totalSeconds = millis / 1000
@@ -30,6 +32,8 @@ fun ChessBoard(
     onAction: (GameAction) -> Unit
 ) {
     val snapshot = state.currentSnapshot
+    val colorScheme = MaterialTheme.colorScheme
+    
     Box(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
@@ -42,12 +46,13 @@ fun ChessBoard(
                     Text(
                         text = "Turn: $activeName",
                         modifier = Modifier.padding(8.dp),
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        color = colorScheme.onBackground
                     )
                     if (state.isEngineThinking) {
                         Text(
                             text = "(Thinking...)",
-                            color = Color.Gray,
+                            color = colorScheme.outline,
                             fontSize = 16.sp,
                             modifier = Modifier.padding(8.dp)
                         )
@@ -55,7 +60,7 @@ fun ChessBoard(
                     if (snapshot.status != GameStatus.ONGOING) {
                         Text(
                             text = " - ${snapshot.status}",
-                            color = Color.Red,
+                            color = colorScheme.error,
                             fontSize = 20.sp,
                             modifier = Modifier.padding(8.dp)
                         )
@@ -75,7 +80,7 @@ fun ChessBoard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(8.dp)
                     ) {
-                        Text("Draw offered by ${snapshot.drawOfferedBy}")
+                        Text("Draw offered by ${snapshot.drawOfferedBy}", color = colorScheme.onBackground)
                         Button(onClick = { onAction(GameAction.AcceptDraw) }) { Text("Accept") }
                         Button(onClick = { onAction(GameAction.DeclineDraw) }) { Text("Decline") }
                     }
@@ -121,7 +126,7 @@ fun ChessBoard(
                                 from = arrow.first,
                                 to = arrow.second,
                                 isBoardFlipped = state.isBoardFlipped,
-                                color = Color.Green.copy(alpha = 0.5f)
+                                color = colorScheme.primary.copy(alpha = 0.5f)
                             )
                         }
                     }
@@ -137,7 +142,8 @@ fun ChessBoard(
                     ) { Text("Back") }
                     Text(
                         text = "${state.currentIndex} / ${state.snapshots.size - 1}",
-                        modifier = Modifier.align(Alignment.CenterVertically)
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        color = colorScheme.onBackground
                     )
                     Button(
                         onClick = { onAction(GameAction.StepForward) },
@@ -178,12 +184,12 @@ fun ChessBoard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = topName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = topName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colorScheme.onBackground)
                     Text(
                         text = formatTime(topTime),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = if (topTime < 30000) Color.Red else Color.Unspecified
+                        color = if (topTime < 30000) colorScheme.error else colorScheme.onBackground
                     )
                 }
                 CapturedPiecesView(pieces = topCaptured, imbalance = topImbalance)
@@ -197,12 +203,12 @@ fun ChessBoard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = bottomName, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = bottomName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colorScheme.onBackground)
                     Text(
                         text = formatTime(bottomTime),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = if (bottomTime < 30000) Color.Red else Color.Unspecified
+                        color = if (bottomTime < 30000) colorScheme.error else colorScheme.onBackground
                     )
                 }
                 CapturedPiecesView(pieces = bottomCaptured, imbalance = bottomImbalance)
