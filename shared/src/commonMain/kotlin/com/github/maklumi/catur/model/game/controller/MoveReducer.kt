@@ -1,11 +1,8 @@
 package com.github.maklumi.catur.model.game.controller
 
-import com.github.maklumi.catur.model.game.state.GameAction
-import com.github.maklumi.catur.model.game.state.GameState
-import com.github.maklumi.catur.model.game.state.GameStatus
-import com.github.maklumi.catur.model.game.state.getNotation
-import com.github.maklumi.catur.model.game.state.isInCheck
+import com.github.maklumi.catur.model.game.state.*
 import com.github.maklumi.catur.model.piece.PieceColor
+import kotlin.random.Random
 
 internal fun GameState.reduceMove(action: GameAction): GameState {
     return when (action) {
@@ -26,31 +23,32 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
                     history = nextSnapshotBeforeNotation.history.copy(notation = notation)
                 )
 
-                val puzzle = puzzles.getOrNull(currentPuzzleIndex ?: -1)
-                if (puzzle != null) {
-                    val expectedMove = puzzle.solutionMoves.getOrNull(ui.currentPuzzleStep)
+                val puzzleRef = puzzle.puzzles.getOrNull(puzzle.currentPuzzleIndex ?: -1)
+                if (puzzleRef != null) {
+                    val expectedMove = puzzleRef.solutionMoves.getOrNull(puzzle.currentPuzzleStep)
                     if (nextSnapshot.notation != expectedMove) {
-                        // WRONG MOVE: Return current state without applying the move
                         return this
                     }
-                    // CORRECT MOVE: Update the step and apply move
-                    val isPuzzleFinished = ui.currentPuzzleStep + 1 >= puzzle.solutionMoves.size
+                    val isPuzzleFinished = puzzle.currentPuzzleStep + 1 >= puzzleRef.solutionMoves.size
                     
                     val intermediateState = applyIncrement()
                         .copy(
-                            snapshots = snapshots + nextSnapshot,
-                            currentIndex = currentIndex + 1,
-                            ui = ui.copy(
-                                currentPuzzleStep = ui.currentPuzzleStep + 1,
+                            board = board.copy(
+                                snapshots = snapshots + nextSnapshot,
+                                currentIndex = currentIndex + 1,
+                                lastMoveId = Random.nextLong()
+                            ),
+                            uiVisual = uiVisual.copy(
                                 longPressedPosition = null,
                                 moveEvaluations = emptyMap(),
                                 bestMoveArrow = null,
                                 threats = emptyList()
-                            )
+                            ),
+                            puzzle = puzzle.copy(currentPuzzleStep = puzzle.currentPuzzleStep + 1)
                         )
                     
-                    return if (isPuzzleFinished && currentPuzzleIndex != null) {
-                        intermediateState.reduceUi(GameAction.PuzzleCompleted(currentPuzzleIndex!!))
+                    return if (isPuzzleFinished && puzzle.currentPuzzleIndex != null) {
+                        intermediateState.reduceUi(GameAction.PuzzleCompleted(puzzle.currentPuzzleIndex))
                     } else {
                         intermediateState
                     }
@@ -58,16 +56,26 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
 
                 applyIncrement()
                     .copy(
-                        snapshots = snapshots + nextSnapshot,
-                        currentIndex = currentIndex + 1,
-                        ui = ui.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null, threats = emptyList())
+                        board = board.copy(
+                            snapshots = snapshots + nextSnapshot,
+                            currentIndex = currentIndex + 1,
+                            lastMoveId = Random.nextLong()
+                        ),
+                        uiVisual = uiVisual.copy(
+                            longPressedPosition = null,
+                            moveEvaluations = emptyMap(),
+                            bestMoveArrow = null,
+                            threats = emptyList()
+                        )
                     )
             } else {
                 copy(
-                    snapshots = snapshots.toMutableList().apply { 
-                        set(currentIndex, nextSnapshotBeforeNotation) 
-                    },
-                    ui = ui.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null, threats = emptyList())
+                    board = board.copy(
+                        snapshots = snapshots.toMutableList().apply { 
+                            set(currentIndex, nextSnapshotBeforeNotation) 
+                        }
+                    ),
+                    uiVisual = uiVisual.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null, threats = emptyList())
                 )
             }
         }
@@ -81,23 +89,30 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
             val notation = currentSnapshot.board.getNotation(action.move, isCheck, isMate)
             val nextSnapshot = nextSnapshotBeforeNotation.copy(history = nextSnapshotBeforeNotation.history.copy(notation = notation))
 
-            val puzzle = puzzles.getOrNull(currentPuzzleIndex ?: -1)
-            if (puzzle != null) {
-                val expectedMove = puzzle.solutionMoves.getOrNull(ui.currentPuzzleStep)
+            val puzzleRef = puzzle.puzzles.getOrNull(puzzle.currentPuzzleIndex ?: -1)
+            if (puzzleRef != null) {
+                val expectedMove = puzzleRef.solutionMoves.getOrNull(puzzle.currentPuzzleStep)
                 if (nextSnapshot.notation != expectedMove) return this
                 return applyIncrement()
                     .copy(
-                        snapshots = snapshots + nextSnapshot,
-                        currentIndex = currentIndex + 1,
-                        ui = ui.copy(currentPuzzleStep = ui.currentPuzzleStep + 1, bestMoveArrow = null, threats = emptyList())
+                        board = board.copy(
+                            snapshots = snapshots + nextSnapshot,
+                            currentIndex = currentIndex + 1,
+                            lastMoveId = Random.nextLong()
+                        ),
+                        uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList()),
+                        puzzle = puzzle.copy(currentPuzzleStep = puzzle.currentPuzzleStep + 1)
                     )
             }
 
             applyIncrement()
                 .copy(
-                    snapshots = snapshots + nextSnapshot,
-                    currentIndex = currentIndex + 1,
-                    ui = ui.copy(bestMoveArrow = null, threats = emptyList())
+                    board = board.copy(
+                        snapshots = snapshots + nextSnapshot,
+                        currentIndex = currentIndex + 1,
+                        lastMoveId = Random.nextLong()
+                    ),
+                    uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList())
                 )
         }
         is GameAction.EngineMove -> {
@@ -112,21 +127,28 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
             val notation = currentSnapshot.board.getNotation(boardMove, isCheck, isMate)
             val nextSnapshot = nextSnapshotBeforeNotation.copy(history = nextSnapshotBeforeNotation.history.copy(notation = notation))
 
-            val puzzle = puzzles.getOrNull(currentPuzzleIndex ?: -1)
-            if (puzzle != null) {
+            val puzzleRef = puzzle.puzzles.getOrNull(puzzle.currentPuzzleIndex ?: -1)
+            if (puzzleRef != null) {
                 return applyIncrement()
                     .copy(
-                        snapshots = snapshots + nextSnapshot,
-                        currentIndex = currentIndex + 1,
-                        ui = ui.copy(currentPuzzleStep = ui.currentPuzzleStep + 1, bestMoveArrow = null, threats = emptyList())
+                        board = board.copy(
+                            snapshots = snapshots + nextSnapshot,
+                            currentIndex = currentIndex + 1,
+                            lastMoveId = Random.nextLong()
+                        ),
+                        uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList()),
+                        puzzle = puzzle.copy(currentPuzzleStep = puzzle.currentPuzzleStep + 1)
                     )
             }
 
             applyIncrement()
                 .copy(
-                    snapshots = snapshots + nextSnapshot,
-                    currentIndex = currentIndex + 1,
-                    ui = ui.copy(bestMoveArrow = null, threats = emptyList())
+                    board = board.copy(
+                        snapshots = snapshots + nextSnapshot,
+                        currentIndex = currentIndex + 1,
+                        lastMoveId = Random.nextLong()
+                    ),
+                    uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList())
                 )
         }
         else -> this
@@ -136,8 +158,8 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
 private fun GameState.applyIncrement(): GameState {
     val justMovedColor = currentSnapshot.activeColor
     return if (justMovedColor == PieceColor.WHITE) {
-        copy(whitePlayer = whitePlayer.copy(timeMillis = whiteTimeMillis + 3000L))
+        copy(clock = clock.copy(whiteTimeMillis = clock.whiteTimeMillis + 3000L))
     } else {
-        copy(blackPlayer = blackPlayer.copy(timeMillis = blackTimeMillis + 3000L))
+        copy(clock = clock.copy(blackTimeMillis = clock.blackTimeMillis + 3000L))
     }
 }

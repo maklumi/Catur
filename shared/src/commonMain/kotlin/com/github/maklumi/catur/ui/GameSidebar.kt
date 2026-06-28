@@ -22,6 +22,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,9 +32,11 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.maklumi.catur.model.game.controller.GameController
+import com.github.maklumi.catur.model.game.state.BoardState
 import com.github.maklumi.catur.model.game.state.GameAction
-import com.github.maklumi.catur.model.game.state.GameState
 import com.github.maklumi.catur.model.game.state.PgnUtils
+import com.github.maklumi.catur.model.game.state.PuzzleState
 import com.github.maklumi.catur.model.piece.Piece
 
 @Composable
@@ -68,10 +72,10 @@ fun CapturedPiecesView(pieces: List<Piece>, imbalance: Int = 0) {
 
 @Composable
 fun MoveHistoryList(
-    state: GameState,
-    onAction: (GameAction) -> Unit,
+    controller: GameController,
     modifier: Modifier = Modifier
 ) {
+    val boardState by controller.boardState.collectAsState(BoardState())
     val clipboardManager = LocalClipboardManager.current
     val colorScheme = MaterialTheme.colorScheme
     
@@ -94,7 +98,8 @@ fun MoveHistoryList(
             
             Button(
                 onClick = {
-                    val pgn = PgnUtils.generatePgn(state)
+                    val currentState = controller.state.value
+                    val pgn = PgnUtils.generatePgn(currentState)
                     println(pgn)
                     clipboardManager.setText(AnnotatedString(pgn))
                 },
@@ -114,14 +119,14 @@ fun MoveHistoryList(
 
         Text(
             text = "Start",
-            fontWeight = if (state.currentIndex == 0) FontWeight.Bold else FontWeight.Normal,
-            color = if (state.currentIndex == 0) colorScheme.primary else colorScheme.onBackground,
+            fontWeight = if (boardState.currentIndex == 0) FontWeight.Bold else FontWeight.Normal,
+            color = if (boardState.currentIndex == 0) colorScheme.primary else colorScheme.onBackground,
             modifier = Modifier
-                .clickable { onAction(GameAction.JumpToHistory(0)) }
+                .clickable { controller.dispatch(GameAction.JumpToHistory(0)) }
                 .padding(vertical = 4.dp)
         )
 
-        val historySnapshots = state.snapshots.drop(1)
+        val historySnapshots = boardState.snapshots.drop(1)
         for (i in historySnapshots.indices step 2) {
             val turnNumber = i / 2 + 1
             val whiteMoveIdx = i + 1
@@ -138,20 +143,20 @@ fun MoveHistoryList(
                 )
                 Text(
                     text = whiteMove,
-                    fontWeight = if (state.currentIndex == whiteMoveIdx) FontWeight.Bold else FontWeight.Normal,
-                    color = if (state.currentIndex == whiteMoveIdx) colorScheme.primary else colorScheme.onBackground,
+                    fontWeight = if (boardState.currentIndex == whiteMoveIdx) FontWeight.Bold else FontWeight.Normal,
+                    color = if (boardState.currentIndex == whiteMoveIdx) colorScheme.primary else colorScheme.onBackground,
                     modifier = Modifier
                         .width(64.dp)
-                        .clickable { onAction(GameAction.JumpToHistory(whiteMoveIdx)) }
+                        .clickable { controller.dispatch(GameAction.JumpToHistory(whiteMoveIdx)) }
                 )
                 if (blackMove.isNotEmpty()) {
                     Text(
                         text = blackMove,
-                        fontWeight = if (state.currentIndex == blackMoveIdx) FontWeight.Bold else FontWeight.Normal,
-                        color = if (state.currentIndex == blackMoveIdx) colorScheme.primary else colorScheme.onBackground,
+                        fontWeight = if (boardState.currentIndex == blackMoveIdx) FontWeight.Bold else FontWeight.Normal,
+                        color = if (boardState.currentIndex == blackMoveIdx) colorScheme.primary else colorScheme.onBackground,
                         modifier = Modifier
                             .width(64.dp)
-                            .clickable { onAction(GameAction.JumpToHistory(blackMoveIdx)) }
+                            .clickable { controller.dispatch(GameAction.JumpToHistory(blackMoveIdx)) }
                     )
                 }
             }
@@ -197,10 +202,10 @@ fun EngineLevelSelector(
 
 @Composable
 fun PuzzleList(
-    state: GameState,
-    onAction: (GameAction) -> Unit,
+    controller: GameController,
     modifier: Modifier = Modifier
 ) {
+    val puzzleState by controller.puzzleState.collectAsState(PuzzleState())
     val colorScheme = MaterialTheme.colorScheme
     Column(
         modifier = modifier
@@ -215,14 +220,14 @@ fun PuzzleList(
             color = colorScheme.onBackground
         )
 
-        state.puzzles.forEachIndexed { index, puzzle ->
-            val isSelected = state.currentPuzzleIndex == index
+        puzzleState.puzzles.forEachIndexed { index, puzzle ->
+            val isSelected = puzzleState.currentPuzzleIndex == index
             val isCompleted = puzzle.isCompleted
             
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onAction(GameAction.SelectPuzzle(index)) }
+                    .clickable { controller.dispatch(GameAction.SelectPuzzle(index)) }
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

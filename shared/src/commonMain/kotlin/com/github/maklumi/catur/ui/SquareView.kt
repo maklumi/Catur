@@ -22,21 +22,21 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.board.isLightSquare
-import com.github.maklumi.catur.model.game.state.GameAction
-import com.github.maklumi.catur.model.game.state.GameState
+import com.github.maklumi.catur.model.game.state.*
 import com.github.maklumi.catur.ui.theme.CaturTheme
 
 @Composable
 fun SquareView(
     position: Position,
-    gameState: GameState,
+    boardState: BoardState,
+    uiVisualState: UiVisualState,
     modifier: Modifier = Modifier,
     showRank: Boolean = false,
     showFile: Boolean = false,
     onAction: (GameAction) -> Unit
 ) {
-    val snapshot = gameState.currentSnapshot
-    val eval = gameState.moveEvaluations.entries.find { 
+    val snapshot = boardState.currentSnapshot
+    val eval = uiVisualState.moveEvaluations.entries.find { 
         it.key.length >= 4 && it.key.substring(2, 4) == position.toString() 
     }?.value
     val isLastMove = snapshot.lastMove?.let { it.move.from == position || it.move.to == position } ?: false
@@ -44,20 +44,20 @@ fun SquareView(
     val piece = snapshot.board[position].piece
     val hasPiece = piece != null
     val isLight = position.isLightSquare()
-    val isThreatened = gameState.threats.contains(position)
+    val isThreatened = uiVisualState.threats.contains(position)
 
     val boardColors = CaturTheme.board
 
     // --- Animation Logic ---
     var squareSize by remember { mutableIntStateOf(0) }
-    val ranks = if (gameState.isBoardFlipped) 1..8 else 8 downTo 1
-    val files = if (gameState.isBoardFlipped) 8 downTo 1 else 1..8
+    val ranks = if (boardState.isBoardFlipped) 1..8 else 8 downTo 1
+    val files = if (boardState.isBoardFlipped) 8 downTo 1 else 1..8
     
     val rankIdx = ranks.indexOf(position.rank)
     val fileIdx = files.indexOf(position.file)
     
     val lastMove = snapshot.lastMove?.move
-    val lastMoveId = snapshot.lastMove?.id
+    val lastMoveId = boardState.lastMoveId
     val wasJustMovedTo = lastMove?.to == position
     
     val animOffset = remember(lastMoveId) {
@@ -80,7 +80,7 @@ fun SquareView(
     }
 
     val backgroundColor = when {
-        snapshot.selectedPosition == position || gameState.longPressedPosition == position -> boardColors.selected
+        snapshot.selectedPosition == position || uiVisualState.longPressedPosition == position -> boardColors.selected
         eval != null -> {
             val normalized = ((eval + 300) / 600f).coerceIn(0f, 1f)
             Color(red = normalized, green = 1f - normalized, blue = 0f, alpha = 0.6f)

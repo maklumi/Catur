@@ -21,53 +21,91 @@ data class EngineSettings(
     val isThinking: Boolean = false,
 )
 
-data class UiState(
+data class BoardState(
+    val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(context = ChessContext(board = Board.initial))),
+    val currentIndex: Int = 0,
     val isBoardFlipped: Boolean = false,
-    val longPressedPosition: Position? = null,
-    val moveEvaluations: Map<String, Int> = emptyMap(),
-    val bestMoveArrow: Pair<Position, Position>? = null,
-    val threats: List<Position> = emptyList(),
+    val lastMoveId: Long? = null
+) {
+    val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
+    val isViewingHistory: Boolean get() = currentIndex < snapshots.size - 1
+    fun canGoBack(): Boolean = currentIndex > 0
+    fun canGoForward(): Boolean = currentIndex < snapshots.size - 1
+}
+
+data class MatchState(
+    val whiteName: String = "Human",
+    val whiteType: PlayerType = PlayerType.HUMAN,
+    val blackName: String = "Maia",
+    val blackType: PlayerType = PlayerType.ENGINE
+)
+
+data class ClockState(
+    val whiteTimeMillis: Long = 600_000L,
+    val blackTimeMillis: Long = 600_000L
+)
+
+data class EngineState(
+    val model: String = "maia3-5m",
+    val isThinking: Boolean = false
+)
+
+data class PuzzleState(
     val puzzles: List<Puzzle> = emptyList(),
     val currentPuzzleIndex: Int? = null,
     val currentPuzzleStep: Int = 0,
-    val completedPuzzleIndices: Set<Int> = emptySet(),
+    val completedPuzzleIndices: Set<Int> = emptySet()
+)
+
+data class UiVisualState(
+    val longPressedPosition: Position? = null,
+    val moveEvaluations: Map<String, Int> = emptyMap(),
+    val bestMoveArrow: Pair<Position, Position>? = null,
+    val threats: List<Position> = emptyList()
 )
 
 data class GameState(
-    val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(context = ChessContext(board = Board.initial))),
-    val currentIndex: Int = 0,
-    val whitePlayer: PlayerConfig = PlayerConfig(PlayerType.HUMAN, "Human"),
-    val blackPlayer: PlayerConfig = PlayerConfig(PlayerType.ENGINE, "Maia"),
-    val engine: EngineSettings = EngineSettings(),
-    val ui: UiState = UiState(),
+    val board: BoardState = BoardState(),
+    val match: MatchState = MatchState(),
+    val clock: ClockState = ClockState(),
+    val engine: EngineState = EngineState(),
+    val puzzle: PuzzleState = PuzzleState(),
+    val uiVisual: UiVisualState = UiVisualState()
 ) {
-    // Helpers
-    val whiteName get() = whitePlayer.name
-    val blackName get() = blackPlayer.name
-    val whiteTimeMillis get() = whitePlayer.timeMillis
-    val blackTimeMillis get() = blackPlayer.timeMillis
+    // Legacy helper accessors to avoid breaking everything at once
+    val snapshots get() = board.snapshots
+    val currentIndex get() = board.currentIndex
+    val currentSnapshot get() = board.currentSnapshot
+    val isViewingHistory get() = board.isViewingHistory
+    val isBoardFlipped get() = board.isBoardFlipped
+    
+    val whitePlayer get() = PlayerConfig(match.whiteType, match.whiteName, clock.whiteTimeMillis)
+    val blackPlayer get() = PlayerConfig(match.blackType, match.blackName, clock.blackTimeMillis)
+    
+    val whiteName get() = match.whiteName
+    val blackName get() = match.blackName
+    val whiteTimeMillis get() = clock.whiteTimeMillis
+    val blackTimeMillis get() = clock.blackTimeMillis
+    
     val engineModel get() = engine.model
     val isEngineThinking get() = engine.isThinking
-    val isBoardFlipped get() = ui.isBoardFlipped
-    val longPressedPosition get() = ui.longPressedPosition
-    val moveEvaluations get() = ui.moveEvaluations
-    val bestMoveArrow get() = ui.bestMoveArrow
-    val threats get() = ui.threats
-    val puzzles get() = ui.puzzles
-    val currentPuzzleIndex get() = ui.currentPuzzleIndex
-    val completedPuzzleIndices get() = ui.completedPuzzleIndices
+    
+    val puzzles get() = puzzle.puzzles
+    val currentPuzzleIndex get() = puzzle.currentPuzzleIndex
+    val completedPuzzleIndices get() = puzzle.completedPuzzleIndices
+    
+    val longPressedPosition get() = uiVisual.longPressedPosition
+    val moveEvaluations get() = uiVisual.moveEvaluations
+    val bestMoveArrow get() = uiVisual.bestMoveArrow
+    val threats get() = uiVisual.threats
 
-    val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
-
-    val isViewingHistory: Boolean get() = currentIndex < snapshots.size - 1
-
-    fun canGoBack(): Boolean = currentIndex > 0
-    fun canGoForward(): Boolean = currentIndex < snapshots.size - 1
+    fun canGoBack() = board.canGoBack()
+    fun canGoForward() = board.canGoForward()
 
     val isEngineTurn: Boolean get() = !isViewingHistory && 
         currentSnapshot.status == GameStatus.ONGOING &&
-        ((currentSnapshot.activeColor == PieceColor.WHITE && whitePlayer.type == PlayerType.ENGINE) ||
-         (currentSnapshot.activeColor == PieceColor.BLACK && blackPlayer.type == PlayerType.ENGINE))
+        ((currentSnapshot.activeColor == PieceColor.WHITE && match.whiteType == PlayerType.ENGINE) ||
+         (currentSnapshot.activeColor == PieceColor.BLACK && match.blackType == PlayerType.ENGINE))
 }
 
 sealed class GameAction {

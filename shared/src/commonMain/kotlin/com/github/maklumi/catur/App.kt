@@ -5,13 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -30,7 +24,6 @@ import com.github.maklumi.catur.ui.theme.CaturTheme
 fun App() {
     val scope = rememberCoroutineScope()
     val controller = remember { getPlatform().createGameController(scope) }
-    val state by controller.state.collectAsState()
 
     val focusRequester = remember { FocusRequester() }
 
@@ -71,8 +64,7 @@ fun App() {
                     .focusable()
             ) {
                 ChessBoard(
-                    state = state,
-                    onAction = { controller.dispatch(it) }
+                    controller = controller
                 )
             }
         }

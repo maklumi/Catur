@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -13,9 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.model.board.Position
-import com.github.maklumi.catur.model.game.state.GameAction
-import com.github.maklumi.catur.model.game.state.GameState
-import com.github.maklumi.catur.model.game.state.GameStatus
+import com.github.maklumi.catur.model.game.controller.GameController
+import com.github.maklumi.catur.model.game.state.*
 import com.github.maklumi.catur.model.piece.PieceColor
 import com.github.maklumi.catur.ui.theme.CaturTheme
 
@@ -28,10 +27,15 @@ private fun formatTime(millis: Long): String {
 
 @Composable
 fun ChessBoard(
-    state: GameState,
-    onAction: (GameAction) -> Unit
+    controller: GameController,
 ) {
-    val snapshot = state.currentSnapshot
+    val boardState by controller.boardState.collectAsState(BoardState())
+    val matchState by controller.matchState.collectAsState(MatchState())
+    val clockState by controller.clockState.collectAsState(ClockState())
+    val engineState by controller.engineState.collectAsState(EngineState())
+    val uiVisualState by controller.uiVisualState.collectAsState(UiVisualState())
+    
+    val snapshot = boardState.currentSnapshot
     val colorScheme = MaterialTheme.colorScheme
     
     Box(modifier = Modifier.fillMaxSize()) {
@@ -41,15 +45,14 @@ fun ChessBoard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val activeName =
-                        if (snapshot.activeColor == PieceColor.WHITE) state.whiteName else state.blackName
+                    val activeName = if (snapshot.activeColor == PieceColor.WHITE) matchState.whiteName else matchState.blackName
                     Text(
                         text = "Turn: $activeName",
                         modifier = Modifier.padding(8.dp),
                         fontSize = 20.sp,
                         color = colorScheme.onBackground
                     )
-                    if (state.isEngineThinking) {
+                    if (engineState.isThinking) {
                         Text(
                             text = "(Thinking...)",
                             color = colorScheme.outline,
@@ -65,11 +68,11 @@ fun ChessBoard(
                             modifier = Modifier.padding(8.dp)
                         )
                     }
-                    Button(onClick = { onAction(GameAction.ReverseSides) }) { Text("Reverse Sides") }
+                    Button(onClick = { controller.dispatch(GameAction.ReverseSides) }) { Text("Reverse Sides") }
                     if (snapshot.status == GameStatus.ONGOING) {
-                        Button(onClick = { onAction(GameAction.Resign) }) { Text("Resign") }
+                        Button(onClick = { controller.dispatch(GameAction.Resign) }) { Text("Resign") }
                         if (snapshot.drawOfferedBy == null) {
-                            Button(onClick = { onAction(GameAction.OfferDraw) }) { Text("Offer Draw") }
+                            Button(onClick = { controller.dispatch(GameAction.OfferDraw) }) { Text("Offer Draw") }
                         }
                     }
                 }
@@ -81,13 +84,13 @@ fun ChessBoard(
                         modifier = Modifier.padding(8.dp)
                     ) {
                         Text("Draw offered by ${snapshot.drawOfferedBy}", color = colorScheme.onBackground)
-                        Button(onClick = { onAction(GameAction.AcceptDraw) }) { Text("Accept") }
-                        Button(onClick = { onAction(GameAction.DeclineDraw) }) { Text("Decline") }
+                        Button(onClick = { controller.dispatch(GameAction.AcceptDraw) }) { Text("Accept") }
+                        Button(onClick = { controller.dispatch(GameAction.DeclineDraw) }) { Text("Decline") }
                     }
                 }
 
-                val ranks = if (state.isBoardFlipped) 1..8 else 8 downTo 1
-                val files = if (state.isBoardFlipped) 8 downTo 1 else 1..8
+                val ranks = if (boardState.isBoardFlipped) 1..8 else 8 downTo 1
+                val files = if (boardState.isBoardFlipped) 8 downTo 1 else 1..8
                 val lastMoveToRank = snapshot.lastMove?.move?.to?.rank
 
                 Box(
@@ -104,28 +107,28 @@ fun ChessBoard(
                                 ) {
                                     for (file in files) {
                                         val position = Position.from(file, rank)
-                                        val isLeftmost =
-                                            file == (if (state.isBoardFlipped) 8 else 1)
-                                        val isBottom = rank == (if (state.isBoardFlipped) 8 else 1)
+                                        val isLeftmost = file == (if (boardState.isBoardFlipped) 8 else 1)
+                                        val isBottom = rank == (if (boardState.isBoardFlipped) 8 else 1)
 
                                         SquareView(
                                             position = position,
-                                            gameState = state,
+                                            boardState = boardState,
+                                            uiVisualState = uiVisualState,
                                             modifier = Modifier.weight(1f).fillMaxHeight(),
                                             showRank = isLeftmost,
                                             showFile = isBottom,
-                                            onAction = { onAction(it) }
+                                            onAction = { controller.dispatch(it) }
                                         )
                                     }
                                 }
                             }
                         }
 
-                        state.bestMoveArrow?.let { arrow ->
+                        uiVisualState.bestMoveArrow?.let { arrow ->
                             ChessBoardOverlay(
                                 from = arrow.first,
                                 to = arrow.second,
-                                isBoardFlipped = state.isBoardFlipped,
+                                isBoardFlipped = boardState.isBoardFlipped,
                                 color = colorScheme.primary.copy(alpha = 0.5f)
                             )
                         }
@@ -137,17 +140,17 @@ fun ChessBoard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Button(
-                        onClick = { onAction(GameAction.StepBack) },
-                        enabled = state.canGoBack()
+                        onClick = { controller.dispatch(GameAction.StepBack) },
+                        enabled = boardState.canGoBack()
                     ) { Text("Back") }
                     Text(
-                        text = "${state.currentIndex} / ${state.snapshots.size - 1}",
+                        text = "${boardState.currentIndex} / ${boardState.snapshots.size - 1}",
                         modifier = Modifier.align(Alignment.CenterVertically),
                         color = colorScheme.onBackground
                     )
                     Button(
-                        onClick = { onAction(GameAction.StepForward) },
-                        enabled = state.canGoForward()
+                        onClick = { controller.dispatch(GameAction.StepForward) },
+                        enabled = boardState.canGoForward()
                     ) { Text("Forward") }
                 }
             }
@@ -155,25 +158,21 @@ fun ChessBoard(
             Spacer(modifier = Modifier.width(32.dp))
 
             Column(modifier = Modifier.width(200.dp).fillMaxHeight()) {
-                val topName = if (state.isBoardFlipped) state.whiteName else state.blackName
-                val topCaptured =
-                    if (state.isBoardFlipped) snapshot.capturedBlack else snapshot.capturedWhite
-                val topTime =
-                    if (state.isBoardFlipped) state.whiteTimeMillis else state.blackTimeMillis
+                val topName = if (boardState.isBoardFlipped) matchState.whiteName else matchState.blackName
+                val topCaptured = if (boardState.isBoardFlipped) snapshot.capturedBlack else snapshot.capturedWhite
+                val topTime = if (boardState.isBoardFlipped) clockState.whiteTimeMillis else clockState.blackTimeMillis
 
-                val bottomName = if (state.isBoardFlipped) state.blackName else state.whiteName
-                val bottomCaptured =
-                    if (state.isBoardFlipped) snapshot.capturedWhite else snapshot.capturedBlack
-                val bottomTime =
-                    if (state.isBoardFlipped) state.blackTimeMillis else state.whiteTimeMillis
+                val bottomName = if (boardState.isBoardFlipped) matchState.blackName else matchState.whiteName
+                val bottomCaptured = if (boardState.isBoardFlipped) snapshot.capturedWhite else snapshot.capturedBlack
+                val bottomTime = if (boardState.isBoardFlipped) clockState.blackTimeMillis else clockState.whiteTimeMillis
 
-                val topImbalance = if (state.isBoardFlipped) {
+                val topImbalance = if (boardState.isBoardFlipped) {
                     if (snapshot.materialImbalance > 0) snapshot.materialImbalance else 0
                 } else {
                     if (snapshot.materialImbalance < 0) -snapshot.materialImbalance else 0
                 }
 
-                val bottomImbalance = if (state.isBoardFlipped) {
+                val bottomImbalance = if (boardState.isBoardFlipped) {
                     if (snapshot.materialImbalance < 0) -snapshot.materialImbalance else 0
                 } else {
                     if (snapshot.materialImbalance > 0) snapshot.materialImbalance else 0
@@ -195,7 +194,7 @@ fun ChessBoard(
                 CapturedPiecesView(pieces = topCaptured, imbalance = topImbalance)
 
                 Spacer(modifier = Modifier.height(8.dp))
-                MoveHistoryList(state = state, onAction = onAction, modifier = Modifier.weight(1f))
+                MoveHistoryList(controller = controller, modifier = Modifier.weight(1f))
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
@@ -215,23 +214,22 @@ fun ChessBoard(
 
                 Spacer(modifier = Modifier.height(16.dp))
                 EngineLevelSelector(
-                    currentModel = state.engineModel,
-                    onModelChange = { onAction(GameAction.ChangeEngineLevel(it)) })
+                    currentModel = engineState.model,
+                    onModelChange = { controller.dispatch(GameAction.ChangeEngineLevel(it)) })
             }
 
             Spacer(modifier = Modifier.width(32.dp))
 
             Column(modifier = Modifier.width(200.dp).fillMaxHeight()) {
                 PuzzleList(
-                    state = state,
-                    onAction = onAction,
+                    controller = controller,
                     modifier = Modifier.weight(1f)
                 )
             }
         }
 
         snapshot.pendingPromotion?.let { moves ->
-            PromotionDialog(moves = moves, onChoice = { onAction(GameAction.PromotionChoice(it)) })
+            PromotionDialog(moves = moves, onChoice = { controller.dispatch(GameAction.PromotionChoice(it)) })
         }
     }
 }

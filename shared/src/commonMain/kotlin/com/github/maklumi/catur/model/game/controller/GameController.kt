@@ -35,6 +35,13 @@ class GameController(
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
 
+    val boardState = _state.map { it.board }.distinctUntilChanged()
+    val matchState = _state.map { it.match }.distinctUntilChanged()
+    val clockState = _state.map { it.clock }.distinctUntilChanged()
+    val engineState = _state.map { it.engine }.distinctUntilChanged()
+    val puzzleState = _state.map { it.puzzle }.distinctUntilChanged()
+    val uiVisualState = _state.map { it.uiVisual }.distinctUntilChanged()
+
     init {
         // Load puzzles
         scope.launch {
@@ -175,7 +182,7 @@ class GameController(
         }
 
         scope.launch {
-            state.map { it.ui.currentPuzzleStep }.distinctUntilChanged().collect { step ->
+            state.map { it.puzzle.currentPuzzleStep }.distinctUntilChanged().collect { step ->
                 val puzzle = state.value.puzzles.getOrNull(state.value.currentPuzzleIndex ?: -1)
                 // If it's an odd step (0 = user, 1 = opponent, 2 = user...), play automatically
                 if (puzzle != null && step % 2 != 0) {
