@@ -11,6 +11,12 @@ plugins {
 kotlin {
     jvm()
     
+    wasmJs {
+        browser {
+        }
+        binaries.executable()
+    }
+
     android {
        namespace = "com.github.maklumi.catur.shared"
        compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -48,6 +54,11 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.logback.classic)
             implementation(libs.ktor.client.cio)
+        }
+        val wasmJsMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.js)
+            }
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

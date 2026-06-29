@@ -8,7 +8,6 @@ import com.github.maklumi.catur.model.piece.Piece
 import com.github.maklumi.catur.model.piece.PieceColor
 import com.github.maklumi.catur.model.piece.Queen
 import com.github.maklumi.catur.model.piece.Rook
-import java.lang.IllegalArgumentException
 
 data class Board(
     val piecesMap: Map<Position, Piece> = emptyMap()

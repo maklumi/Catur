@@ -27,7 +27,7 @@ class AndroidPersistenceManager(context: Context) : PersistenceManager {
     }
 }
 
-class AndroidPlatform(context: Context) : Platform {
+class AndroidPlatform(private val context: Context) : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
     override val persistenceManager: PersistenceManager = AndroidPersistenceManager(context)
 
@@ -45,6 +45,12 @@ class AndroidPlatform(context: Context) : Platform {
 
     override fun getCurrentDate(): String {
         return SimpleDateFormat("yyyy.MM.dd", Locale.US).format(Date())
+    }
+
+    override fun setClipboardText(text: String) {
+        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("Catur PGN", text)
+        clipboard.setPrimaryClip(clip)
     }
 }
 

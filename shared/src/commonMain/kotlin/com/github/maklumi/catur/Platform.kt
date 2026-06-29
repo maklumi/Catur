@@ -11,6 +11,7 @@ interface Platform {
     fun createGameController(scope: CoroutineScope): GameController
     fun playSound(type: SoundType)
     fun getCurrentDate(): String
+    fun setClipboardText(text: String)
 }
 
 expect fun getPlatform(): Platform

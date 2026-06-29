@@ -18,7 +18,8 @@ object PuzzleLoader {
             val bytes = Res.readBytes("files/m8n4.txt")
             val content = bytes.decodeToString()
             parse(content, completedIndices)
-        } catch (_: Exception) {
+        } catch (t: Throwable) {
+            println("Puzzle Loader Error: ${t.message}")
             emptyList()
         }
     }

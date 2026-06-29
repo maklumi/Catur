@@ -37,7 +37,8 @@ class RemoteChessEngine(
                 parameter("model", model)
             }
             response.body<MoveResponse>().move
-        } catch (_: Exception) {
+        } catch (t: Throwable) {
+            println("Engine Error (getBestMove): ${t.message}")
             null
         }
     }
@@ -48,8 +49,8 @@ class RemoteChessEngine(
                 parameter("moves", moves.joinToString(" "))
             }
             response.body<EvalResponse>().score
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (t: Throwable) {
+            println("Engine Error (evaluate): ${t.message}")
             0
         }
     }

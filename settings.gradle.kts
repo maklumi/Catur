@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 rootProject.name = "Catur"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
@@ -35,3 +37,4 @@ plugins {
 include(":androidApp")
 include(":desktopApp")
 include(":shared")
+include(":wasmApp")

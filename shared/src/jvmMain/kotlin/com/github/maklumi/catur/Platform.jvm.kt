@@ -67,6 +67,12 @@ class JVMPlatform: Platform {
     override fun getCurrentDate(): String {
         return SimpleDateFormat("yyyy.MM.dd", Locale.US).format(Date())
     }
+
+    override fun setClipboardText(text: String) {
+        val stringSelection = java.awt.datatransfer.StringSelection(text)
+        val clipboard = java.awt.Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(stringSelection, null)
+    }
 }
 
 actual fun getPlatform(): Platform = JVMPlatform()
