@@ -51,6 +51,9 @@ internal fun GameState.reduceUi(action: GameAction): GameState {
                 completedPuzzleIndices = puzzle.completedPuzzleIndices + action.index
             ))
         }
+        is GameAction.SetCurrentEvaluation -> {
+            copy(uiVisual = uiVisual.copy(currentEvaluation = action.evaluation))
+        }
         is GameAction.SelectPuzzle -> {
             val puzzleRef = puzzle.puzzles.getOrNull(action.index) ?: return this
             val boardInit = Board.fromFen(puzzleRef.initialFen)

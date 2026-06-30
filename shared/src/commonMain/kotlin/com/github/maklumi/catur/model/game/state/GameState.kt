@@ -50,7 +50,8 @@ data class UiVisualState(
     val longPressedPosition: Position? = null,
     val moveEvaluations: Map<String, Int> = emptyMap(),
     val bestMoveArrow: Pair<Position, Position>? = null,
-    val threats: List<Position> = emptyList()
+    val threats: List<Position> = emptyList(),
+    val currentEvaluation: Int? = null
 )
 
 data class GameState(
@@ -112,4 +113,5 @@ sealed class GameAction {
     data class SetPuzzles(val puzzles: List<Puzzle>) : GameAction()
     data class SelectPuzzle(val index: Int) : GameAction()
     data class PuzzleCompleted(val index: Int) : GameAction()
+    data class SetCurrentEvaluation(val evaluation: Int?) : GameAction()
 }

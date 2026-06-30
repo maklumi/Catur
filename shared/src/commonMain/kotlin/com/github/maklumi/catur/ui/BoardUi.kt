@@ -114,40 +114,51 @@ fun ChessBoard(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(modifier = Modifier.fillMaxHeight().aspectRatio(1f)) {
-                        Column(modifier = Modifier.fillMaxSize()) {
-                            for (rank in ranks) {
-                                val isDestinationRank = rank == lastMoveToRank
-                                Row(
-                                    modifier = Modifier.weight(1f)
-                                        .zIndex(if (isDestinationRank) 5f else 0f)
-                                ) {
-                                    for (file in files) {
-                                        val position = Position.from(file, rank)
-                                        val isLeftmost = file == (if (boardState.isBoardFlipped) 8 else 1)
-                                        val isBottom = rank == (if (boardState.isBoardFlipped) 8 else 1)
+                    Row(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        EvaluationBar(
+                            evaluation = uiVisualState.currentEvaluation,
+                            isBoardFlipped = boardState.isBoardFlipped,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
 
-                                        SquareView(
-                                            position = position,
-                                            boardState = boardState,
-                                            uiVisualState = uiVisualState,
-                                            modifier = Modifier.weight(1f).fillMaxHeight(),
-                                            showRank = isLeftmost,
-                                            showFile = isBottom,
-                                            onAction = { controller.dispatch(it) }
-                                        )
+                        Box(modifier = Modifier.fillMaxHeight().aspectRatio(1f)) {
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                for (rank in ranks) {
+                                    val isDestinationRank = rank == lastMoveToRank
+                                    Row(
+                                        modifier = Modifier.weight(1f)
+                                            .zIndex(if (isDestinationRank) 5f else 0f)
+                                    ) {
+                                        for (file in files) {
+                                            val position = Position.from(file, rank)
+                                            val isLeftmost = file == (if (boardState.isBoardFlipped) 8 else 1)
+                                            val isBottom = rank == (if (boardState.isBoardFlipped) 8 else 1)
+
+                                            SquareView(
+                                                position = position,
+                                                boardState = boardState,
+                                                uiVisualState = uiVisualState,
+                                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                                                showRank = isLeftmost,
+                                                showFile = isBottom,
+                                                onAction = { controller.dispatch(it) }
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        uiVisualState.bestMoveArrow?.let { arrow ->
-                            ChessBoardOverlay(
-                                from = arrow.first,
-                                to = arrow.second,
-                                isBoardFlipped = boardState.isBoardFlipped,
-                                color = colorScheme.primary.copy(alpha = 0.5f)
-                            )
+                            uiVisualState.bestMoveArrow?.let { arrow ->
+                                ChessBoardOverlay(
+                                    from = arrow.first,
+                                    to = arrow.second,
+                                    isBoardFlipped = boardState.isBoardFlipped,
+                                    color = colorScheme.primary.copy(alpha = 0.5f)
+                                )
+                            }
                         }
                     }
                 }
@@ -174,7 +185,7 @@ fun ChessBoard(
 
             Spacer(modifier = Modifier.width(32.dp))
 
-            Column(modifier = Modifier.width(200.dp).fillMaxHeight()) {
+            Column(modifier = Modifier.weight(0.3f).fillMaxHeight()) {
                 val topName = if (boardState.isBoardFlipped) matchState.whiteName else matchState.blackName
                 val topCaptured = if (boardState.isBoardFlipped) snapshot.capturedBlack else snapshot.capturedWhite
                 val topTime = if (boardState.isBoardFlipped) clockState.whiteTimeMillis else clockState.blackTimeMillis
@@ -237,7 +248,7 @@ fun ChessBoard(
 
             Spacer(modifier = Modifier.width(32.dp))
 
-            Column(modifier = Modifier.width(200.dp).fillMaxHeight()) {
+            Column(modifier = Modifier.weight(0.3f).fillMaxHeight()) {
                 PuzzleList(
                     controller = controller,
                     modifier = Modifier.weight(1f)

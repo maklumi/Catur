@@ -158,6 +158,10 @@ class GameController(
                                 } catch (_: Exception) {
                                 }
                             }
+
+                            // Current Position Evaluation
+                            val eval = engine.evaluate(moves)
+                            dispatch(GameAction.SetCurrentEvaluation(eval))
                         }
                     }
                 }
