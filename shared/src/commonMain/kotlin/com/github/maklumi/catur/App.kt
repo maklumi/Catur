@@ -16,7 +16,10 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.maklumi.catur.model.game.state.GameAction
+import com.github.maklumi.catur.model.game.state.Screen
 import com.github.maklumi.catur.ui.ChessBoard
+import com.github.maklumi.catur.ui.MainMenuView
+import com.github.maklumi.catur.ui.PuzzleListView
 import com.github.maklumi.catur.ui.theme.CaturTheme
 
 @Composable
@@ -24,6 +27,7 @@ import com.github.maklumi.catur.ui.theme.CaturTheme
 fun App() {
     val scope = rememberCoroutineScope()
     val controller = remember { getPlatform().createGameController(scope) }
+    val uiVisualState by controller.uiVisualState.collectAsState(com.github.maklumi.catur.model.game.state.UiVisualState())
 
     val focusRequester = remember { FocusRequester() }
 
@@ -42,30 +46,38 @@ fun App() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .onKeyEvent { keyEvent ->
-                        if (keyEvent.type == KeyEventType.KeyDown) {
-                            when (keyEvent.key) {
-                                Key.DirectionLeft -> {
-                                    controller.dispatch(GameAction.StepBack)
-                                    true
-                                }
-                                Key.DirectionRight -> {
-                                    controller.dispatch(GameAction.StepForward)
-                                    true
-                                }
-                                else -> false
+            when (uiVisualState.currentScreen) {
+                Screen.MENU -> {
+                    MainMenuView(onAction = { controller.dispatch(it) })
+                }
+                Screen.GAME, Screen.ANALYSIS -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .onKeyEvent { keyEvent ->
+                                if (keyEvent.type == KeyEventType.KeyDown) {
+                                    when (keyEvent.key) {
+                                        Key.DirectionLeft -> {
+                                            controller.dispatch(GameAction.StepBack)
+                                            true
+                                        }
+                                        Key.DirectionRight -> {
+                                            controller.dispatch(GameAction.StepForward)
+                                            true
+                                        }
+                                        else -> false
+                                    }
+                                } else false
                             }
-                        } else false
+                            .focusRequester(focusRequester)
+                            .focusable()
+                    ) {
+                        ChessBoard(controller = controller)
                     }
-                    .focusRequester(focusRequester)
-                    .focusable()
-            ) {
-                ChessBoard(
-                    controller = controller
-                )
+                }
+                Screen.PUZZLES -> {
+                    PuzzleListView(controller = controller)
+                }
             }
         }
     }

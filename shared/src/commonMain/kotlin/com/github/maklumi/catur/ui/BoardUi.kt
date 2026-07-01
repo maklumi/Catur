@@ -32,6 +32,7 @@ import com.github.maklumi.catur.model.game.state.EngineState
 import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.game.state.MatchState
+import com.github.maklumi.catur.model.game.state.Screen
 import com.github.maklumi.catur.model.game.state.UiVisualState
 import com.github.maklumi.catur.model.piece.PieceColor
 
@@ -62,6 +63,9 @@ fun ChessBoard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Button(onClick = { controller.dispatch(GameAction.NavigateTo(Screen.MENU)) }) {
+                        Text("Menu")
+                    }
                     val activeName = if (snapshot.activeColor == PieceColor.WHITE) matchState.whiteName else matchState.blackName
                     Text(
                         text = "Turn: $activeName",

@@ -10,6 +10,10 @@ enum class PlayerType {
     HUMAN, ENGINE
 }
 
+enum class Screen {
+    MENU, GAME, PUZZLES, ANALYSIS
+}
+
 data class BoardState(
     val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(context = ChessContext(board = Board.initial))),
     val currentIndex: Int = 0,
@@ -51,7 +55,8 @@ data class UiVisualState(
     val moveEvaluations: Map<String, Int> = emptyMap(),
     val bestMoveArrow: Pair<Position, Position>? = null,
     val threats: List<Position> = emptyList(),
-    val currentEvaluation: Int? = null
+    val currentEvaluation: Int? = null,
+    val currentScreen: Screen = Screen.MENU
 )
 
 data class GameState(
@@ -114,4 +119,6 @@ sealed class GameAction {
     data class SelectPuzzle(val index: Int) : GameAction()
     data class PuzzleCompleted(val index: Int) : GameAction()
     data class SetCurrentEvaluation(val evaluation: Int?) : GameAction()
+    data class NavigateTo(val screen: Screen) : GameAction()
+    object NewGame : GameAction()
 }

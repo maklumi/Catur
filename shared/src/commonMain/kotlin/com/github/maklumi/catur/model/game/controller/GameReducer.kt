@@ -22,6 +22,8 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
         is GameAction.SetPuzzles,
         is GameAction.PuzzleCompleted,
         is GameAction.SetCurrentEvaluation,
+        is GameAction.NavigateTo,
+        is GameAction.NewGame,
         is GameAction.SquareLongPress,
         is GameAction.ClearLongPress,
         is GameAction.SetMoveEvaluations,

@@ -54,6 +54,24 @@ internal fun GameState.reduceUi(action: GameAction): GameState {
         is GameAction.SetCurrentEvaluation -> {
             copy(uiVisual = uiVisual.copy(currentEvaluation = action.evaluation))
         }
+        is GameAction.NavigateTo -> {
+            copy(uiVisual = uiVisual.copy(currentScreen = action.screen))
+        }
+        is GameAction.NewGame -> {
+            copy(
+                board = BoardState(),
+                match = MatchState(
+                    whiteName = "Human",
+                    whiteType = PlayerType.HUMAN,
+                    blackName = "Maia",
+                    blackType = PlayerType.ENGINE
+                ),
+                clock = ClockState(),
+                engine = engine.copy(isThinking = false),
+                puzzle = puzzle.copy(currentPuzzleIndex = null, currentPuzzleStep = 0),
+                uiVisual = uiVisual.copy(currentScreen = Screen.GAME, currentEvaluation = null, bestMoveArrow = null)
+            )
+        }
         is GameAction.SelectPuzzle -> {
             val puzzleRef = puzzle.puzzles.getOrNull(action.index) ?: return this
             val boardInit = Board.fromFen(puzzleRef.initialFen)
@@ -86,7 +104,7 @@ internal fun GameState.reduceUi(action: GameAction): GameState {
                     currentPuzzleIndex = action.index,
                     currentPuzzleStep = 0
                 ),
-                uiVisual = UiVisualState()
+                uiVisual = UiVisualState(currentScreen = Screen.GAME)
             )
         }
         else -> this
