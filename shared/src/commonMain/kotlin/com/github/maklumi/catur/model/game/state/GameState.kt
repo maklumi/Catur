@@ -11,7 +11,7 @@ enum class PlayerType {
 }
 
 enum class Screen {
-    MENU, GAME, PUZZLES, ANALYSIS
+    MENU, PLAY_SELECTION, GAME, PUZZLES, ANALYSIS
 }
 
 data class BoardState(
@@ -121,4 +121,6 @@ sealed class GameAction {
     data class SetCurrentEvaluation(val evaluation: Int?) : GameAction()
     data class NavigateTo(val screen: Screen) : GameAction()
     object NewGame : GameAction()
+    object StartLocalGame : GameAction()
+    object StartComputerGame : GameAction()
 }

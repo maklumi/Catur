@@ -2,15 +2,9 @@ package com.github.maklumi.catur.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,7 +18,7 @@ import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.Screen
 
 @Composable
-fun MainMenuView(
+fun PlaySelectionView(
     onAction: (GameAction) -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -35,39 +29,37 @@ fun MainMenuView(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "CATUR",
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Black,
+            text = "Choose Mode",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
             color = colorScheme.primary,
             modifier = Modifier.padding(bottom = 48.dp)
         )
 
-        MenuButton(
-            text = "Play",
-            description = "Local match or vs Computer",
-            onClick = { onAction(GameAction.NavigateTo(Screen.PLAY_SELECTION)) }
+        PlayOptionButton(
+            text = "New Game Local",
+            description = "Player vs Player (Pass & Play)",
+            onClick = { onAction(GameAction.StartLocalGame) }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        MenuButton(
-            text = "Puzzles",
-            description = "Train with chess puzzles",
-            onClick = { onAction(GameAction.NavigateTo(Screen.PUZZLES)) }
+        PlayOptionButton(
+            text = "Play vs Computer",
+            description = "Challenge the Maia engine",
+            onClick = { onAction(GameAction.StartComputerGame) }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(48.dp))
 
-        MenuButton(
-            text = "Analysis",
-            description = "Sandbox move analysis",
-            onClick = { onAction(GameAction.NavigateTo(Screen.ANALYSIS)) }
-        )
+        Button(onClick = { onAction(GameAction.NavigateTo(Screen.MENU)) }) {
+            Text("Back to Menu")
+        }
     }
 }
 
 @Composable
-private fun MenuButton(
+private fun PlayOptionButton(
     text: String,
     description: String,
     onClick: () -> Unit
@@ -76,7 +68,7 @@ private fun MenuButton(
 
     Box(
         modifier = Modifier
-            .width(300.dp)
+            .width(350.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(colorScheme.surfaceVariant)
             .clickable { onClick() }

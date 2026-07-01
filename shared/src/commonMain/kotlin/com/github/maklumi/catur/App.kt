@@ -19,6 +19,7 @@ import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.Screen
 import com.github.maklumi.catur.ui.ChessBoard
 import com.github.maklumi.catur.ui.MainMenuView
+import com.github.maklumi.catur.ui.PlaySelectionView
 import com.github.maklumi.catur.ui.PuzzleListView
 import com.github.maklumi.catur.ui.theme.CaturTheme
 
@@ -49,6 +50,9 @@ fun App() {
             when (uiVisualState.currentScreen) {
                 Screen.MENU -> {
                     MainMenuView(onAction = { controller.dispatch(it) })
+                }
+                Screen.PLAY_SELECTION -> {
+                    PlaySelectionView(onAction = { controller.dispatch(it) })
                 }
                 Screen.GAME, Screen.ANALYSIS -> {
                     Box(
