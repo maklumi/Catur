@@ -129,8 +129,19 @@ class GameController(
                             dispatch(GameAction.EngineMove(bestMove))
                         }
                     } else if (!isEngineTurn && engine != null && !currentState.isEngineThinking) {
-                        // Background analysis for best move arrow and threats (Disabled during puzzles)
-                        if (currentState.currentPuzzleIndex == null) {
+                        // Background analysis for best move arrow and threats (Disabled during puzzles and board setup)
+                        if (currentState.currentPuzzleIndex == null && !currentState.board.isEditMode) {
+                            // Calculate Moves up to current index
+                            val moves = currentState.snapshots
+                                .take(currentState.currentIndex + 1)
+                                .drop(1)
+                                .mapNotNull { it.lastMoveUci }
+
+                            // Smarter Position Logic
+                            val isStandardStart = currentState.isFromInitialPosition()
+                            val engineFen = if (isStandardStart) null else currentState.currentSnapshot.generateFen()
+                            val engineMoves = if (isStandardStart) moves else emptyList()
+
                             // Calculate Threats
                             val snapshot = currentState.currentSnapshot
                             val activeColor = snapshot.activeColor
@@ -145,11 +156,7 @@ class GameController(
                             dispatch(GameAction.SetThreats(threats))
 
                             // Best move arrow
-                            val moves = currentState.snapshots
-                                .drop(1)
-                                .mapNotNull { it.lastMoveUci }
-
-                            val bestMove = engine.getBestMove(moves, currentState.engineModel)
+                            val bestMove = engine.getBestMove(engineMoves, currentState.engineModel, engineFen)
                             if (bestMove != null && bestMove.length >= 4) {
                                 try {
                                     val from = Position.valueOf(bestMove.substring(0, 2))
@@ -160,7 +167,7 @@ class GameController(
                             }
 
                             // Current Position Evaluation
-                            val eval = engine.evaluate(moves)
+                            val eval = engine.evaluate(engineMoves, engineFen)
                             dispatch(GameAction.SetCurrentEvaluation(eval))
                         }
                     }

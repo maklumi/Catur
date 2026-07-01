@@ -45,6 +45,33 @@ data class Board(
         }
     }
 
+    fun toFen(): String {
+        val fen = StringBuilder()
+        for (rank in 8 downTo 1) {
+            var emptyCount = 0
+            for (file in 1..8) {
+                val piece = piecesMap[Position.from(file, rank)]
+                if (piece == null) {
+                    emptyCount++
+                } else {
+                    if (emptyCount > 0) {
+                        fen.append(emptyCount)
+                        emptyCount = 0
+                    }
+                    val symbol = piece.textSymbol
+                    fen.append(if (piece.pieceColor == PieceColor.WHITE) symbol.uppercase() else symbol.lowercase())
+                }
+            }
+            if (emptyCount > 0) {
+                fen.append(emptyCount)
+            }
+            if (rank > 1) {
+                fen.append("/")
+            }
+        }
+        return fen.toString()
+    }
+
     companion object {
         val initialPieces = mapOf(
             Position.a8 to Rook(PieceColor.BLACK),

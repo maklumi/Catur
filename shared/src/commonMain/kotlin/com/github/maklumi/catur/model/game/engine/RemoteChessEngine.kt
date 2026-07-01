@@ -29,12 +29,14 @@ class RemoteChessEngine(
     
     override suspend fun getBestMove(
         moves: List<String>,
-        model: String
+        model: String,
+        fen: String?
     ): String? {
         return try {
             val response = client.get("$baseUrl/best-move") {
                 parameter("moves", moves.joinToString(" "))
                 parameter("model", model)
+                fen?.let { parameter("fen", it) }
             }
             response.body<MoveResponse>().move
         } catch (t: Throwable) {
@@ -43,10 +45,11 @@ class RemoteChessEngine(
         }
     }
 
-    override suspend fun evaluate(moves: List<String>): Int {
+    override suspend fun evaluate(moves: List<String>, fen: String?): Int {
         return try {
             val response = client.get("$baseUrl/evaluate") {
                 parameter("moves", moves.joinToString(" "))
+                fen?.let { parameter("fen", it) }
             }
             response.body<EvalResponse>().score
         } catch (t: Throwable) {

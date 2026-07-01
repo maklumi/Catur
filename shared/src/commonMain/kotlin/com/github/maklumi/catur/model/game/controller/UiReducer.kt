@@ -117,6 +117,32 @@ internal fun GameState.reduceUi(action: GameAction): GameState {
                 uiVisual = uiVisual.copy(currentScreen = Screen.ANALYSIS, currentEvaluation = null, bestMoveArrow = null)
             )
         }
+        is GameAction.SetEditMode -> {
+            copy(board = board.copy(isEditMode = action.enabled))
+        }
+        is GameAction.SelectPalettePiece -> {
+            copy(uiVisual = uiVisual.copy(selectedPalettePiece = action.piece))
+        }
+        is GameAction.ClearBoard -> {
+            val newSnapshot = currentSnapshot.copy(
+                context = currentSnapshot.context.copy(board = Board(emptyMap())),
+                history = ChessHistory()
+            )
+            copy(
+                board = board.copy(
+                    snapshots = listOf(newSnapshot),
+                    currentIndex = 0
+                )
+            )
+        }
+        is GameAction.ResetBoard -> {
+            copy(
+                board = board.copy(
+                    snapshots = listOf(GameSnapshotState(context = ChessContext(board = Board.initial))),
+                    currentIndex = 0
+                )
+            )
+        }
         is GameAction.SelectPuzzle -> {
             val puzzleRef = puzzle.puzzles.getOrNull(action.index) ?: return this
             val boardInit = Board.fromFen(puzzleRef.initialFen)
@@ -149,7 +175,7 @@ internal fun GameState.reduceUi(action: GameAction): GameState {
                     currentPuzzleIndex = action.index,
                     currentPuzzleStep = 0
                 ),
-                uiVisual = UiVisualState(currentScreen = Screen.GAME)
+                uiVisual = uiVisual.copy(currentScreen = Screen.GAME)
             )
         }
         else -> this

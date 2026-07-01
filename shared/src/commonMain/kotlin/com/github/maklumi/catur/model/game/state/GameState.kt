@@ -4,6 +4,7 @@ import com.github.maklumi.catur.model.board.Board
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.puzzle.Puzzle
 import com.github.maklumi.catur.model.move.BoardMove
+import com.github.maklumi.catur.model.piece.Piece
 import com.github.maklumi.catur.model.piece.PieceColor
 
 enum class PlayerType {
@@ -18,7 +19,8 @@ data class BoardState(
     val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(context = ChessContext(board = Board.initial))),
     val currentIndex: Int = 0,
     val isBoardFlipped: Boolean = false,
-    val lastMoveId: Long? = null
+    val lastMoveId: Long? = null,
+    val isEditMode: Boolean = false
 ) {
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
     val isViewingHistory: Boolean get() = currentIndex < snapshots.size - 1
@@ -56,7 +58,8 @@ data class UiVisualState(
     val bestMoveArrow: Pair<Position, Position>? = null,
     val threats: List<Position> = emptyList(),
     val currentEvaluation: Int? = null,
-    val currentScreen: Screen = Screen.MENU
+    val currentScreen: Screen = Screen.MENU,
+    val selectedPalettePiece: Piece? = null
 )
 
 data class GameState(
@@ -88,6 +91,10 @@ data class GameState(
 
     fun canGoBack() = board.canGoBack()
     fun canGoForward() = board.canGoForward()
+
+    fun isFromInitialPosition(): Boolean {
+        return snapshots.isNotEmpty() && snapshots[0].board.piecesMap == Board.initialPieces
+    }
 
     val isEngineTurn: Boolean get() = !isViewingHistory && 
         currentSnapshot.status == GameStatus.ONGOING &&
@@ -124,4 +131,9 @@ sealed class GameAction {
     object StartLocalGame : GameAction()
     object StartComputerGame : GameAction()
     object StartAnalysis : GameAction()
+    data class SetEditMode(val enabled: Boolean) : GameAction()
+    data class PlacePiece(val position: Position, val piece: Piece?) : GameAction()
+    data class SelectPalettePiece(val piece: Piece?) : GameAction()
+    object ClearBoard : GameAction()
+    object ResetBoard : GameAction()
 }

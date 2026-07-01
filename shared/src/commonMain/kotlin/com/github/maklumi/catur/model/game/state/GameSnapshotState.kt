@@ -64,6 +64,13 @@ data class GameSnapshotState(
      */
     val materialImbalance get() = blackCapturedValue - whiteCapturedValue
 
+    fun generateFen(): String {
+        val boardFen = board.toFen()
+        val active = if (activeColor == PieceColor.WHITE) "w" else "b"
+        // Simplified: assuming no castling/enpassant/clocks for direct engine eval of setup positions
+        return "$boardFen $active - - 0 1"
+    }
+
     val legalMoves: List<BoardMove> = if (pendingPromotion != null || forcedStatus != null) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos].piece
         if (piece?.pieceColor == activeColor) {

@@ -6,8 +6,37 @@ import kotlin.random.Random
 
 internal fun GameState.reduceMove(action: GameAction): GameState {
     return when (action) {
+        is GameAction.PlacePiece -> {
+            // Edit mode logic: place or remove piece directly
+            val snapshot = currentSnapshot
+            val updatedPieces = snapshot.board.piecesMap.toMutableMap()
+            if (action.piece == null) {
+                updatedPieces.remove(action.position)
+            } else {
+                updatedPieces[action.position] = action.piece
+            }
+            
+            val newSnapshot = snapshot.copy(
+                context = snapshot.context.copy(board = snapshot.board.copy(piecesMap = updatedPieces)),
+                history = ChessHistory() // Reset history when editing board
+            )
+            
+            copy(
+                board = board.copy(
+                    snapshots = listOf(newSnapshot),
+                    currentIndex = 0,
+                    lastMoveId = Random.nextLong()
+                )
+            )
+        }
         is GameAction.SquareClick -> {
             if (isViewingHistory) return this
+            
+            // If in edit mode, use SquareClick to place the selected palette piece
+            if (board.isEditMode) {
+                return reduceMove(GameAction.PlacePiece(action.position, uiVisual.selectedPalettePiece))
+            }
+
             val currentSnapshot = currentSnapshot
             val nextSnapshotBeforeNotation = currentSnapshot.move(action.position)
             
@@ -48,7 +77,7 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
                         )
                     
                     return if (isPuzzleFinished && puzzle.currentPuzzleIndex != null) {
-                        intermediateState.reduceUi(GameAction.PuzzleCompleted(puzzle.currentPuzzleIndex))
+                        intermediateState.reduceUi(GameAction.PuzzleCompleted(puzzle.currentPuzzleIndex!!))
                     } else {
                         intermediateState
                     }

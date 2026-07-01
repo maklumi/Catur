@@ -62,7 +62,7 @@ class MaiaChessEngine : ChessEngine {
         }
     }
 
-    override suspend fun getBestMove(moves: List<String>, model: String): String? = withContext(Dispatchers.IO) {
+    override suspend fun getBestMove(moves: List<String>, model: String, fen: String?): String? = withContext(Dispatchers.IO) {
         mutex.withLock {
             if (process == null || currentModel != model || !process!!.isAlive) {
                 startProcess(model)
@@ -72,7 +72,10 @@ class MaiaChessEngine : ChessEngine {
             val inp = input ?: return@withLock null
 
             try {
-                val positionCmd = if (moves.isEmpty()) "position startpos\n" else "position startpos moves ${moves.joinToString(" ")}\n"
+                val positionCmd = when {
+                    fen != null -> if (moves.isEmpty()) "position fen $fen\n" else "position fen $fen moves ${moves.joinToString(" ")}\n"
+                    else -> if (moves.isEmpty()) "position startpos\n" else "position startpos moves ${moves.joinToString(" ")}\n"
+                }
                 println("[Maia] Sending: $positionCmd")
                 out.write(positionCmd)
                 out.write("go movetime 2000\n")
@@ -95,7 +98,7 @@ class MaiaChessEngine : ChessEngine {
         }
     }
 
-    override suspend fun evaluate(moves: List<String>): Int = withContext(Dispatchers.IO) {
+    override suspend fun evaluate(moves: List<String>, fen: String?): Int = withContext(Dispatchers.IO) {
         mutex.withLock {
             if (process == null || !process!!.isAlive) {
                 startProcess(currentModel ?: "maia3-5m")
@@ -105,7 +108,10 @@ class MaiaChessEngine : ChessEngine {
             val inp = input ?: return@withLock 0
 
             try {
-                val positionCmd = if (moves.isEmpty()) "position startpos\n" else "position startpos moves ${moves.joinToString(" ")}\n"
+                val positionCmd = when {
+                    fen != null -> if (moves.isEmpty()) "position fen $fen\n" else "position fen $fen moves ${moves.joinToString(" ")}\n"
+                    else -> if (moves.isEmpty()) "position startpos\n" else "position startpos moves ${moves.joinToString(" ")}\n"
+                }
                 println("[Maia] Sending eval: $positionCmd")
                 out.write(positionCmd)
                 out.write("go movetime 100\n")
