@@ -123,4 +123,5 @@ sealed class GameAction {
     object NewGame : GameAction()
     object StartLocalGame : GameAction()
     object StartComputerGame : GameAction()
+    object StartAnalysis : GameAction()
 }

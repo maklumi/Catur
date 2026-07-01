@@ -61,7 +61,7 @@ fun MainMenuView(
         MenuButton(
             text = "Analysis",
             description = "Sandbox move analysis",
-            onClick = { onAction(GameAction.NavigateTo(Screen.ANALYSIS)) }
+            onClick = { onAction(GameAction.StartAnalysis) }
         )
     }
 }

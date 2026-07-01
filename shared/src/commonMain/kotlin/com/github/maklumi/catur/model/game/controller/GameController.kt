@@ -109,9 +109,9 @@ class GameController(
 
         scope.launch {
             state
-                .map { it.snapshots.size to it.isEngineTurn }
+                .map { Triple(it.snapshots.size, it.currentIndex, it.isEngineTurn) }
                 .distinctUntilChanged()
-                .collectLatest { (snapshotSize, isEngineTurn) ->
+                .collectLatest { (snapshotSize, currentIndex, isEngineTurn) ->
                     val currentState = state.value
                     if (isEngineTurn && engine != null && !currentState.isEngineThinking) {
                         dispatch(GameAction.SetEngineThinking(true))

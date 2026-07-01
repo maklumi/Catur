@@ -67,8 +67,9 @@ fun ChessBoard(
                         Text("Menu")
                     }
                     val activeName = if (snapshot.activeColor == PieceColor.WHITE) matchState.whiteName else matchState.blackName
+                    val prefix = if (uiVisualState.currentScreen == Screen.ANALYSIS) "To move: " else "Turn: "
                     Text(
-                        text = "Turn: $activeName",
+                        text = "$prefix$activeName",
                         modifier = Modifier.padding(8.dp),
                         fontSize = 20.sp,
                         color = colorScheme.onBackground

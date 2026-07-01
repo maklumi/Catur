@@ -26,6 +26,7 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
         is GameAction.NewGame,
         is GameAction.StartLocalGame,
         is GameAction.StartComputerGame,
+        is GameAction.StartAnalysis,
         is GameAction.SquareLongPress,
         is GameAction.ClearLongPress,
         is GameAction.SetMoveEvaluations,
