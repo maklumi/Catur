@@ -11,6 +11,7 @@ import com.github.maklumi.catur.model.game.state.GameState
 import com.github.maklumi.catur.model.game.state.GameStatus
 import com.github.maklumi.catur.model.game.state.findMoveByNotation
 import com.github.maklumi.catur.model.game.state.isInCheck
+import com.github.maklumi.catur.model.game.state.Screen
 import com.github.maklumi.catur.model.move.EnPassantMove
 import com.github.maklumi.catur.model.move.toUciString
 import kotlinx.coroutines.CoroutineScope
@@ -48,14 +49,14 @@ class GameController(
             val completed = platform.persistenceManager.loadCompletedPuzzles()
             val puzzles = PuzzleLoader.loadPuzzles(completed)
             if (puzzles.isNotEmpty()) {
-                dispatch(GameAction.SetPuzzles(puzzles))
+                dispatch(GameAction.Puzzles.SetPuzzles(puzzles))
             }
         }
 
         // Save completed puzzles when they change
         scope.launch {
             state.collect { currentState ->
-                platform.persistenceManager.saveCompletedPuzzles(currentState.completedPuzzleIndices)
+                platform.persistenceManager.saveCompletedPuzzles(currentState.puzzle.completedPuzzleIndices)
             }
         }
 
@@ -64,8 +65,8 @@ class GameController(
             while (true) {
                 delay(100.milliseconds)
                 val currentState = state.value
-                if (!currentState.isViewingHistory && currentState.currentSnapshot.status == GameStatus.ONGOING) {
-                    dispatch(GameAction.Tick(100))
+                if (!currentState.board.isViewingHistory && currentState.currentSnapshot.status == GameStatus.ONGOING) {
+                    dispatch(GameAction.Flow.Tick(100))
                 }
             }
         }
@@ -109,31 +110,31 @@ class GameController(
 
         scope.launch {
             state
-                .map { Triple(it.snapshots.size, it.currentIndex, it.isEngineTurn) }
+                .map { Triple(it.snapshots.size, it.board.currentIndex, it.isEngineTurn) }
                 .distinctUntilChanged()
                 .collectLatest { (snapshotSize, currentIndex, isEngineTurn) ->
                     val currentState = state.value
-                    if (isEngineTurn && engine != null && !currentState.isEngineThinking) {
-                        dispatch(GameAction.SetEngineThinking(true))
+                    if (isEngineTurn && engine != null && !currentState.engine.isThinking) {
+                        dispatch(GameAction.Ui.SetEngineThinking(true))
 
                         val moves = currentState.snapshots
                             .drop(1)
                             .mapNotNull { it.lastMoveUci }
 
-                        val bestMove = engine.getBestMove(moves, currentState.engineModel)
+                        val bestMove = engine.getBestMove(moves, currentState.engine.model)
 
-                        dispatch(GameAction.SetEngineThinking(false))
+                        dispatch(GameAction.Ui.SetEngineThinking(false))
 
                         if (bestMove != null) {
                             delay(1000.milliseconds)
-                            dispatch(GameAction.EngineMove(bestMove))
+                            dispatch(GameAction.Move.EngineMove(bestMove))
                         }
-                    } else if (!isEngineTurn && engine != null && !currentState.isEngineThinking) {
+                    } else if (!isEngineTurn && engine != null && !currentState.engine.isThinking) {
                         // Background analysis for best move arrow and threats (Disabled during puzzles and board setup)
-                        if (currentState.currentPuzzleIndex == null && !currentState.board.isEditMode) {
+                        if (currentState.puzzle.currentPuzzleIndex == null && !currentState.board.isEditMode) {
                             // Calculate Moves up to current index
                             val moves = currentState.snapshots
-                                .take(currentState.currentIndex + 1)
+                                .take(currentState.board.currentIndex + 1)
                                 .drop(1)
                                 .mapNotNull { it.lastMoveUci }
 
@@ -153,22 +154,22 @@ class GameController(
                                     opponentColor
                                 )
                             }
-                            dispatch(GameAction.SetThreats(threats))
+                            dispatch(GameAction.Ui.SetThreats(threats))
 
                             // Best move arrow
-                            val bestMove = engine.getBestMove(engineMoves, currentState.engineModel, engineFen)
+                            val bestMove = engine.getBestMove(engineMoves, currentState.engine.model, engineFen)
                             if (bestMove != null && bestMove.length >= 4) {
                                 try {
                                     val from = Position.valueOf(bestMove.substring(0, 2))
                                     val to = Position.valueOf(bestMove.substring(2, 4))
-                                    dispatch(GameAction.SetBestMoveArrow(from, to))
+                                    dispatch(GameAction.Ui.SetBestMoveArrow(from, to))
                                 } catch (_: Exception) {
                                 }
                             }
 
                             // Current Position Evaluation
                             val eval = engine.evaluate(engineMoves, engineFen)
-                            dispatch(GameAction.SetCurrentEvaluation(eval))
+                            dispatch(GameAction.Ui.SetCurrentEvaluation(eval))
                         }
                     }
                 }
@@ -176,9 +177,9 @@ class GameController(
 
         scope.launch {
             state.map { it.longPressedPosition }.distinctUntilChanged().collectLatest { pos ->
-                dispatch(GameAction.SetMoveEvaluations(emptyMap()))
+                dispatch(GameAction.Ui.SetMoveEvaluations(emptyMap()))
                 if (pos != null) {
-                    val currentMoves = state.value.snapshots.drop(1).mapNotNull { it.lastMoveUci }
+                    val currentMoves = state.value.snapshots.take(state.value.board.currentIndex + 1).drop(1).mapNotNull { it.lastMoveUci }
                     val legalMoves = state.value.currentSnapshot.getLegalMovesForPosition(pos)
                     val evals = mutableMapOf<String, Int>()
 
@@ -186,7 +187,7 @@ class GameController(
                         val uci = boardMove.move.toUciString()
                         val score = engine?.evaluate(currentMoves + uci)
                         evals[uci] = score ?: 0
-                        dispatch(GameAction.SetMoveEvaluations(evals.toMap()))
+                        dispatch(GameAction.Ui.SetMoveEvaluations(evals.toMap()))
                     }
                 }
             }
@@ -194,7 +195,7 @@ class GameController(
 
         scope.launch {
             state.map { it.puzzle.currentPuzzleStep }.distinctUntilChanged().collect { step ->
-                val puzzle = state.value.puzzles.getOrNull(state.value.currentPuzzleIndex ?: -1)
+                val puzzle = state.value.puzzle.puzzles.getOrNull(state.value.puzzle.currentPuzzleIndex ?: -1)
                 // If it's an odd step (0 = user, 1 = opponent, 2 = user...), play automatically
                 if (puzzle != null && step % 2 != 0) {
                     val nextNotation = puzzle.solutionMoves.getOrNull(step)
@@ -208,7 +209,7 @@ class GameController(
                             snapshot.movedPositions
                         )
                         if (boardMove != null) {
-                            dispatch(GameAction.EngineMove(boardMove.move.toUciString()))
+                            dispatch(GameAction.Move.EngineMove(boardMove.move.toUciString()))
                         }
                     }
                 }

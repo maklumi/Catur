@@ -32,8 +32,10 @@ fun App() {
 
     val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+    LaunchedEffect(uiVisualState.currentScreen) {
+        if (uiVisualState.currentScreen == Screen.GAME || uiVisualState.currentScreen == Screen.ANALYSIS) {
+            focusRequester.requestFocus()
+        }
     }
 
     DisposableEffect(Unit) {
@@ -62,11 +64,11 @@ fun App() {
                                 if (keyEvent.type == KeyEventType.KeyDown) {
                                     when (keyEvent.key) {
                                         Key.DirectionLeft -> {
-                                            controller.dispatch(GameAction.StepBack)
+                                            controller.dispatch(GameAction.Nav.StepBack)
                                             true
                                         }
                                         Key.DirectionRight -> {
-                                            controller.dispatch(GameAction.StepForward)
+                                            controller.dispatch(GameAction.Nav.StepForward)
                                             true
                                         }
                                         else -> false

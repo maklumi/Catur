@@ -39,7 +39,7 @@ fun PlaySelectionView(
         PlayOptionButton(
             text = "New Game Local",
             description = "Player vs Player (Pass & Play)",
-            onClick = { onAction(GameAction.StartLocalGame) }
+            onClick = { onAction(GameAction.Flow.StartLocalGame) }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -47,12 +47,12 @@ fun PlaySelectionView(
         PlayOptionButton(
             text = "Play vs Computer",
             description = "Challenge the Maia engine",
-            onClick = { onAction(GameAction.StartComputerGame) }
+            onClick = { onAction(GameAction.Flow.StartComputerGame) }
         )
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        Button(onClick = { onAction(GameAction.NavigateTo(Screen.MENU)) }) {
+        Button(onClick = { onAction(GameAction.Nav.NavigateTo(Screen.MENU)) }) {
             Text("Back to Menu")
         }
     }

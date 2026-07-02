@@ -46,7 +46,7 @@ fun PuzzleListView(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
         ) {
-            Button(onClick = { controller.dispatch(GameAction.NavigateTo(Screen.MENU)) }) {
+            Button(onClick = { controller.dispatch(GameAction.Nav.NavigateTo(Screen.MENU)) }) {
                 Text("Back to Menu")
             }
             Spacer(modifier = Modifier.width(24.dp))
@@ -69,7 +69,7 @@ fun PuzzleListView(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { controller.dispatch(GameAction.SelectPuzzle(index)) },
+                        .clickable { controller.dispatch(GameAction.Puzzles.SelectPuzzle(index)) },
                     colors = CardDefaults.cardColors(
                         containerColor = colorScheme.surfaceVariant
                     )

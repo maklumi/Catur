@@ -7,20 +7,17 @@ import com.github.maklumi.catur.model.move.BoardMove
 import com.github.maklumi.catur.model.piece.Piece
 import com.github.maklumi.catur.model.piece.PieceColor
 
-enum class PlayerType {
-    HUMAN, ENGINE
-}
+enum class PlayerType { HUMAN, ENGINE }
 
-enum class Screen {
-    MENU, PLAY_SELECTION, GAME, PUZZLES, ANALYSIS
-}
+enum class Screen { MENU, PLAY_SELECTION, GAME, PUZZLES, ANALYSIS }
 
 data class BoardState(
     val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(context = ChessContext(board = Board.initial))),
     val currentIndex: Int = 0,
     val isBoardFlipped: Boolean = false,
     val lastMoveId: Long? = null,
-    val isEditMode: Boolean = false
+    val isEditMode: Boolean = false,
+    val openingName: String? = null
 ) {
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
     val isViewingHistory: Boolean get() = currentIndex < snapshots.size - 1
@@ -29,9 +26,9 @@ data class BoardState(
 }
 
 data class MatchState(
-    val whiteName: String = "Human",
+    val whiteName: String = "White",
     val whiteType: PlayerType = PlayerType.HUMAN,
-    val blackName: String = "Maia",
+    val blackName: String = "Black",
     val blackType: PlayerType = PlayerType.ENGINE
 )
 
@@ -70,70 +67,84 @@ data class GameState(
     val puzzle: PuzzleState = PuzzleState(),
     val uiVisual: UiVisualState = UiVisualState()
 ) {
-    // Legacy helper accessors to avoid breaking everything at once
+    // Shared Derived State
     val snapshots get() = board.snapshots
-    val currentIndex get() = board.currentIndex
     val currentSnapshot get() = board.currentSnapshot
     val isViewingHistory get() = board.isViewingHistory
-    val isBoardFlipped get() = board.isBoardFlipped
-
-    val whiteName get() = match.whiteName
-    val blackName get() = match.blackName
-
-    val engineModel get() = engine.model
-    val isEngineThinking get() = engine.isThinking
-    
-    val puzzles get() = puzzle.puzzles
-    val currentPuzzleIndex get() = puzzle.currentPuzzleIndex
-    val completedPuzzleIndices get() = puzzle.completedPuzzleIndices
-    
     val longPressedPosition get() = uiVisual.longPressedPosition
+    val puzzles get() = puzzle.puzzles
 
-    fun canGoBack() = board.canGoBack()
-    fun canGoForward() = board.canGoForward()
+    fun canGoBack(): Boolean = board.canGoBack()
+    fun canGoForward(): Boolean = board.canGoForward()
 
-    fun isFromInitialPosition(): Boolean {
-        return snapshots.isNotEmpty() && snapshots[0].board.piecesMap == Board.initialPieces
-    }
+    fun isFromInitialPosition(): Boolean =
+        snapshots.isNotEmpty() && snapshots[0].board.piecesMap == Board.initialPieces
 
-    val isEngineTurn: Boolean get() = !isViewingHistory && 
+    val isEngineTurn: Boolean get() = !isViewingHistory &&
         currentSnapshot.status == GameStatus.ONGOING &&
         ((currentSnapshot.activeColor == PieceColor.WHITE && match.whiteType == PlayerType.ENGINE) ||
          (currentSnapshot.activeColor == PieceColor.BLACK && match.blackType == PlayerType.ENGINE))
 }
 
+// Grouped Actions
 sealed class GameAction {
-    data class SquareClick(val position: Position) : GameAction()
-    data class PromotionChoice(val move: BoardMove) : GameAction()
-    object StepBack : GameAction()
-    object StepForward : GameAction()
-    data class JumpToHistory(val index: Int) : GameAction()
-    data class EngineMove(val moveUci: String) : GameAction()
-    object ReverseSides : GameAction()
-    object Resign : GameAction()
-    object OfferDraw : GameAction()
-    object AcceptDraw : GameAction()
-    object DeclineDraw : GameAction()
-    data class SetEngineThinking(val isThinking: Boolean) : GameAction()
-    data class Tick(val millis: Long) : GameAction()
-    data class ChangeEngineLevel(val model: String) : GameAction()
-    data class SquareLongPress(val position: Position) : GameAction()
-    object ClearLongPress : GameAction()
-    data class SetMoveEvaluations(val evaluations: Map<String, Int>) : GameAction()
-    data class SetBestMoveArrow(val from: Position?, val to: Position?) : GameAction()
-    data class SetThreats(val threats: List<Position>) : GameAction()
-    data class SetPuzzles(val puzzles: List<Puzzle>) : GameAction()
-    data class SelectPuzzle(val index: Int) : GameAction()
-    data class PuzzleCompleted(val index: Int) : GameAction()
-    data class SetCurrentEvaluation(val evaluation: Int?) : GameAction()
-    data class NavigateTo(val screen: Screen) : GameAction()
-    object NewGame : GameAction()
-    object StartLocalGame : GameAction()
-    object StartComputerGame : GameAction()
-    object StartAnalysis : GameAction()
-    data class SetEditMode(val enabled: Boolean) : GameAction()
-    data class PlacePiece(val position: Position, val piece: Piece?) : GameAction()
-    data class SelectPalettePiece(val piece: Piece?) : GameAction()
-    object ClearBoard : GameAction()
-    object ResetBoard : GameAction()
+    sealed class Move : GameAction() {
+        data class SquareClick(val position: Position) : Move()
+        data class PromotionChoice(val move: BoardMove) : Move()
+        data class EngineMove(val moveUci: String) : Move()
+        data class PlacePiece(val position: Position, val piece: Piece) : Move()
+        data class RemovePiece(val position: Position) : Move()
+    }
+
+    sealed class Nav : GameAction() {
+        object StepBack : Nav()
+        object StepForward : Nav()
+        data class JumpToHistory(val index: Int) : Nav()
+        data class NavigateTo(val screen: Screen) : Nav()
+    }
+
+    sealed class Flow : GameAction() {
+        object Resign : Flow()
+        object OfferDraw : Flow()
+        object AcceptDraw : Flow()
+        object DeclineDraw : Flow()
+        data class Tick(val millis: Long) : Flow()
+        object ReverseSides : Flow()
+        object NewGame : Flow()
+        object StartLocalGame : Flow()
+        object StartComputerGame : Flow()
+        object StartAnalysis : Flow()
+    }
+
+    sealed class Ui : GameAction() {
+        data class SquareLongPress(val position: Position) : Ui()
+        object ClearLongPress : Ui()
+        data class SetMoveEvaluations(val evaluations: Map<String, Int>) : Ui()
+        data class SetBestMoveArrow(val from: Position, val to: Position) : Ui()
+        object ClearBestMoveArrow : Ui()
+        data class SetThreats(val threats: List<Position>) : Ui()
+        data class SetCurrentEvaluation(val evaluation: Int) : Ui()
+        object ClearCurrentEvaluation : Ui()
+        data class SelectPalettePiece(val piece: Piece) : Ui()
+        object SelectEraser : Ui()
+        object ClearBoard : Ui()
+        object ResetBoard : Ui()
+        data class SetEditMode(val enabled: Boolean) : Ui()
+        data class SetEngineThinking(val isThinking: Boolean) : Ui()
+        data class ChangeEngineLevel(val model: String) : Ui()
+    }
+
+    sealed class Puzzles : GameAction() {
+        data class SetPuzzles(val puzzles: List<Puzzle>) : Puzzles()
+        data class SelectPuzzle(val index: Int) : Puzzles()
+        data class PuzzleCompleted(val index: Int) : Puzzles()
+    }
 }
+
+// DSL-like State Update Helpers
+fun GameState.updateBoard(block: BoardState.() -> BoardState) = copy(board = board.block())
+fun GameState.updateMatch(block: MatchState.() -> MatchState) = copy(match = match.block())
+fun GameState.updateClock(block: ClockState.() -> ClockState) = copy(clock = clock.block())
+fun GameState.updateEngine(block: EngineState.() -> EngineState) = copy(engine = engine.block())
+fun GameState.updatePuzzle(block: PuzzleState.() -> PuzzleState) = copy(puzzle = puzzle.block())
+fun GameState.updateVisual(block: UiVisualState.() -> UiVisualState) = copy(uiVisual = uiVisual.block())

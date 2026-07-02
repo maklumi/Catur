@@ -4,38 +4,55 @@ import com.github.maklumi.catur.model.game.state.*
 import com.github.maklumi.catur.model.piece.PieceColor
 import kotlin.random.Random
 
-internal fun GameState.reduceMove(action: GameAction): GameState {
+internal fun GameState.reduceMove(action: GameAction.Move): GameState {
     return when (action) {
-        is GameAction.PlacePiece -> {
-            // Edit mode logic: place or remove piece directly
+        is GameAction.Move.PlacePiece -> {
             val snapshot = currentSnapshot
             val updatedPieces = snapshot.board.piecesMap.toMutableMap()
-            if (action.piece == null) {
-                updatedPieces.remove(action.position)
-            } else {
-                updatedPieces[action.position] = action.piece
-            }
+            updatedPieces[action.position] = action.piece
             
             val newSnapshot = snapshot.copy(
                 context = snapshot.context.copy(board = snapshot.board.copy(piecesMap = updatedPieces)),
-                history = ChessHistory() // Reset history when editing board
+                history = ChessHistory()
             )
             
-            copy(
-                board = board.copy(
+            updateBoard {
+                copy(
                     snapshots = listOf(newSnapshot),
                     currentIndex = 0,
                     lastMoveId = Random.nextLong()
                 )
-            )
-        }
-        is GameAction.SquareClick -> {
-            if (isViewingHistory) return this
-            
-            // If in edit mode, use SquareClick to place the selected palette piece
-            if (board.isEditMode) {
-                return reduceMove(GameAction.PlacePiece(action.position, uiVisual.selectedPalettePiece))
             }
+        }
+        is GameAction.Move.RemovePiece -> {
+            val snapshot = currentSnapshot
+            val updatedPieces = snapshot.board.piecesMap.toMutableMap()
+            updatedPieces.remove(action.position)
+            
+            val newSnapshot = snapshot.copy(
+                context = snapshot.context.copy(board = snapshot.board.copy(piecesMap = updatedPieces)),
+                history = ChessHistory()
+            )
+            
+            updateBoard {
+                copy(
+                    snapshots = listOf(newSnapshot),
+                    currentIndex = 0,
+                    lastMoveId = Random.nextLong()
+                )
+            }
+        }
+        is GameAction.Move.SquareClick -> {
+            if (board.isEditMode) {
+                val piece = uiVisual.selectedPalettePiece
+                return if (piece != null) {
+                    reduceMove(GameAction.Move.PlacePiece(action.position, piece))
+                } else {
+                    reduceMove(GameAction.Move.RemovePiece(action.position))
+                }
+            }
+
+            if (board.isViewingHistory) return this
 
             val currentSnapshot = currentSnapshot
             val nextSnapshotBeforeNotation = currentSnapshot.move(action.position)
@@ -61,55 +78,62 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
                     val isPuzzleFinished = puzzle.currentPuzzleStep + 1 >= puzzleRef.solutionMoves.size
                     
                     val intermediateState = applyIncrement()
-                        .copy(
-                            board = board.copy(
+                        .updateBoard {
+                            copy(
                                 snapshots = snapshots + nextSnapshot,
                                 currentIndex = currentIndex + 1,
                                 lastMoveId = Random.nextLong()
-                            ),
-                            uiVisual = uiVisual.copy(
+                            )
+                        }
+                        .updateVisual {
+                            copy(
                                 longPressedPosition = null,
                                 moveEvaluations = emptyMap(),
                                 bestMoveArrow = null,
                                 threats = emptyList()
-                            ),
-                            puzzle = puzzle.copy(currentPuzzleStep = puzzle.currentPuzzleStep + 1)
-                        )
+                            )
+                        }
+                        .updatePuzzle {
+                            copy(currentPuzzleStep = currentPuzzleStep + 1)
+                        }
                     
                     return if (isPuzzleFinished && puzzle.currentPuzzleIndex != null) {
-                        intermediateState.reduceUi(GameAction.PuzzleCompleted(puzzle.currentPuzzleIndex!!))
+                        intermediateState.reducePuzzles(GameAction.Puzzles.PuzzleCompleted(puzzle.currentPuzzleIndex))
                     } else {
                         intermediateState
                     }
                 }
 
                 applyIncrement()
-                    .copy(
-                        board = board.copy(
+                    .updateBoard {
+                        copy(
                             snapshots = snapshots + nextSnapshot,
                             currentIndex = currentIndex + 1,
                             lastMoveId = Random.nextLong()
-                        ),
-                        uiVisual = uiVisual.copy(
+                        )
+                    }
+                    .updateVisual {
+                        copy(
                             longPressedPosition = null,
                             moveEvaluations = emptyMap(),
                             bestMoveArrow = null,
                             threats = emptyList()
                         )
-                    )
+                    }
             } else {
-                copy(
-                    board = board.copy(
+                updateBoard {
+                    copy(
                         snapshots = snapshots.toMutableList().apply { 
                             set(currentIndex, nextSnapshotBeforeNotation) 
                         }
-                    ),
-                    uiVisual = uiVisual.copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null, threats = emptyList())
-                )
+                    )
+                }.updateVisual {
+                    copy(longPressedPosition = null, moveEvaluations = emptyMap(), bestMoveArrow = null, threats = emptyList())
+                }
             }
         }
-        is GameAction.PromotionChoice -> {
-            if (isViewingHistory) return this
+        is GameAction.Move.PromotionChoice -> {
+            if (board.isViewingHistory) return this
             val currentSnapshot = currentSnapshot
             val nextSnapshotBeforeNotation = currentSnapshot.promote(action.move)
             
@@ -123,29 +147,29 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
                 val expectedMove = puzzleRef.solutionMoves.getOrNull(puzzle.currentPuzzleStep)
                 if (nextSnapshot.notation != expectedMove) return this
                 return applyIncrement()
-                    .copy(
-                        board = board.copy(
+                    .updateBoard {
+                        copy(
                             snapshots = snapshots + nextSnapshot,
                             currentIndex = currentIndex + 1,
                             lastMoveId = Random.nextLong()
-                        ),
-                        uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList()),
-                        puzzle = puzzle.copy(currentPuzzleStep = puzzle.currentPuzzleStep + 1)
-                    )
+                        )
+                    }
+                    .updateVisual { copy(bestMoveArrow = null, threats = emptyList()) }
+                    .updatePuzzle { copy(currentPuzzleStep = currentPuzzleStep + 1) }
             }
 
             applyIncrement()
-                .copy(
-                    board = board.copy(
+                .updateBoard {
+                    copy(
                         snapshots = snapshots + nextSnapshot,
                         currentIndex = currentIndex + 1,
                         lastMoveId = Random.nextLong()
-                    ),
-                    uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList())
-                )
+                    )
+                }
+                .updateVisual { copy(bestMoveArrow = null, threats = emptyList()) }
         }
-        is GameAction.EngineMove -> {
-            if (isViewingHistory) return this
+        is GameAction.Move.EngineMove -> {
+            if (board.isViewingHistory) return this
             val currentSnapshot = currentSnapshot
             val boardMove = currentSnapshot.findMoveByUci(action.moveUci) ?: return this
             
@@ -159,36 +183,35 @@ internal fun GameState.reduceMove(action: GameAction): GameState {
             val puzzleRef = puzzle.puzzles.getOrNull(puzzle.currentPuzzleIndex ?: -1)
             if (puzzleRef != null) {
                 return applyIncrement()
-                    .copy(
-                        board = board.copy(
+                    .updateBoard {
+                        copy(
                             snapshots = snapshots + nextSnapshot,
                             currentIndex = currentIndex + 1,
                             lastMoveId = Random.nextLong()
-                        ),
-                        uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList()),
-                        puzzle = puzzle.copy(currentPuzzleStep = puzzle.currentPuzzleStep + 1)
-                    )
+                        )
+                    }
+                    .updateVisual { copy(bestMoveArrow = null, threats = emptyList()) }
+                    .updatePuzzle { copy(currentPuzzleStep = currentPuzzleStep + 1) }
             }
 
             applyIncrement()
-                .copy(
-                    board = board.copy(
+                .updateBoard {
+                    copy(
                         snapshots = snapshots + nextSnapshot,
                         currentIndex = currentIndex + 1,
                         lastMoveId = Random.nextLong()
-                    ),
-                    uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList())
-                )
+                    )
+                }
+                .updateVisual { copy(bestMoveArrow = null, threats = emptyList()) }
         }
-        else -> this
     }
 }
 
 private fun GameState.applyIncrement(): GameState {
     val justMovedColor = currentSnapshot.activeColor
     return if (justMovedColor == PieceColor.WHITE) {
-        copy(clock = clock.copy(whiteTimeMillis = clock.whiteTimeMillis + 3000L))
+        updateClock { copy(whiteTimeMillis = whiteTimeMillis + 3000L) }
     } else {
-        copy(clock = clock.copy(blackTimeMillis = clock.blackTimeMillis + 3000L))
+        updateClock { copy(blackTimeMillis = blackTimeMillis + 3000L) }
     }
 }

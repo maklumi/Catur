@@ -119,7 +119,7 @@ fun MoveHistoryList(
             fontWeight = if (boardState.currentIndex == 0) FontWeight.Bold else FontWeight.Normal,
             color = if (boardState.currentIndex == 0) colorScheme.primary else colorScheme.onBackground,
             modifier = Modifier
-                .clickable { controller.dispatch(GameAction.JumpToHistory(0)) }
+                .clickable { controller.dispatch(GameAction.Nav.JumpToHistory(0)) }
                 .padding(vertical = 4.dp)
         )
 
@@ -144,7 +144,7 @@ fun MoveHistoryList(
                     color = if (boardState.currentIndex == whiteMoveIdx) colorScheme.primary else colorScheme.onBackground,
                     modifier = Modifier
                         .width(64.dp)
-                        .clickable { controller.dispatch(GameAction.JumpToHistory(whiteMoveIdx)) }
+                        .clickable { controller.dispatch(GameAction.Nav.JumpToHistory(whiteMoveIdx)) }
                 )
                 if (blackMove.isNotEmpty()) {
                     Text(
@@ -153,7 +153,7 @@ fun MoveHistoryList(
                         color = if (boardState.currentIndex == blackMoveIdx) colorScheme.primary else colorScheme.onBackground,
                         modifier = Modifier
                             .width(64.dp)
-                            .clickable { controller.dispatch(GameAction.JumpToHistory(blackMoveIdx)) }
+                            .clickable { controller.dispatch(GameAction.Nav.JumpToHistory(blackMoveIdx)) }
                     )
                 }
             }
@@ -224,7 +224,7 @@ fun PuzzleList(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { controller.dispatch(GameAction.SelectPuzzle(index)) }
+                    .clickable { controller.dispatch(GameAction.Puzzles.SelectPuzzle(index)) }
                     .padding(vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

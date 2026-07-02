@@ -9,11 +9,11 @@ object PgnUtils {
         val pgn = StringBuilder()
 
         // Headers
-        pgn.append("[Event \"${if (state.currentPuzzleIndex != null) "Catur Puzzle" else "Casual Game"}\"]\n")
+        pgn.append("[Event \"${if (state.puzzle.currentPuzzleIndex != null) "Catur Puzzle" else "Casual Game"}\"]\n")
         pgn.append("[Site \"Android/Desktop\"]\n")
         pgn.append("[Date \"${getPlatform().getCurrentDate()}\"]\n")
-        pgn.append("[White \"${state.whiteName}\"]\n")
-        pgn.append("[Black \"${state.blackName}\"]\n")
+        pgn.append("[White \"${state.match.whiteName}\"]\n")
+        pgn.append("[Black \"${state.match.blackName}\"]\n")
         
         val result = when (snapshot.status) {
             GameStatus.CHECKMATE -> if (snapshot.activeColor == PieceColor.BLACK) "1-0" else "0-1"

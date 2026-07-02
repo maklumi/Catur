@@ -101,10 +101,10 @@ fun SquareView(
             .pointerInput(position) {
                 detectTapGestures(
                     onTap = { 
-                        onAction(GameAction.ClearLongPress)
-                        onAction(GameAction.SquareClick(position)) 
+                        onAction(GameAction.Ui.ClearLongPress)
+                        onAction(GameAction.Move.SquareClick(position))
                     },
-                    onLongPress = { onAction(GameAction.SquareLongPress(position)) }
+                    onLongPress = { onAction(GameAction.Ui.SquareLongPress(position)) }
                 )
             },
         contentAlignment = Alignment.Center

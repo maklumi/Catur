@@ -3,10 +3,25 @@ package com.github.maklumi.catur.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -20,9 +35,22 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.model.board.Position
 import com.github.maklumi.catur.model.game.controller.GameController
-import com.github.maklumi.catur.model.game.state.*
-import com.github.maklumi.catur.model.piece.*
-import com.github.maklumi.catur.ui.theme.CaturTheme
+import com.github.maklumi.catur.model.game.state.BoardState
+import com.github.maklumi.catur.model.game.state.ClockState
+import com.github.maklumi.catur.model.game.state.EngineState
+import com.github.maklumi.catur.model.game.state.GameAction
+import com.github.maklumi.catur.model.game.state.GameStatus
+import com.github.maklumi.catur.model.game.state.MatchState
+import com.github.maklumi.catur.model.game.state.Screen
+import com.github.maklumi.catur.model.game.state.UiVisualState
+import com.github.maklumi.catur.model.piece.Bishop
+import com.github.maklumi.catur.model.piece.King
+import com.github.maklumi.catur.model.piece.Knight
+import com.github.maklumi.catur.model.piece.Pawn
+import com.github.maklumi.catur.model.piece.Piece
+import com.github.maklumi.catur.model.piece.PieceColor
+import com.github.maklumi.catur.model.piece.Queen
+import com.github.maklumi.catur.model.piece.Rook
 
 private fun formatTime(millis: Long): String {
     val totalSeconds = millis / 1000
@@ -51,27 +79,27 @@ fun ChessBoard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Button(onClick = { controller.dispatch(GameAction.NavigateTo(Screen.MENU)) }) {
+                    Button(onClick = { controller.dispatch(GameAction.Nav.NavigateTo(Screen.MENU)) }) {
                         Text("Menu")
                     }
                     
                     if (uiVisualState.currentScreen == Screen.ANALYSIS) {
                         FilterChip(
                             selected = boardState.isEditMode,
-                            onClick = { controller.dispatch(GameAction.SetEditMode(!boardState.isEditMode)) },
+                            onClick = { controller.dispatch(GameAction.Ui.SetEditMode(!boardState.isEditMode)) },
                             label = { Text(if (boardState.isEditMode) "Editing..." else "Edit Board") }
                         )
                         if (boardState.isEditMode) {
                             Button(
-                                onClick = { controller.dispatch(GameAction.SetEditMode(false)) },
+                                onClick = { controller.dispatch(GameAction.Ui.SetEditMode(false)) },
                                 colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary, contentColor = colorScheme.onPrimary)
                             ) { Text("Done") }
                             Button(
-                                onClick = { controller.dispatch(GameAction.ResetBoard) },
+                                onClick = { controller.dispatch(GameAction.Ui.ResetBoard) },
                                 colors = ButtonDefaults.buttonColors(containerColor = colorScheme.secondaryContainer, contentColor = colorScheme.onSecondaryContainer)
                             ) { Text("Reset") }
                             Button(
-                                onClick = { controller.dispatch(GameAction.ClearBoard) },
+                                onClick = { controller.dispatch(GameAction.Ui.ClearBoard) },
                                 colors = ButtonDefaults.buttonColors(containerColor = colorScheme.errorContainer, contentColor = colorScheme.onErrorContainer)
                             ) { Text("Clear") }
                         }
@@ -103,8 +131,8 @@ fun ChessBoard(
                         modifier = Modifier.padding(8.dp)
                     ) {
                         Text("Draw offered by ${snapshot.drawOfferedBy}", color = colorScheme.onBackground)
-                        Button(onClick = { controller.dispatch(GameAction.AcceptDraw) }) { Text("Accept") }
-                        Button(onClick = { controller.dispatch(GameAction.DeclineDraw) }) { Text("Decline") }
+                        Button(onClick = { controller.dispatch(GameAction.Flow.AcceptDraw) }) { Text("Accept") }
+                        Button(onClick = { controller.dispatch(GameAction.Flow.DeclineDraw) }) { Text("Decline") }
                     }
                 }
 
@@ -130,7 +158,13 @@ fun ChessBoard(
                             if (boardState.isEditMode) {
                                 PiecePalette(
                                     selectedPiece = uiVisualState.selectedPalettePiece,
-                                    onPieceSelect = { controller.dispatch(GameAction.SelectPalettePiece(it)) }
+                                    onPieceSelect = { piece ->
+                                        if (piece != null) {
+                                            controller.dispatch(GameAction.Ui.SelectPalettePiece(piece))
+                                        } else {
+                                            controller.dispatch(GameAction.Ui.SelectEraser)
+                                        }
+                                    }
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                             }
@@ -180,7 +214,7 @@ fun ChessBoard(
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Button(
-                        onClick = { controller.dispatch(GameAction.StepBack) },
+                        onClick = { controller.dispatch(GameAction.Nav.StepBack) },
                         enabled = boardState.canGoBack()
                     ) { Text("Back") }
                     Text(
@@ -189,7 +223,7 @@ fun ChessBoard(
                         color = colorScheme.onBackground
                     )
                     Button(
-                        onClick = { controller.dispatch(GameAction.StepForward) },
+                        onClick = { controller.dispatch(GameAction.Nav.StepForward) },
                         enabled = boardState.canGoForward()
                     ) { Text("Forward") }
                 }
@@ -255,7 +289,7 @@ fun ChessBoard(
                 Spacer(modifier = Modifier.height(16.dp))
                 EngineLevelSelector(
                     currentModel = engineState.model,
-                    onModelChange = { controller.dispatch(GameAction.ChangeEngineLevel(it)) })
+                    onModelChange = { controller.dispatch(GameAction.Ui.ChangeEngineLevel(it)) })
             }
 
             Spacer(modifier = Modifier.width(32.dp))
@@ -269,7 +303,7 @@ fun ChessBoard(
         }
 
         snapshot.pendingPromotion?.let { moves ->
-            PromotionDialog(moves = moves, onChoice = { controller.dispatch(GameAction.PromotionChoice(it)) })
+            PromotionDialog(moves = moves, onChoice = { controller.dispatch(GameAction.Move.PromotionChoice(it)) })
         }
     }
 }

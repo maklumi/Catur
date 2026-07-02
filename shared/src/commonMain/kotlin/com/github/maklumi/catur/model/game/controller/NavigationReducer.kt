@@ -2,32 +2,28 @@ package com.github.maklumi.catur.model.game.controller
 
 import com.github.maklumi.catur.model.game.state.*
 
-internal fun GameState.reduceNavigation(action: GameAction): GameState {
+internal fun GameState.reduceNavigation(action: GameAction.Nav): GameState {
     return when (action) {
-        is GameAction.StepBack -> {
+        GameAction.Nav.StepBack -> {
             if (canGoBack()) {
-                copy(
-                    board = board.copy(currentIndex = board.currentIndex - 1),
-                    uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList())
-                )
+                updateBoard { copy(currentIndex = currentIndex - 1) }
+                    .updateVisual { copy(bestMoveArrow = null, threats = emptyList()) }
             } else this
         }
-        is GameAction.StepForward -> {
+        GameAction.Nav.StepForward -> {
             if (canGoForward()) {
-                copy(
-                    board = board.copy(currentIndex = board.currentIndex + 1),
-                    uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList())
-                )
+                updateBoard { copy(currentIndex = currentIndex + 1) }
+                    .updateVisual { copy(bestMoveArrow = null, threats = emptyList()) }
             } else this
         }
-        is GameAction.JumpToHistory -> {
+        is GameAction.Nav.JumpToHistory -> {
             if (action.index in board.snapshots.indices) {
-                copy(
-                    board = board.copy(currentIndex = action.index),
-                    uiVisual = uiVisual.copy(bestMoveArrow = null, threats = emptyList())
-                )
+                updateBoard { copy(currentIndex = action.index) }
+                    .updateVisual { copy(bestMoveArrow = null, threats = emptyList()) }
             } else this
         }
-        else -> this
+        is GameAction.Nav.NavigateTo -> {
+            updateVisual { copy(currentScreen = action.screen) }
+        }
     }
 }

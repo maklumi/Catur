@@ -45,7 +45,7 @@ fun MainMenuView(
         MenuButton(
             text = "Play",
             description = "Local match or vs Computer",
-            onClick = { onAction(GameAction.NavigateTo(Screen.PLAY_SELECTION)) }
+            onClick = { onAction(GameAction.Nav.NavigateTo(Screen.PLAY_SELECTION)) }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -53,7 +53,7 @@ fun MainMenuView(
         MenuButton(
             text = "Puzzles",
             description = "Train with chess puzzles",
-            onClick = { onAction(GameAction.NavigateTo(Screen.PUZZLES)) }
+            onClick = { onAction(GameAction.Nav.NavigateTo(Screen.PUZZLES)) }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -61,7 +61,7 @@ fun MainMenuView(
         MenuButton(
             text = "Analysis",
             description = "Sandbox move analysis",
-            onClick = { onAction(GameAction.StartAnalysis) }
+            onClick = { onAction(GameAction.Flow.StartAnalysis) }
         )
     }
 }
