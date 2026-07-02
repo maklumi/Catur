@@ -1,7 +1,9 @@
 package com.github.maklumi.catur.model.game.controller
 
 import com.github.maklumi.catur.model.game.state.*
-import com.github.maklumi.catur.model.piece.PieceColor
+import com.github.maklumi.catur.domain.chess.piece.PieceColor
+import com.github.maklumi.catur.domain.chess.board.isInCheck
+import com.github.maklumi.catur.domain.chess.logic.getNotation
 import kotlin.random.Random
 
 internal fun GameState.reduceMove(action: GameAction.Move): GameState {

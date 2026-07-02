@@ -1,10 +1,19 @@
 import subprocess
 import threading
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import os
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # --- CONFIGURATION (Ensure these paths match your machine) ---
 MAIA_CWD = r"E:\maia3"
@@ -61,27 +70,45 @@ class EngineWrapper:
                 self.command = new_command
                 self._start()
 
-    def get_best_move(self, moves_str: str):
+    def get_best_move(self, moves_str: str, fen: str = None):
         with self.lock:
-            cmd = f"position startpos moves {moves_str}" if moves_str else "position startpos"
-            self._send(cmd)
+            if fen:
+                self._send(f"position fen {fen} moves {moves_str}" if moves_str else f"position fen {fen}")
+            else:
+                cmd = f"position startpos moves {moves_str}" if moves_str else "position startpos"
+                self._send(cmd)
             self._send("go movetime 1000")
             line = self._read_until("bestmove")
             if not line: return None
             move = line.split()[1]
             return None if move == "(none)" else move
 
-    def get_evaluation(self, moves_str: str):
+    def get_evaluation(self, moves_str: str, fen: str = None):
         with self.lock:
-            cmd = f"position startpos moves {moves_str}" if moves_str else "position startpos"
-            self._send(cmd)
+            side_to_move = "w"
+            if fen:
+                parts = fen.split()
+                side_to_move = parts[1] if len(parts) > 1 else "w"
+                self._send(f"position fen {fen} moves {moves_str}" if moves_str else f"position fen {fen}")
+            else:
+                side_to_move = "b" if len(moves_str.split()) % 2 != 0 else "w"
+                cmd = f"position startpos moves {moves_str}" if moves_str else "position startpos"
+                self._send(cmd)
+
             self._send("go depth 10")
             score = 0
             while True:
                 line = self.process.stdout.readline().strip()
                 if "score cp" in line:
                     parts = line.split("score cp ")
-                    score = int(parts[1].split()[0])
+                    raw_score = int(parts[1].split()[0])
+                    score = -raw_score if side_to_move == "b" else raw_score
+                elif "score mate" in line:
+                    parts = line.split("score mate ")
+                    mate_in = int(parts[1].split()[0])
+                    # if mate_in > 0: current side is winning. if < 0: current side is losing.
+                    mate_score = 10000 if mate_in > 0 else -10000
+                    score = -mate_score if side_to_move == "b" else mate_score
                 if "bestmove" in line:
                     break
             return score
@@ -93,15 +120,15 @@ stockfish = EngineWrapper([STOCKFISH_PATH])
 print("Engines ready!")
 
 @app.get("/best-move")
-def best_move(moves: str = "", model: str = "maia3-5m"):
+def best_move(moves: str = "", model: str = "maia3-5m", fen: str = None):
     # Check for model change before calculating the move
     maia.update_model_if_needed(model)
-    move = maia.get_best_move(moves)
+    move = maia.get_best_move(moves, fen)
     return {"move": move}
 
 @app.get("/evaluate")
-def evaluate(moves: str = ""):
-    score = stockfish.get_evaluation(moves)
+def evaluate(moves: str = "", fen: str = None):
+    score = stockfish.get_evaluation(moves, fen)
     return {"score": score}
 
 if __name__ == "__main__":

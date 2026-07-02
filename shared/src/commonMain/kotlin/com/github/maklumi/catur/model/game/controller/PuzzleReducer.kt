@@ -1,8 +1,8 @@
 package com.github.maklumi.catur.model.game.controller
 
-import com.github.maklumi.catur.model.board.Board
+import com.github.maklumi.catur.domain.chess.board.Board
+import com.github.maklumi.catur.domain.chess.piece.PieceColor
 import com.github.maklumi.catur.model.game.state.*
-import com.github.maklumi.catur.model.piece.PieceColor
 
 internal fun GameState.reducePuzzles(action: GameAction.Puzzles): GameState {
     return when (action) {

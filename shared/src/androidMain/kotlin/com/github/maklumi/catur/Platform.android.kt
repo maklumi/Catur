@@ -3,7 +3,7 @@ package com.github.maklumi.catur
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
-import com.github.maklumi.catur.model.PersistenceManager
+import com.github.maklumi.catur.data.persistence.PersistenceManager
 import com.github.maklumi.catur.model.game.audio.SoundType
 import com.github.maklumi.catur.model.game.controller.GameController
 import com.github.maklumi.catur.model.game.engine.RemoteChessEngine

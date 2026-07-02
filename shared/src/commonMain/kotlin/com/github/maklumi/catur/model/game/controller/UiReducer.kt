@@ -1,6 +1,6 @@
 package com.github.maklumi.catur.model.game.controller
 
-import com.github.maklumi.catur.model.board.Board
+import com.github.maklumi.catur.domain.chess.board.Board
 import com.github.maklumi.catur.model.game.state.*
 
 internal fun GameState.reduceUi(action: GameAction.Ui): GameState {
@@ -63,6 +63,12 @@ internal fun GameState.reduceUi(action: GameAction.Ui): GameState {
         }
         is GameAction.Ui.ChangeEngineLevel -> {
             updateEngine { copy(model = action.model) }
+        }
+        is GameAction.Ui.SetBoardTheme -> {
+            updateVisual { copy(boardTheme = action.theme) }
+        }
+        is GameAction.Ui.SetSoundEnabled -> {
+            updateVisual { copy(isSoundEnabled = action.enabled) }
         }
     }
 }

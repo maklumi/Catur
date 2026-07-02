@@ -1,15 +1,18 @@
 package com.github.maklumi.catur.model.game.state
 
-import com.github.maklumi.catur.model.board.Board
-import com.github.maklumi.catur.model.board.Position
+import com.github.maklumi.catur.domain.chess.board.Board
+import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.model.game.puzzle.Puzzle
-import com.github.maklumi.catur.model.move.BoardMove
-import com.github.maklumi.catur.model.piece.Piece
-import com.github.maklumi.catur.model.piece.PieceColor
+import com.github.maklumi.catur.domain.chess.move.BoardMove
+import com.github.maklumi.catur.domain.chess.piece.Piece
+import com.github.maklumi.catur.domain.chess.piece.PieceColor
+import com.github.maklumi.catur.domain.chess.logic.OpeningBook
 
 enum class PlayerType { HUMAN, ENGINE }
 
-enum class Screen { MENU, PLAY_SELECTION, GAME, PUZZLES, ANALYSIS }
+enum class Screen { MENU, PLAY_SELECTION, GAME, PUZZLES, ANALYSIS, SETTINGS }
+
+enum class BoardTheme { GREEN, WOOD, BLUE, CLASSIC }
 
 data class BoardState(
     val snapshots: List<GameSnapshotState> = listOf(GameSnapshotState(context = ChessContext(board = Board.initial))),
@@ -56,7 +59,9 @@ data class UiVisualState(
     val threats: List<Position> = emptyList(),
     val currentEvaluation: Int? = null,
     val currentScreen: Screen = Screen.MENU,
-    val selectedPalettePiece: Piece? = null
+    val selectedPalettePiece: Piece? = null,
+    val boardTheme: BoardTheme = BoardTheme.GREEN,
+    val isSoundEnabled: Boolean = true
 )
 
 data class GameState(
@@ -84,6 +89,11 @@ data class GameState(
         currentSnapshot.status == GameStatus.ONGOING &&
         ((currentSnapshot.activeColor == PieceColor.WHITE && match.whiteType == PlayerType.ENGINE) ||
          (currentSnapshot.activeColor == PieceColor.BLACK && match.blackType == PlayerType.ENGINE))
+
+    fun identifyOpening(): String? {
+        val moves = board.snapshots.take(board.currentIndex + 1).mapNotNull { it.lastMoveUci }
+        return OpeningBook.getOpeningName(moves)
+    }
 }
 
 // Grouped Actions
@@ -112,7 +122,7 @@ sealed class GameAction {
         object ReverseSides : Flow()
         object NewGame : Flow()
         object StartLocalGame : Flow()
-        object StartComputerGame : Flow()
+        data class StartComputerGame(val model: String = "maia3-5m") : Flow()
         object StartAnalysis : Flow()
     }
 
@@ -132,6 +142,8 @@ sealed class GameAction {
         data class SetEditMode(val enabled: Boolean) : Ui()
         data class SetEngineThinking(val isThinking: Boolean) : Ui()
         data class ChangeEngineLevel(val model: String) : Ui()
+        data class SetBoardTheme(val theme: BoardTheme) : Ui()
+        data class SetSoundEnabled(val enabled: Boolean) : Ui()
     }
 
     sealed class Puzzles : GameAction() {

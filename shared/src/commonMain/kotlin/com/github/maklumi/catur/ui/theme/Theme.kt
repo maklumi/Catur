@@ -7,6 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import com.github.maklumi.catur.model.game.state.BoardTheme
 
 @Immutable
 data class BoardColors(
@@ -43,6 +44,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun CaturTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    boardTheme: BoardTheme = BoardTheme.GREEN,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -50,7 +52,12 @@ fun CaturTheme(
         else -> LightColorScheme
     }
 
-    val boardColors = BoardColors() // Could be different for dark mode if needed
+    val boardColors = when (boardTheme) {
+        BoardTheme.GREEN -> BoardColors(BoardLight, BoardDark)
+        BoardTheme.WOOD -> BoardColors(WoodLight, WoodDark)
+        BoardTheme.BLUE -> BoardColors(BlueLight, BlueDark)
+        BoardTheme.CLASSIC -> BoardColors(ClassicLight, ClassicDark)
+    }
 
     CompositionLocalProvider(LocalBoardColors provides boardColors) {
         MaterialTheme(

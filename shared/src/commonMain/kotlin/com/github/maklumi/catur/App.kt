@@ -17,10 +17,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.tooling.preview.Preview
 import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.Screen
-import com.github.maklumi.catur.ui.ChessBoard
-import com.github.maklumi.catur.ui.MainMenuView
-import com.github.maklumi.catur.ui.PlaySelectionView
-import com.github.maklumi.catur.ui.PuzzleListView
+import com.github.maklumi.catur.ui.screens.*
 import com.github.maklumi.catur.ui.theme.CaturTheme
 
 @Composable
@@ -44,7 +41,7 @@ fun App() {
         }
     }
 
-    CaturTheme {
+    CaturTheme(boardTheme = uiVisualState.boardTheme) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
@@ -83,6 +80,9 @@ fun App() {
                 }
                 Screen.PUZZLES -> {
                     PuzzleListView(controller = controller)
+                }
+                Screen.SETTINGS -> {
+                    SettingsView(controller = controller)
                 }
             }
         }

@@ -1,7 +1,7 @@
 package com.github.maklumi.catur.model.game.controller
 
 import com.github.maklumi.catur.model.game.state.*
-import com.github.maklumi.catur.model.piece.PieceColor
+import com.github.maklumi.catur.domain.chess.piece.PieceColor
 
 internal fun GameState.reduceGameFlow(action: GameAction.Flow): GameState {
     return when (action) {
@@ -72,17 +72,17 @@ internal fun GameState.reduceGameFlow(action: GameAction.Flow): GameState {
                 uiVisual = uiVisual.copy(currentScreen = Screen.GAME, currentEvaluation = null, bestMoveArrow = null)
             )
         }
-        GameAction.Flow.StartComputerGame -> {
+        is GameAction.Flow.StartComputerGame -> {
             copy(
                 board = BoardState(),
                 match = MatchState(
                     whiteName = "Human",
                     whiteType = PlayerType.HUMAN,
-                    blackName = "Maia",
+                    blackName = "Computer (${action.model})",
                     blackType = PlayerType.ENGINE
                 ),
                 clock = ClockState(),
-                engine = engine.copy(isThinking = false),
+                engine = engine.copy(isThinking = false, model = action.model),
                 puzzle = puzzle.copy(currentPuzzleIndex = null, currentPuzzleStep = 0),
                 uiVisual = uiVisual.copy(currentScreen = Screen.GAME, currentEvaluation = null, bestMoveArrow = null)
             )

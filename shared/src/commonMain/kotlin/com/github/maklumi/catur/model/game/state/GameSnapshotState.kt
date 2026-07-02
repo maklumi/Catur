@@ -1,12 +1,13 @@
 package com.github.maklumi.catur.model.game.state
 
-import com.github.maklumi.catur.model.board.Board
-import com.github.maklumi.catur.model.board.Position
-import com.github.maklumi.catur.model.move.BoardMove
-import com.github.maklumi.catur.model.move.EnPassantMove
-import com.github.maklumi.catur.model.move.toUciString
-import com.github.maklumi.catur.model.piece.Piece
-import com.github.maklumi.catur.model.piece.PieceColor
+import com.github.maklumi.catur.domain.chess.board.Board
+import com.github.maklumi.catur.domain.chess.board.Position
+import com.github.maklumi.catur.domain.chess.board.isInCheck
+import com.github.maklumi.catur.domain.chess.move.BoardMove
+import com.github.maklumi.catur.domain.chess.move.EnPassantMove
+import com.github.maklumi.catur.domain.chess.move.toUciString
+import com.github.maklumi.catur.domain.chess.piece.Piece
+import com.github.maklumi.catur.domain.chess.piece.PieceColor
 
 enum class GameStatus {
     ONGOING,
@@ -177,9 +178,4 @@ data class GameSnapshotState(
             )
         )
     }
-}
-
-fun Board.isInCheck(color: PieceColor): Boolean {
-    val kingSquare = findKing(color) ?: return false
-    return isAttacked(kingSquare.position, color.opposite())
 }

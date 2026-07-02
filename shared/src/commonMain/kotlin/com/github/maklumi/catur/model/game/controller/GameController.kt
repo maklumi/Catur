@@ -2,18 +2,17 @@ package com.github.maklumi.catur.model.game.controller
 
 import com.github.maklumi.catur.Platform
 import com.github.maklumi.catur.getPlatform
-import com.github.maklumi.catur.model.board.Position
+import com.github.maklumi.catur.domain.chess.board.Position
+import com.github.maklumi.catur.domain.chess.board.isInCheck
+import com.github.maklumi.catur.domain.chess.logic.findMoveByNotation
 import com.github.maklumi.catur.model.game.audio.SoundType
 import com.github.maklumi.catur.model.game.engine.ChessEngine
 import com.github.maklumi.catur.model.game.puzzle.PuzzleLoader
 import com.github.maklumi.catur.model.game.state.GameAction
 import com.github.maklumi.catur.model.game.state.GameState
 import com.github.maklumi.catur.model.game.state.GameStatus
-import com.github.maklumi.catur.model.game.state.findMoveByNotation
-import com.github.maklumi.catur.model.game.state.isInCheck
-import com.github.maklumi.catur.model.game.state.Screen
-import com.github.maklumi.catur.model.move.EnPassantMove
-import com.github.maklumi.catur.model.move.toUciString
+import com.github.maklumi.catur.domain.chess.move.EnPassantMove
+import com.github.maklumi.catur.domain.chess.move.toUciString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -84,7 +83,7 @@ class GameController(
                     val prevSnapshot = currentState.snapshots[currentState.snapshots.size - 2]
 
                     val move = lastSnapshot.lastMove?.move
-                    if (move != null) {
+                    if (move != null && currentState.uiVisual.isSoundEnabled) {
                         val platform = getPlatform()
                         when {
                             lastSnapshot.status == GameStatus.CHECKMATE ||
