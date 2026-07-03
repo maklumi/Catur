@@ -35,8 +35,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.piece.*
-import com.github.maklumi.catur.model.game.controller.GameController
-import com.github.maklumi.catur.model.game.state.*
+import com.github.maklumi.catur.state.controller.GameController
+import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.ui.components.*
 
 private fun formatTime(millis: Long): String {

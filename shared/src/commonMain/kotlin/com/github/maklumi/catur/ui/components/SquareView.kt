@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.board.isLightSquare
-import com.github.maklumi.catur.model.game.state.*
+import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.ui.theme.CaturTheme
 
 @Composable

@@ -7,7 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-import com.github.maklumi.catur.model.game.state.BoardTheme
+import com.github.maklumi.catur.state.model.BoardTheme
 
 @Immutable
 data class BoardColors(

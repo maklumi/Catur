@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.maklumi.catur.model.game.controller.GameController
-import com.github.maklumi.catur.model.game.state.GameAction
-import com.github.maklumi.catur.model.game.state.Screen
-import com.github.maklumi.catur.model.game.state.UiVisualState
+import com.github.maklumi.catur.state.controller.GameController
+import com.github.maklumi.catur.state.model.GameAction
+import com.github.maklumi.catur.state.model.Screen
+import com.github.maklumi.catur.state.model.UiVisualState
 import com.github.maklumi.catur.ui.components.BoardThemeSelector
 
 @Composable

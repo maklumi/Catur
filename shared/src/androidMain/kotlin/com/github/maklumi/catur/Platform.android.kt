@@ -4,9 +4,9 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
 import com.github.maklumi.catur.data.persistence.PersistenceManager
-import com.github.maklumi.catur.model.game.audio.SoundType
-import com.github.maklumi.catur.model.game.controller.GameController
-import com.github.maklumi.catur.model.game.engine.RemoteChessEngine
+import com.github.maklumi.catur.domain.audio.SoundType
+import com.github.maklumi.catur.state.controller.GameController
+import com.github.maklumi.catur.domain.engine.RemoteChessEngine
 import kotlinx.coroutines.CoroutineScope
 import androidx.core.content.edit
 import java.text.SimpleDateFormat

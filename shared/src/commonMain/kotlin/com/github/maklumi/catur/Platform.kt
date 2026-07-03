@@ -1,8 +1,8 @@
 package com.github.maklumi.catur
 
 import com.github.maklumi.catur.data.persistence.PersistenceManager
-import com.github.maklumi.catur.model.game.audio.SoundType
-import com.github.maklumi.catur.model.game.controller.GameController
+import com.github.maklumi.catur.domain.audio.SoundType
+import com.github.maklumi.catur.state.controller.GameController
 import kotlinx.coroutines.CoroutineScope
 
 interface Platform {

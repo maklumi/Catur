@@ -27,10 +27,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.maklumi.catur.model.game.controller.GameController
-import com.github.maklumi.catur.model.game.state.GameAction
-import com.github.maklumi.catur.model.game.state.PuzzleState
-import com.github.maklumi.catur.model.game.state.Screen
+import com.github.maklumi.catur.state.controller.GameController
+import com.github.maklumi.catur.state.model.GameAction
+import com.github.maklumi.catur.state.model.PuzzleState
+import com.github.maklumi.catur.state.model.Screen
 
 @Composable
 fun PuzzleListView(

@@ -20,8 +20,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.maklumi.catur.model.game.state.GameAction
-import com.github.maklumi.catur.model.game.state.Screen
+import com.github.maklumi.catur.state.model.GameAction
+import com.github.maklumi.catur.state.model.Screen
 
 @Composable
 fun MainMenuView(

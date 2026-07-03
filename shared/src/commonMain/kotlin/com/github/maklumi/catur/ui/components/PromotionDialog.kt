@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.github.maklumi.catur.domain.chess.move.BoardMove
+import com.github.maklumi.catur.ui.components.PieceImage
 
 @Composable
 fun PromotionDialog(

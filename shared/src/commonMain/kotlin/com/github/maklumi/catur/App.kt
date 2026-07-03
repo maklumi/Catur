@@ -15,8 +15,8 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.tooling.preview.Preview
-import com.github.maklumi.catur.model.game.state.GameAction
-import com.github.maklumi.catur.model.game.state.Screen
+import com.github.maklumi.catur.state.model.GameAction
+import com.github.maklumi.catur.state.model.Screen
 import com.github.maklumi.catur.ui.screens.*
 import com.github.maklumi.catur.ui.theme.CaturTheme
 
@@ -25,7 +25,7 @@ import com.github.maklumi.catur.ui.theme.CaturTheme
 fun App() {
     val scope = rememberCoroutineScope()
     val controller = remember { getPlatform().createGameController(scope) }
-    val uiVisualState by controller.uiVisualState.collectAsState(com.github.maklumi.catur.model.game.state.UiVisualState())
+    val uiVisualState by controller.uiVisualState.collectAsState(com.github.maklumi.catur.state.model.UiVisualState())
 
     val focusRequester = remember { FocusRequester() }
 

@@ -2,8 +2,8 @@ package com.github.maklumi.catur.domain.chess.logic
 
 import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.domain.chess.piece.PieceColor
-import com.github.maklumi.catur.model.game.state.GameState
-import com.github.maklumi.catur.model.game.state.GameStatus
+import com.github.maklumi.catur.state.model.GameState
+import com.github.maklumi.catur.state.model.GameStatus
 
 object PgnUtils {
     fun generatePgn(state: GameState): String {
