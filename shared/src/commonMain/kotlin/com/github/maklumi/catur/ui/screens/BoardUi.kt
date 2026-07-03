@@ -5,10 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -94,21 +94,24 @@ fun ChessBoard(
 
                     val activeName = if (snapshot.activeColor == PieceColor.WHITE) matchState.whiteName else matchState.blackName
                     val prefix = if (uiVisualState.currentScreen == Screen.ANALYSIS) "To move: " else "Turn: "
-                    Column(modifier = Modifier.padding(8.dp)) {
+                    Column(
+                        modifier = Modifier.padding(8.dp).height(56.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Text(
                             text = "$prefix$activeName",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = colorScheme.onBackground
+                            color = colorScheme.onBackground,
+                            maxLines = 1
                         )
-                        boardState.openingName?.let { name ->
-                            Text(
-                                text = name,
-                                fontSize = 14.sp,
-                                color = colorScheme.secondary,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
+                        Text(
+                            text = boardState.openingName ?: "",
+                            fontSize = 14.sp,
+                            color = colorScheme.secondary,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1
+                        )
                     }
                     
                     if (engineState.isThinking) {
@@ -153,65 +156,72 @@ fun ChessBoard(
                     modifier = Modifier.weight(1f).fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxHeight(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        EvaluationBar(
-                            evaluation = uiVisualState.currentEvaluation,
-                            isBoardFlipped = boardState.isBoardFlipped,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            if (boardState.isEditMode) {
-                                PiecePalette(
-                                    selectedPiece = uiVisualState.selectedPalettePiece,
-                                    onPieceSelect = { piece ->
-                                        if (piece != null) {
-                                            controller.dispatch(GameAction.Ui.SelectPalettePiece(piece))
-                                        } else {
-                                            controller.dispatch(GameAction.Ui.SelectEraser)
-                                        }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        if (boardState.isEditMode) {
+                            PiecePalette(
+                                selectedPiece = uiVisualState.selectedPalettePiece,
+                                onPieceSelect = { piece ->
+                                    if (piece != null) {
+                                        controller.dispatch(GameAction.Ui.SelectPalettePiece(piece))
+                                    } else {
+                                        controller.dispatch(GameAction.Ui.SelectEraser)
                                     }
-                                )
-                                Spacer(modifier = Modifier.height(16.dp))
-                            }
-                            
-                            Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {
-                                Column(modifier = Modifier.fillMaxSize()) {
-                                    for (rank in ranks) {
-                                        val isDestinationRank = rank == lastMoveToRank
-                                        Row(
-                                            modifier = Modifier.weight(1f)
-                                                .zIndex(if (isDestinationRank) 5f else 0f)
-                                        ) {
-                                            for (file in files) {
-                                                val position = Position.from(file, rank)
-                                                val isLeftmost = file == (if (boardState.isBoardFlipped) 8 else 1)
-                                                val isBottom = rank == (if (boardState.isBoardFlipped) 8 else 1)
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
 
-                                                SquareView(
-                                                    position = position,
-                                                    boardState = boardState,
-                                                    uiVisualState = uiVisualState,
-                                                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                                                    showRank = isLeftmost,
-                                                    showFile = isBottom,
-                                                    onAction = { controller.dispatch(it) }
-                                                )
+                        BoxWithConstraints(
+                            modifier = Modifier.fillMaxHeight().padding(bottom = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            val boardSize = minOf(maxHeight, maxWidth - 48.dp) // 48dp for bar + spacing
+
+                            Row(
+                                modifier = Modifier.height(boardSize).width(boardSize + 48.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                EvaluationBar(
+                                    evaluation = uiVisualState.currentEvaluation,
+                                    isBoardFlipped = boardState.isBoardFlipped,
+                                    modifier = Modifier.width(32.dp).fillMaxHeight().padding(end = 16.dp)
+                                )
+
+                                Box(modifier = Modifier.size(boardSize)) {
+                                    Column(modifier = Modifier.fillMaxSize()) {
+                                        for (rank in ranks) {
+                                            val isDestinationRank = rank == lastMoveToRank
+                                            Row(
+                                                modifier = Modifier.weight(1f)
+                                                    .zIndex(if (isDestinationRank) 5f else 0f)
+                                            ) {
+                                                for (file in files) {
+                                                    val position = Position.from(file, rank)
+                                                    val isLeftmost = file == (if (boardState.isBoardFlipped) 8 else 1)
+                                                    val isBottom = rank == (if (boardState.isBoardFlipped) 8 else 1)
+
+                                                    SquareView(
+                                                        position = position,
+                                                        boardState = boardState,
+                                                        uiVisualState = uiVisualState,
+                                                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                                                        showRank = isLeftmost,
+                                                        showFile = isBottom,
+                                                        onAction = { controller.dispatch(it) }
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                }
 
-                                uiVisualState.bestMoveArrow?.let { arrow ->
-                                    ChessBoardOverlay(
-                                        from = arrow.first,
-                                        to = arrow.second,
-                                        isBoardFlipped = boardState.isBoardFlipped,
-                                        color = colorScheme.primary.copy(alpha = 0.5f)
-                                    )
+                                    uiVisualState.bestMoveArrow?.let { arrow ->
+                                        ChessBoardOverlay(
+                                            from = arrow.first,
+                                            to = arrow.second,
+                                            isBoardFlipped = boardState.isBoardFlipped,
+                                            color = colorScheme.primary.copy(alpha = 0.5f)
+                                        )
+                                    }
                                 }
                             }
                         }

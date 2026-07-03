@@ -46,7 +46,6 @@ fun EvaluationBar(
     
     Box(
         modifier = modifier
-            .width(24.dp)
             .fillMaxHeight()
             .clip(RoundedCornerShape(4.dp))
             .background(backgroundColor)
