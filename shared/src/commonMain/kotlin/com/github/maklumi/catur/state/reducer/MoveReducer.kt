@@ -74,7 +74,11 @@ internal fun GameState.reduceMove(action: GameAction.Move): GameState {
                 val puzzleRef = puzzle.puzzles.getOrNull(puzzle.currentPuzzleIndex ?: -1)
                 if (puzzleRef != null) {
                     val expectedMove = puzzleRef.solutionMoves.getOrNull(puzzle.currentPuzzleStep)
-                    if (nextSnapshot.notation != expectedMove) {
+                    
+                    // Robust comparison: ignore symbols like +, #, =, and case
+                    fun normalize(s: String?) = s?.replace("+", "")?.replace("#", "")?.replace("=", "")?.lowercase() ?: ""
+                    
+                    if (normalize(nextSnapshot.notation) != normalize(expectedMove)) {
                         return this
                     }
                     val isPuzzleFinished = puzzle.currentPuzzleStep + 1 >= puzzleRef.solutionMoves.size
@@ -147,7 +151,20 @@ internal fun GameState.reduceMove(action: GameAction.Move): GameState {
             val puzzleRef = puzzle.puzzles.getOrNull(puzzle.currentPuzzleIndex ?: -1)
             if (puzzleRef != null) {
                 val expectedMove = puzzleRef.solutionMoves.getOrNull(puzzle.currentPuzzleStep)
-                if (nextSnapshot.notation != expectedMove) return this
+                
+                // Robust comparison: ignore symbols like +, #, =, and case
+                fun normalize(s: String?) = s?.replace("+", "")?.replace("#", "")?.replace("=", "")?.lowercase() ?: ""
+
+                if (normalize(nextSnapshot.notation) != normalize(expectedMove)) {
+                    // Reset pending promotion so the dialog disappears on wrong move
+                    return updateBoard {
+                        copy(
+                            snapshots = snapshots.toMutableList().apply {
+                                set(currentIndex, currentSnapshot.copy(pendingPromotion = null, context = currentSnapshot.context.copy(selectedPosition = null)))
+                            }
+                        )
+                    }
+                }
                 return applyIncrement()
                     .updateBoard {
                         copy(
@@ -169,6 +186,16 @@ internal fun GameState.reduceMove(action: GameAction.Move): GameState {
                     )
                 }
                 .updateVisual { copy(bestMoveArrow = null, threats = emptyList()) }
+        }
+        is GameAction.Move.CancelPromotion -> {
+            val snapshot = currentSnapshot
+            updateBoard {
+                copy(
+                    snapshots = snapshots.toMutableList().apply {
+                        set(currentIndex, snapshot.copy(pendingPromotion = null, context = snapshot.context.copy(selectedPosition = null)))
+                    }
+                )
+            }
         }
         is GameAction.Move.EngineMove -> {
             if (board.isViewingHistory) return this

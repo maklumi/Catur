@@ -111,6 +111,7 @@ sealed class GameAction {
         data class EngineMove(val moveUci: String) : Move()
         data class PlacePiece(val position: Position, val piece: Piece) : Move()
         data class RemovePiece(val position: Position) : Move()
+        object CancelPromotion : Move()
     }
 
     sealed class Nav : GameAction() {

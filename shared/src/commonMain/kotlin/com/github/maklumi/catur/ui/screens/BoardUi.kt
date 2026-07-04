@@ -327,7 +327,11 @@ fun ChessBoard(
         }
 
         snapshot.pendingPromotion?.let { moves ->
-            PromotionDialog(moves = moves, onChoice = { controller.dispatch(GameAction.Move.PromotionChoice(it)) })
+            PromotionDialog(
+                moves = moves,
+                onChoice = { controller.dispatch(GameAction.Move.PromotionChoice(it)) },
+                onCancel = { controller.dispatch(GameAction.Move.CancelPromotion) }
+            )
         }
     }
 }

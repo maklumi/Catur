@@ -12,7 +12,7 @@ import com.github.maklumi.catur.domain.chess.piece.PieceColor
 
 fun Board.getNotation(boardMove: BoardMove, isCheck: Boolean, isMate: Boolean): String {
     val move = boardMove.move
-    val piece = move.piece
+    val piece = if (move is PromotionMove) move.baseMove.piece else move.piece
     
     val base = when (move) {
         is CastlingMove -> {

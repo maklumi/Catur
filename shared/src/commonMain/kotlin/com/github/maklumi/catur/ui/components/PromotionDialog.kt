@@ -18,10 +18,11 @@ import com.github.maklumi.catur.ui.components.PieceImage
 @Composable
 fun PromotionDialog(
     moves: List<BoardMove>,
-    onChoice: (BoardMove) -> Unit
+    onChoice: (BoardMove) -> Unit,
+    onCancel: () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    Dialog(onDismissRequest = {}) {
+    Dialog(onDismissRequest = onCancel) {
         Surface(
             shape = RoundedCornerShape(8.dp),
             color = colorScheme.surface
