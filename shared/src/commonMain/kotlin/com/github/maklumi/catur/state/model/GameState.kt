@@ -129,7 +129,10 @@ sealed class GameAction {
         object ReverseSides : Flow()
         object NewGame : Flow()
         object StartLocalGame : Flow()
-        data class StartComputerGame(val model: String = "maia3-5m") : Flow()
+        data class StartComputerGame(
+            val model: String = "maia3-5m",
+            val playerColor: PieceColor = PieceColor.WHITE
+        ) : Flow()
         object StartAnalysis : Flow()
     }
 

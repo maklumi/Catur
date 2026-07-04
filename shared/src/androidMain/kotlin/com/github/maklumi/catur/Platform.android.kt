@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class AndroidPersistenceManager(private val context: Context) : PersistenceManager {
+class AndroidPersistenceManager(context: Context) : PersistenceManager {
     private val prefs: SharedPreferences = context.getSharedPreferences("catur_prefs", Context.MODE_PRIVATE)
     private val historyDir = File(context.filesDir, "history")
 

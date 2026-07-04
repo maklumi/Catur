@@ -76,19 +76,24 @@ internal fun GameState.reduceGameFlow(action: GameAction.Flow): GameState {
             )
         }
         is GameAction.Flow.StartComputerGame -> {
+            val isHumanWhite = action.playerColor == PieceColor.WHITE
             copy(
-                board = BoardState(),
+                board = BoardState(isBoardFlipped = !isHumanWhite),
                 match = MatchState(
                     id = platform.generateId(),
-                    whiteName = "Human",
-                    whiteType = PlayerType.HUMAN,
-                    blackName = "Computer (${action.model})",
-                    blackType = PlayerType.ENGINE
+                    whiteName = if (isHumanWhite) "Human" else "Computer (${action.model})",
+                    whiteType = if (isHumanWhite) PlayerType.HUMAN else PlayerType.ENGINE,
+                    blackName = if (isHumanWhite) "Computer (${action.model})" else "Human",
+                    blackType = if (isHumanWhite) PlayerType.ENGINE else PlayerType.HUMAN
                 ),
                 clock = ClockState(),
                 engine = engine.copy(isThinking = false, model = action.model),
                 puzzle = puzzle.copy(currentPuzzleIndex = null, currentPuzzleStep = 0),
-                uiVisual = uiVisual.copy(currentScreen = Screen.GAME, currentEvaluation = null, bestMoveArrow = null)
+                uiVisual = uiVisual.copy(
+                    currentScreen = Screen.GAME,
+                    currentEvaluation = null,
+                    bestMoveArrow = null
+                )
             )
         }
         GameAction.Flow.StartAnalysis -> {

@@ -5,15 +5,17 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.github.maklumi.catur.domain.chess.piece.PieceColor
 import com.github.maklumi.catur.state.model.GameAction
 import com.github.maklumi.catur.state.model.Screen
 
@@ -22,6 +24,7 @@ fun PlaySelectionView(
     onAction: (GameAction) -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    var selectedColor by remember { mutableStateOf(PieceColor.WHITE) }
 
     Column(
         modifier = Modifier.fillMaxSize().background(colorScheme.background),
@@ -52,6 +55,26 @@ fun PlaySelectionView(
             modifier = Modifier.padding(bottom = 16.dp)
         )
 
+        Row(
+            modifier = Modifier.padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = { selectedColor = PieceColor.WHITE },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedColor == PieceColor.WHITE) colorScheme.primary else colorScheme.surfaceVariant,
+                    contentColor = if (selectedColor == PieceColor.WHITE) colorScheme.onPrimary else colorScheme.onSurfaceVariant
+                )
+            ) { Text("Play as White") }
+            Button(
+                onClick = { selectedColor = PieceColor.BLACK },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (selectedColor == PieceColor.BLACK) colorScheme.primary else colorScheme.surfaceVariant,
+                    contentColor = if (selectedColor == PieceColor.BLACK) colorScheme.onPrimary else colorScheme.onSurfaceVariant
+                )
+            ) { Text("Play as Black") }
+        }
+
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             val engines = listOf(
                 "maia3-3m-ablation" to "Novice",
@@ -66,7 +89,7 @@ fun PlaySelectionView(
                         .size(width = 100.dp, height = 80.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(colorScheme.secondaryContainer)
-                        .clickable { onAction(GameAction.Flow.StartComputerGame(model)) }
+                        .clickable { onAction(GameAction.Flow.StartComputerGame(model, selectedColor)) }
                         .padding(8.dp),
                     contentAlignment = Alignment.Center
                 ) {
