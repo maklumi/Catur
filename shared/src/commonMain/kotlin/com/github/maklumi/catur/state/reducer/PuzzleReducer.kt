@@ -21,7 +21,8 @@ internal fun GameState.reducePuzzles(action: GameAction.Puzzles): GameState {
             updatePuzzle {
                 copy(
                     puzzles = updatedPuzzles,
-                    completedPuzzleIndices = completedPuzzleIndices + action.index
+                    completedPuzzleIndices = completedPuzzleIndices + action.index,
+                    isPuzzleFinished = true
                 )
             }
         }
@@ -51,10 +52,19 @@ internal fun GameState.reducePuzzles(action: GameAction.Puzzles): GameState {
                 engine = engine.copy(isThinking = false),
                 puzzle = puzzle.copy(
                     currentPuzzleIndex = action.index,
-                    currentPuzzleStep = 0
+                    currentPuzzleStep = 0,
+                    isPuzzleFinished = false
                 ),
-                uiVisual = UiVisualState(currentScreen = Screen.GAME)
+                uiVisual = UiVisualState(currentScreen = Screen.GAME, boardTheme = uiVisual.boardTheme, isSoundEnabled = uiVisual.isSoundEnabled)
             )
+        }
+        is GameAction.Puzzles.NextPuzzle -> {
+            val currentIndex = puzzle.currentPuzzleIndex ?: return this
+            val nextIndex = (currentIndex + 1) % puzzle.puzzles.size
+            reducePuzzles(GameAction.Puzzles.SelectPuzzle(nextIndex))
+        }
+        is GameAction.Puzzles.SetAutoForward -> {
+            updatePuzzle { copy(isAutoForward = action.enabled) }
         }
     }
 }

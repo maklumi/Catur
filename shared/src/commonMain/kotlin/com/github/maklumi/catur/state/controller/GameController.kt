@@ -265,6 +265,16 @@ class GameController(
                 }
             }
         }
+
+        // Auto-forward puzzle logic
+        scope.launch {
+            state.map { it.puzzle.isPuzzleFinished }.distinctUntilChanged().collect { isFinished ->
+                if (isFinished && state.value.puzzle.isAutoForward) {
+                    delay(3000.milliseconds)
+                    dispatch(GameAction.Puzzles.NextPuzzle)
+                }
+            }
+        }
     }
 
     fun dispatch(action: GameAction) {

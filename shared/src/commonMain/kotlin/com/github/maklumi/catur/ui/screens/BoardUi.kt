@@ -21,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -126,7 +127,22 @@ fun ChessBoard(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    if (uiVisualState.currentScreen == Screen.GAME && snapshot.status == GameStatus.ONGOING) {
+                    if (puzzleState.currentPuzzleIndex != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text("Auto-forward", fontSize = 12.sp, color = colorScheme.outline)
+                            Switch(
+                                checked = puzzleState.isAutoForward,
+                                onCheckedChange = { controller.dispatch(GameAction.Puzzles.SetAutoForward(it)) }
+                            )
+                            Button(
+                                onClick = { controller.dispatch(GameAction.Puzzles.NextPuzzle) }
+                            ) { Text("Next Puzzle") }
+                        }
+                    } else if (uiVisualState.currentScreen == Screen.GAME && snapshot.status == GameStatus.ONGOING) {
                         Button(
                             onClick = { controller.dispatch(GameAction.Flow.Resign) },
                             colors = ButtonDefaults.buttonColors(containerColor = colorScheme.errorContainer, contentColor = colorScheme.onErrorContainer)

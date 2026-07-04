@@ -51,7 +51,9 @@ data class PuzzleState(
     val puzzles: List<Puzzle> = emptyList(),
     val currentPuzzleIndex: Int? = null,
     val currentPuzzleStep: Int = 0,
-    val completedPuzzleIndices: Set<Int> = emptySet()
+    val completedPuzzleIndices: Set<Int> = emptySet(),
+    val isAutoForward: Boolean = true,
+    val isPuzzleFinished: Boolean = false
 )
 
 data class UiVisualState(
@@ -161,6 +163,8 @@ sealed class GameAction {
         data class SetPuzzles(val puzzles: List<Puzzle>, val completedIndices: Set<Int>) : Puzzles()
         data class SelectPuzzle(val index: Int) : Puzzles()
         data class PuzzleCompleted(val index: Int) : Puzzles()
+        object NextPuzzle : Puzzles()
+        data class SetAutoForward(val enabled: Boolean) : Puzzles()
     }
 
     sealed class History : GameAction() {
