@@ -54,6 +54,7 @@ fun ChessBoard(
     val matchState by controller.matchState.collectAsState(MatchState())
     val clockState by controller.clockState.collectAsState(ClockState())
     val engineState by controller.engineState.collectAsState(EngineState())
+    val puzzleState by controller.puzzleState.collectAsState(PuzzleState())
     val uiVisualState by controller.uiVisualState.collectAsState(UiVisualState())
     
     val snapshot = boardState.currentSnapshot
@@ -277,12 +278,14 @@ fun ChessBoard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = topName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colorScheme.onBackground)
-                    Text(
-                        text = formatTime(topTime),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = if (topTime < 30000) colorScheme.error else colorScheme.onBackground
-                    )
+                    if (uiVisualState.currentScreen != Screen.PUZZLES && puzzleState.currentPuzzleIndex == null) {
+                        Text(
+                            text = formatTime(topTime),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = if (topTime < 30000) colorScheme.error else colorScheme.onBackground
+                        )
+                    }
                 }
                 CapturedPiecesView(pieces = topCaptured, imbalance = topImbalance)
 
@@ -296,12 +299,14 @@ fun ChessBoard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = bottomName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colorScheme.onBackground)
-                    Text(
-                        text = formatTime(bottomTime),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = if (bottomTime < 30000) colorScheme.error else colorScheme.onBackground
-                    )
+                    if (uiVisualState.currentScreen != Screen.PUZZLES && puzzleState.currentPuzzleIndex == null) {
+                        Text(
+                            text = formatTime(bottomTime),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = if (bottomTime < 30000) colorScheme.error else colorScheme.onBackground
+                        )
+                    }
                 }
                 CapturedPiecesView(pieces = bottomCaptured, imbalance = bottomImbalance)
 

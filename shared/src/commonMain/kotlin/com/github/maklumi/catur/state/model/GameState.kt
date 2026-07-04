@@ -147,7 +147,7 @@ sealed class GameAction {
     }
 
     sealed class Puzzles : GameAction() {
-        data class SetPuzzles(val puzzles: List<Puzzle>) : Puzzles()
+        data class SetPuzzles(val puzzles: List<Puzzle>, val completedIndices: Set<Int>) : Puzzles()
         data class SelectPuzzle(val index: Int) : Puzzles()
         data class PuzzleCompleted(val index: Int) : Puzzles()
     }

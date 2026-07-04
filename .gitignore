@@ -20,3 +20,4 @@ node_modules/
 .kotlin-js-store/
 kotlin-js-store/
 /desktopApp/window.properties
+catur_prefs.properties

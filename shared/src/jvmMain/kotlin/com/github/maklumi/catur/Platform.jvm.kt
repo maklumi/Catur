@@ -8,23 +8,48 @@ import kotlinx.coroutines.CoroutineScope
 import java.awt.Toolkit
 import javax.sound.sampled.AudioSystem
 import java.io.BufferedInputStream
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.prefs.Preferences
+import java.util.Properties
 
 class JVMPersistenceManager : PersistenceManager {
-    private val prefs = Preferences.userRoot().node("com/github/maklumi/catur")
+    private val prefsFile = File("catur_prefs.properties")
 
     override fun saveCompletedPuzzles(indices: Set<Int>) {
-        prefs.put("completed_puzzles", indices.joinToString(","))
-        prefs.flush()
+        val props = Properties()
+        if (prefsFile.exists()) {
+            try {
+                prefsFile.inputStream().use { props.load(it) }
+            } catch (_: Exception) { }
+        }
+        
+        props.setProperty("completed_puzzles", indices.joinToString(","))
+        
+        try {
+            prefsFile.outputStream().use { 
+                props.store(it, "Catur Preferences")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun loadCompletedPuzzles(): Set<Int> {
-        val s = prefs.get("completed_puzzles", "") ?: ""
-        if (s.isEmpty()) return emptySet()
-        return s.split(",").mapNotNull { it.toIntOrNull() }.toSet()
+        if (!prefsFile.exists()) return emptySet()
+        val props = Properties()
+        try {
+            prefsFile.inputStream().use { 
+                props.load(it)
+            }
+            val s = props.getProperty("completed_puzzles", "") ?: ""
+            if (s.isEmpty()) return emptySet()
+            return s.split(",").mapNotNull { it.toIntOrNull() }.toSet()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return emptySet()
+        }
     }
 }
 

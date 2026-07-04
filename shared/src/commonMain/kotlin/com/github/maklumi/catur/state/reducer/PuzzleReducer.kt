@@ -7,7 +7,12 @@ import com.github.maklumi.catur.state.model.*
 internal fun GameState.reducePuzzles(action: GameAction.Puzzles): GameState {
     return when (action) {
         is GameAction.Puzzles.SetPuzzles -> {
-            updatePuzzle { copy(puzzles = action.puzzles) }
+            updatePuzzle { 
+                copy(
+                    puzzles = action.puzzles,
+                    completedPuzzleIndices = action.completedIndices
+                ) 
+            }
         }
         is GameAction.Puzzles.PuzzleCompleted -> {
             val updatedPuzzles = puzzle.puzzles.mapIndexed { index, p ->

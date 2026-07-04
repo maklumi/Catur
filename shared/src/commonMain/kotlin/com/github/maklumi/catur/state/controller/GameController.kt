@@ -47,15 +47,20 @@ class GameController(
             val completed = platform.persistenceManager.loadCompletedPuzzles()
             val puzzles = PuzzleLoader.loadPuzzles(completed)
             if (puzzles.isNotEmpty()) {
-                dispatch(GameAction.Puzzles.SetPuzzles(puzzles))
+                dispatch(GameAction.Puzzles.SetPuzzles(puzzles, completed))
             }
         }
 
         // Save completed puzzles when they change
         scope.launch {
-            state.collect { currentState ->
-                platform.persistenceManager.saveCompletedPuzzles(currentState.puzzle.completedPuzzleIndices)
-            }
+            state
+                .map { it.puzzle.completedPuzzleIndices }
+                .distinctUntilChanged()
+                .collect { indices ->
+                    if (indices.isNotEmpty()) {
+                        platform.persistenceManager.saveCompletedPuzzles(indices)
+                    }
+                }
         }
 
         // Clock timer logic
@@ -63,7 +68,10 @@ class GameController(
             while (true) {
                 delay(100.milliseconds)
                 val currentState = state.value
-                if (!currentState.board.isViewingHistory && currentState.currentSnapshot.status == GameStatus.ONGOING) {
+                if (!currentState.board.isViewingHistory && 
+                    currentState.currentSnapshot.status == GameStatus.ONGOING &&
+                    currentState.puzzle.currentPuzzleIndex == null
+                ) {
                     dispatch(GameAction.Flow.Tick(100))
                 }
             }
