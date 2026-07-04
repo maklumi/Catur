@@ -84,6 +84,9 @@ fun App() {
                 Screen.SETTINGS -> {
                     SettingsView(controller = controller)
                 }
+                Screen.HISTORY -> {
+                    HistoryView(controller = controller)
+                }
             }
         }
     }

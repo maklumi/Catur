@@ -1,9 +1,11 @@
 package com.github.maklumi.catur.state.reducer
 
+import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.domain.chess.piece.PieceColor
 
 internal fun GameState.reduceGameFlow(action: GameAction.Flow): GameState {
+    val platform = getPlatform()
     return when (action) {
         GameAction.Flow.Resign -> {
             if (board.isViewingHistory || currentSnapshot.status != GameStatus.ONGOING) return this
@@ -50,7 +52,7 @@ internal fun GameState.reduceGameFlow(action: GameAction.Flow): GameState {
         GameAction.Flow.NewGame -> {
             copy(
                 board = BoardState(),
-                match = MatchState(),
+                match = MatchState(id = platform.generateId()),
                 clock = ClockState(),
                 engine = engine.copy(isThinking = false),
                 puzzle = puzzle.copy(currentPuzzleIndex = null, currentPuzzleStep = 0),
@@ -61,6 +63,7 @@ internal fun GameState.reduceGameFlow(action: GameAction.Flow): GameState {
             copy(
                 board = BoardState(),
                 match = MatchState(
+                    id = platform.generateId(),
                     whiteName = "White",
                     whiteType = PlayerType.HUMAN,
                     blackName = "Black",
@@ -76,6 +79,7 @@ internal fun GameState.reduceGameFlow(action: GameAction.Flow): GameState {
             copy(
                 board = BoardState(),
                 match = MatchState(
+                    id = platform.generateId(),
                     whiteName = "Human",
                     whiteType = PlayerType.HUMAN,
                     blackName = "Computer (${action.model})",
@@ -91,6 +95,7 @@ internal fun GameState.reduceGameFlow(action: GameAction.Flow): GameState {
             copy(
                 board = BoardState(),
                 match = MatchState(
+                    id = platform.generateId(),
                     whiteName = "White",
                     whiteType = PlayerType.HUMAN,
                     blackName = "Black",

@@ -2,6 +2,7 @@ package com.github.maklumi.catur
 
 import com.github.maklumi.catur.data.persistence.PersistenceManager
 import com.github.maklumi.catur.domain.audio.SoundType
+import com.github.maklumi.catur.domain.chess.GameRecord
 import com.github.maklumi.catur.state.controller.GameController
 import com.github.maklumi.catur.domain.engine.RemoteChessEngine
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +17,13 @@ import java.util.Properties
 
 class JVMPersistenceManager : PersistenceManager {
     private val prefsFile = File("catur_prefs.properties")
+    private val historyDir = File("history")
+
+    init {
+        if (!historyDir.exists()) {
+            historyDir.mkdirs()
+        }
+    }
 
     override fun saveCompletedPuzzles(indices: Set<Int>) {
         val props = Properties()
@@ -50,6 +58,47 @@ class JVMPersistenceManager : PersistenceManager {
             e.printStackTrace()
             return emptySet()
         }
+    }
+
+    override fun saveGame(record: GameRecord) {
+        val fileName = "${record.id}.pgn"
+        val file = File(historyDir, fileName)
+        try {
+            file.writeText(record.pgn)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun loadGames(): List<GameRecord> {
+        if (!historyDir.exists()) return emptyList()
+        val files = historyDir.listFiles { _, name -> name.endsWith(".pgn") } ?: return emptyList()
+        
+        return files.mapNotNull { file ->
+            try {
+                val content = file.readText()
+                parseRecordFromPgn(file.nameWithoutExtension, content)
+            } catch (_: Exception) {
+                null
+            }
+        }.sortedByDescending { it.date }
+    }
+
+    private fun parseRecordFromPgn(id: String, pgn: String): GameRecord {
+        fun extractTag(tag: String): String {
+            val pattern = "\\[$tag \"(.*?)\"]".toRegex()
+            return pattern.find(pgn)?.groupValues?.get(1) ?: "Unknown"
+        }
+
+        return GameRecord(
+            id = id,
+            date = extractTag("Date"),
+            white = extractTag("White"),
+            black = extractTag("Black"),
+            result = extractTag("Result"),
+            opening = extractTag("Opening").takeIf { it != "Unknown" },
+            pgn = pgn
+        )
     }
 }
 
@@ -93,9 +142,13 @@ class JVMPlatform: Platform {
         return SimpleDateFormat("yyyy.MM.dd", Locale.US).format(Date())
     }
 
+    override fun generateId(): String {
+        return SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
+    }
+
     override fun setClipboardText(text: String) {
         val stringSelection = java.awt.datatransfer.StringSelection(text)
-        val clipboard = java.awt.Toolkit.getDefaultToolkit().systemClipboard
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         clipboard.setContents(stringSelection, null)
     }
 }

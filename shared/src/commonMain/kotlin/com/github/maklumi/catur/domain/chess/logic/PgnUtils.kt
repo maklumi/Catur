@@ -16,6 +16,7 @@ object PgnUtils {
         pgn.append("[Date \"${getPlatform().getCurrentDate()}\"]\n")
         pgn.append("[White \"${state.match.whiteName}\"]\n")
         pgn.append("[Black \"${state.match.blackName}\"]\n")
+        state.board.openingName?.let { pgn.append("[Opening \"$it\"]\n") }
         
         val result = when (snapshot.status) {
             GameStatus.CHECKMATE -> if (snapshot.activeColor == PieceColor.BLACK) "1-0" else "0-1"

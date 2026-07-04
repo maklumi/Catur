@@ -9,6 +9,7 @@ fun gameReducer(state: GameState, action: GameAction): GameState {
         is GameAction.Flow -> state.reduceGameFlow(action)
         is GameAction.Ui -> state.reduceUi(action)
         is GameAction.Puzzles -> state.reducePuzzles(action)
+        is GameAction.History -> state.reduceHistory(action)
     }
 
     return if (nextState.board.snapshots != state.board.snapshots || nextState.board.currentIndex != state.board.currentIndex) {

@@ -7,10 +7,11 @@ import com.github.maklumi.catur.domain.chess.move.BoardMove
 import com.github.maklumi.catur.domain.chess.piece.Piece
 import com.github.maklumi.catur.domain.chess.piece.PieceColor
 import com.github.maklumi.catur.domain.chess.logic.OpeningBook
+import com.github.maklumi.catur.domain.chess.GameRecord
 
 enum class PlayerType { HUMAN, ENGINE }
 
-enum class Screen { MENU, PLAY_SELECTION, GAME, PUZZLES, ANALYSIS, SETTINGS }
+enum class Screen { MENU, PLAY_SELECTION, GAME, PUZZLES, ANALYSIS, SETTINGS, HISTORY }
 
 enum class BoardTheme { GREEN, WOOD, BLUE, CLASSIC }
 
@@ -29,6 +30,7 @@ data class BoardState(
 }
 
 data class MatchState(
+    val id: String? = null,
     val whiteName: String = "White",
     val whiteType: PlayerType = PlayerType.HUMAN,
     val blackName: String = "Black",
@@ -64,13 +66,18 @@ data class UiVisualState(
     val isSoundEnabled: Boolean = true
 )
 
+data class HistoryState(
+    val pastGames: List<GameRecord> = emptyList()
+)
+
 data class GameState(
     val board: BoardState = BoardState(),
     val match: MatchState = MatchState(),
     val clock: ClockState = ClockState(),
     val engine: EngineState = EngineState(),
     val puzzle: PuzzleState = PuzzleState(),
-    val uiVisual: UiVisualState = UiVisualState()
+    val uiVisual: UiVisualState = UiVisualState(),
+    val history: HistoryState = HistoryState()
 ) {
     // Shared Derived State
     val snapshots get() = board.snapshots
@@ -151,6 +158,11 @@ sealed class GameAction {
         data class SelectPuzzle(val index: Int) : Puzzles()
         data class PuzzleCompleted(val index: Int) : Puzzles()
     }
+
+    sealed class History : GameAction() {
+        data class SetPastGames(val games: List<GameRecord>) : History()
+        data class LoadGame(val pgn: String) : History()
+    }
 }
 
 // DSL-like State Update Helpers
@@ -160,3 +172,4 @@ fun GameState.updateClock(block: ClockState.() -> ClockState) = copy(clock = clo
 fun GameState.updateEngine(block: EngineState.() -> EngineState) = copy(engine = engine.block())
 fun GameState.updatePuzzle(block: PuzzleState.() -> PuzzleState) = copy(puzzle = puzzle.block())
 fun GameState.updateVisual(block: UiVisualState.() -> UiVisualState) = copy(uiVisual = uiVisual.block())
+fun GameState.updateHistory(block: HistoryState.() -> HistoryState) = copy(history = history.block())

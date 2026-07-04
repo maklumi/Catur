@@ -59,6 +59,14 @@ fun MainMenuView(
         Spacer(modifier = Modifier.height(16.dp))
 
         MenuButton(
+            text = "History",
+            description = "View your past games",
+            onClick = { onAction(GameAction.Nav.NavigateTo(Screen.HISTORY)) }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        MenuButton(
             text = "Analysis",
             description = "Sandbox move analysis",
             onClick = { onAction(GameAction.Flow.StartAnalysis) }

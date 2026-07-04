@@ -5,9 +5,12 @@ import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.board.isInCheck
 import com.github.maklumi.catur.domain.chess.logic.findMoveByNotation
+import com.github.maklumi.catur.domain.chess.logic.PgnUtils
+import com.github.maklumi.catur.domain.chess.logic.OpeningBook
 import com.github.maklumi.catur.domain.audio.SoundType
 import com.github.maklumi.catur.domain.engine.ChessEngine
 import com.github.maklumi.catur.domain.puzzle.PuzzleLoader
+import com.github.maklumi.catur.domain.chess.GameRecord
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.state.reducer.gameReducer
 import com.github.maklumi.catur.domain.chess.move.EnPassantMove
@@ -40,6 +43,7 @@ class GameController(
     val engineState = _state.map { it.engine }.distinctUntilChanged()
     val puzzleState = _state.map { it.puzzle }.distinctUntilChanged()
     val uiVisualState = _state.map { it.uiVisual }.distinctUntilChanged()
+    val historyState = _state.map { it.history }.distinctUntilChanged()
 
     init {
         // Load puzzles
@@ -51,6 +55,12 @@ class GameController(
             }
         }
 
+        // Load History
+        scope.launch {
+            val games = platform.persistenceManager.loadGames()
+            dispatch(GameAction.History.SetPastGames(games))
+        }
+
         // Save completed puzzles when they change
         scope.launch {
             state
@@ -59,6 +69,40 @@ class GameController(
                 .collect { indices ->
                     if (indices.isNotEmpty()) {
                         platform.persistenceManager.saveCompletedPuzzles(indices)
+                    }
+                }
+        }
+
+        // Save History on Game End
+        scope.launch {
+            state
+                .map { it.currentSnapshot.status }
+                .distinctUntilChanged()
+                .collect { status ->
+                    if (status != GameStatus.ONGOING) {
+                        val currentState = state.value
+                        // Only save if it was a real game (has moves and matches a start ID)
+                        if (currentState.snapshots.size > 1 && currentState.match.id != null) {
+                            val pgn = PgnUtils.generatePgn(currentState)
+                            val moves = currentState.snapshots.drop(1).mapNotNull { it.lastMoveUci }
+                            val opening = OpeningBook.getOpening(moves)
+                            val recordId = "${currentState.match.id}-${opening?.code ?: "UNK"}"
+
+                            val record = GameRecord(
+                                id = recordId,
+                                date = platform.getCurrentDate(),
+                                white = currentState.match.whiteName,
+                                black = currentState.match.blackName,
+                                result = status.name,
+                                opening = opening?.name,
+                                pgn = pgn
+                            )
+                            platform.persistenceManager.saveGame(record)
+                            
+                            // Refresh history list
+                            val updatedGames = platform.persistenceManager.loadGames()
+                            dispatch(GameAction.History.SetPastGames(updatedGames))
+                        }
                     }
                 }
         }
