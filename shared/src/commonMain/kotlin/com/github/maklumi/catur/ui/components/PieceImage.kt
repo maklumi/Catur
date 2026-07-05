@@ -3,6 +3,7 @@ package com.github.maklumi.catur.ui.components
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import catur.shared.generated.resources.*
 import com.github.maklumi.catur.domain.chess.piece.Piece
 import org.jetbrains.compose.resources.painterResource
@@ -27,6 +28,7 @@ fun PieceImage(piece: Piece, modifier: Modifier = Modifier) {
     Image(
         painter = painterResource(resource),
         contentDescription = piece.symbol,
-        modifier = modifier
+        modifier = modifier,
+        contentScale = ContentScale.FillBounds
     )
 }

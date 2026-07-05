@@ -46,3 +46,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 }
+
+base {
+    archivesName.set("Catur-${android.defaultConfig.versionName}")
+}

@@ -75,7 +75,12 @@ fun PlaySelectionView(
             ) { Text("Play as Black") }
         }
 
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        @OptIn(ExperimentalLayoutApi::class)
+        FlowRow(
+            horizontalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        ) {
             val engines = listOf(
                 "maia3-3m-ablation" to "Novice",
                 "maia3-5m" to "Casual",
@@ -86,7 +91,8 @@ fun PlaySelectionView(
             engines.forEach { (model, label) ->
                 Box(
                     modifier = Modifier
-                        .size(width = 100.dp, height = 80.dp)
+                        .padding(horizontal = 4.dp)
+                        .size(width = 100.dp, height = 60.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(colorScheme.secondaryContainer)
                         .clickable { onAction(GameAction.Flow.StartComputerGame(model, selectedColor)) }

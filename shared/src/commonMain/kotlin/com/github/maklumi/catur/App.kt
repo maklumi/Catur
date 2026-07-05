@@ -19,12 +19,17 @@ import com.github.maklumi.catur.state.model.GameAction
 import com.github.maklumi.catur.state.model.Screen
 import com.github.maklumi.catur.ui.screens.*
 import com.github.maklumi.catur.ui.theme.CaturTheme
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 
 @Composable
 @Preview
 fun App() {
     val scope = rememberCoroutineScope()
-    val controller = remember { getPlatform().createGameController(scope) }
+    val platform = remember { getPlatform() }
+    val controller = remember { platform.createGameController(scope) }
     val uiVisualState by controller.uiVisualState.collectAsState(com.github.maklumi.catur.state.model.UiVisualState())
 
     val focusRequester = remember { FocusRequester() }
@@ -43,7 +48,15 @@ fun App() {
 
     CaturTheme(boardTheme = uiVisualState.boardTheme) {
         Surface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    if (platform.isMobile) {
+                        Modifier
+                            .windowInsetsPadding(WindowInsets.statusBars)
+                            .windowInsetsPadding(WindowInsets.navigationBars)
+                    } else Modifier
+                ),
             color = MaterialTheme.colorScheme.background
         ) {
             when (uiVisualState.currentScreen) {

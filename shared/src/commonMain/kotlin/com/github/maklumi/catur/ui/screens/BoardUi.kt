@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.piece.*
+import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.state.controller.GameController
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.ui.components.*
@@ -57,289 +58,31 @@ fun ChessBoard(
     val engineState by controller.engineState.collectAsState(EngineState())
     val puzzleState by controller.puzzleState.collectAsState(PuzzleState())
     val uiVisualState by controller.uiVisualState.collectAsState(UiVisualState())
-    
+
     val snapshot = boardState.currentSnapshot
-    val colorScheme = MaterialTheme.colorScheme
-    
-    Box(modifier = Modifier.fillMaxSize()) {
-        Row(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(onClick = { controller.dispatch(GameAction.Nav.NavigateTo(Screen.MENU)) }) {
-                        Text("Menu")
-                    }
-                    
-                    if (uiVisualState.currentScreen == Screen.ANALYSIS) {
-                        FilterChip(
-                            selected = boardState.isEditMode,
-                            onClick = { controller.dispatch(GameAction.Ui.SetEditMode(!boardState.isEditMode)) },
-                            label = { Text(if (boardState.isEditMode) "Editing..." else "Edit Board") }
-                        )
-                        if (boardState.isEditMode) {
-                            Button(
-                                onClick = { controller.dispatch(GameAction.Ui.SetEditMode(false)) },
-                                colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary, contentColor = colorScheme.onPrimary)
-                            ) { Text("Done") }
-                            Button(
-                                onClick = { controller.dispatch(GameAction.Ui.ResetBoard) },
-                                colors = ButtonDefaults.buttonColors(containerColor = colorScheme.secondaryContainer, contentColor = colorScheme.onSecondaryContainer)
-                            ) { Text("Reset") }
-                            Button(
-                                onClick = { controller.dispatch(GameAction.Ui.ClearBoard) },
-                                colors = ButtonDefaults.buttonColors(containerColor = colorScheme.errorContainer, contentColor = colorScheme.onErrorContainer)
-                            ) { Text("Clear") }
-                        }
-                    }
 
-                    val activeName = if (snapshot.activeColor == PieceColor.WHITE) matchState.whiteName else matchState.blackName
-                    val prefix = if (uiVisualState.currentScreen == Screen.ANALYSIS) "To move: " else "Turn: "
-                    Column(
-                        modifier = Modifier.padding(8.dp).height(56.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "$prefix$activeName",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = colorScheme.onBackground,
-                            maxLines = 1
-                        )
-                        Text(
-                            text = boardState.openingName ?: "",
-                            fontSize = 14.sp,
-                            color = colorScheme.secondary,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1
-                        )
-                    }
-                    
-                    if (engineState.isThinking) {
-                        Text(
-                            text = "(Thinking...)",
-                            color = colorScheme.outline,
-                            fontSize = 16.sp,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                    }
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val isMobile = getPlatform().isMobile
 
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    if (puzzleState.currentPuzzleIndex != null) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Text("Auto-forward", fontSize = 12.sp, color = colorScheme.outline)
-                            Switch(
-                                checked = puzzleState.isAutoForward,
-                                onCheckedChange = { controller.dispatch(GameAction.Puzzles.SetAutoForward(it)) }
-                            )
-                            Button(
-                                onClick = { controller.dispatch(GameAction.Puzzles.NextPuzzle) }
-                            ) { Text("Next Puzzle") }
-                        }
-                    } else if (uiVisualState.currentScreen == Screen.GAME && snapshot.status == GameStatus.ONGOING) {
-                        Button(
-                            onClick = { controller.dispatch(GameAction.Flow.Resign) },
-                            colors = ButtonDefaults.buttonColors(containerColor = colorScheme.errorContainer, contentColor = colorScheme.onErrorContainer)
-                        ) { Text("Resign") }
-                        Button(
-                            onClick = { controller.dispatch(GameAction.Flow.OfferDraw) }
-                        ) { Text("Draw") }
-                    }
-                }
-
-                if (snapshot.status == GameStatus.ONGOING && snapshot.drawOfferedBy != null && snapshot.drawOfferedBy != snapshot.activeColor) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(8.dp)
-                    ) {
-                        Text("Draw offered by ${snapshot.drawOfferedBy}", color = colorScheme.onBackground)
-                        Button(onClick = { controller.dispatch(GameAction.Flow.AcceptDraw) }) { Text("Accept") }
-                        Button(onClick = { controller.dispatch(GameAction.Flow.DeclineDraw) }) { Text("Decline") }
-                    }
-                }
-
-                val ranks = if (boardState.isBoardFlipped) 1..8 else 8 downTo 1
-                val files = if (boardState.isBoardFlipped) 8 downTo 1 else 1..8
-                val lastMoveToRank = snapshot.lastMove?.move?.to?.rank
-
-                Box(
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        if (boardState.isEditMode) {
-                            PiecePalette(
-                                selectedPiece = uiVisualState.selectedPalettePiece,
-                                onPieceSelect = { piece ->
-                                    if (piece != null) {
-                                        controller.dispatch(GameAction.Ui.SelectPalettePiece(piece))
-                                    } else {
-                                        controller.dispatch(GameAction.Ui.SelectEraser)
-                                    }
-                                }
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-
-                        BoxWithConstraints(
-                            modifier = Modifier.fillMaxHeight().padding(bottom = 16.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val boardSize = minOf(maxHeight, maxWidth - 48.dp) // 48dp for bar + spacing
-
-                            Row(
-                                modifier = Modifier.height(boardSize).width(boardSize + 48.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                EvaluationBar(
-                                    evaluation = uiVisualState.currentEvaluation,
-                                    isBoardFlipped = boardState.isBoardFlipped,
-                                    modifier = Modifier.width(32.dp).fillMaxHeight().padding(end = 16.dp)
-                                )
-
-                                Box(modifier = Modifier.size(boardSize)) {
-                                    Column(modifier = Modifier.fillMaxSize()) {
-                                        for (rank in ranks) {
-                                            val isDestinationRank = rank == lastMoveToRank
-                                            Row(
-                                                modifier = Modifier.weight(1f)
-                                                    .zIndex(if (isDestinationRank) 5f else 0f)
-                                            ) {
-                                                for (file in files) {
-                                                    val position = Position.from(file, rank)
-                                                    val isLeftmost = file == (if (boardState.isBoardFlipped) 8 else 1)
-                                                    val isBottom = rank == (if (boardState.isBoardFlipped) 8 else 1)
-
-                                                    SquareView(
-                                                        position = position,
-                                                        boardState = boardState,
-                                                        uiVisualState = uiVisualState,
-                                                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                                                        showRank = isLeftmost,
-                                                        showFile = isBottom,
-                                                        onAction = { controller.dispatch(it) }
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    uiVisualState.bestMoveArrow?.let { arrow ->
-                                        ChessBoardOverlay(
-                                            from = arrow.first,
-                                            to = arrow.second,
-                                            isBoardFlipped = boardState.isBoardFlipped,
-                                            color = colorScheme.primary.copy(alpha = 0.5f)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Row(
-                    modifier = Modifier.padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Button(
-                        onClick = { controller.dispatch(GameAction.Nav.StepBack) },
-                        enabled = boardState.canGoBack()
-                    ) { Text("Back") }
-                    Text(
-                        text = "${boardState.currentIndex} / ${boardState.snapshots.size - 1}",
-                        modifier = Modifier.align(Alignment.CenterVertically),
-                        color = colorScheme.onBackground
-                    )
-                    Button(
-                        onClick = { controller.dispatch(GameAction.Nav.StepForward) },
-                        enabled = boardState.canGoForward()
-                    ) { Text("Forward") }
-                }
-            }
-
-            Spacer(modifier = Modifier.width(32.dp))
-
-            Column(modifier = Modifier.weight(0.3f).fillMaxHeight()) {
-                val topName = if (boardState.isBoardFlipped) matchState.whiteName else matchState.blackName
-                val topCaptured = if (boardState.isBoardFlipped) snapshot.capturedBlack else snapshot.capturedWhite
-                val topTime = if (boardState.isBoardFlipped) clockState.whiteTimeMillis else clockState.blackTimeMillis
-
-                val bottomName = if (boardState.isBoardFlipped) matchState.blackName else matchState.whiteName
-                val bottomCaptured = if (boardState.isBoardFlipped) snapshot.capturedWhite else snapshot.capturedBlack
-                val bottomTime = if (boardState.isBoardFlipped) clockState.blackTimeMillis else clockState.whiteTimeMillis
-
-                val topImbalance = if (boardState.isBoardFlipped) {
-                    if (snapshot.materialImbalance > 0) snapshot.materialImbalance else 0
-                } else {
-                    if (snapshot.materialImbalance < 0) -snapshot.materialImbalance else 0
-                }
-
-                val bottomImbalance = if (boardState.isBoardFlipped) {
-                    if (snapshot.materialImbalance < 0) -snapshot.materialImbalance else 0
-                } else {
-                    if (snapshot.materialImbalance > 0) snapshot.materialImbalance else 0
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = topName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colorScheme.onBackground)
-                    if (uiVisualState.currentScreen != Screen.PUZZLES && puzzleState.currentPuzzleIndex == null) {
-                        Text(
-                            text = formatTime(topTime),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = if (topTime < 30000) colorScheme.error else colorScheme.onBackground
-                        )
-                    }
-                }
-                CapturedPiecesView(pieces = topCaptured, imbalance = topImbalance)
-
-                Spacer(modifier = Modifier.height(8.dp))
-                MoveHistoryList(controller = controller, modifier = Modifier.weight(1f))
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = bottomName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colorScheme.onBackground)
-                    if (uiVisualState.currentScreen != Screen.PUZZLES && puzzleState.currentPuzzleIndex == null) {
-                        Text(
-                            text = formatTime(bottomTime),
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = if (bottomTime < 30000) colorScheme.error else colorScheme.onBackground
-                        )
-                    }
-                }
-                CapturedPiecesView(pieces = bottomCaptured, imbalance = bottomImbalance)
-
-                Spacer(modifier = Modifier.height(16.dp))
-                EngineLevelSelector(
-                    currentModel = engineState.model,
-                    onModelChange = { controller.dispatch(GameAction.Ui.ChangeEngineLevel(it)) })
-            }
-
-            Spacer(modifier = Modifier.width(32.dp))
-
-            Column(modifier = Modifier.weight(0.3f).fillMaxHeight()) {
-                PuzzleList(
-                    controller = controller,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+        if (isMobile) {
+            MobileBoardLayout(
+                controller = controller,
+                boardState = boardState,
+                matchState = matchState,
+                clockState = clockState,
+                puzzleState = puzzleState,
+                uiVisualState = uiVisualState
+            )
+        } else {
+            DesktopLayout(
+                controller = controller,
+                boardState = boardState,
+                matchState = matchState,
+                clockState = clockState,
+                engineState = engineState,
+                puzzleState = puzzleState,
+                uiVisualState = uiVisualState
+            )
         }
 
         snapshot.pendingPromotion?.let { moves ->
@@ -347,6 +90,299 @@ fun ChessBoard(
                 moves = moves,
                 onChoice = { controller.dispatch(GameAction.Move.PromotionChoice(it)) },
                 onCancel = { controller.dispatch(GameAction.Move.CancelPromotion) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DesktopLayout(
+    controller: GameController,
+    boardState: BoardState,
+    matchState: MatchState,
+    clockState: ClockState,
+    engineState: EngineState,
+    puzzleState: PuzzleState,
+    uiVisualState: UiVisualState
+) {
+    val snapshot = boardState.currentSnapshot
+    val colorScheme = MaterialTheme.colorScheme
+    val lastMoveToRank = snapshot.lastMove?.move?.to?.rank
+    val ranks = if (boardState.isBoardFlipped) 1..8 else 8 downTo 1
+    val files = if (boardState.isBoardFlipped) 8 downTo 1 else 1..8
+
+    Row(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Column(modifier = Modifier.weight(1f).fillMaxHeight()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(onClick = { controller.dispatch(GameAction.Nav.NavigateTo(Screen.MENU)) }) {
+                    Text("Menu")
+                }
+                
+                if (uiVisualState.currentScreen == Screen.ANALYSIS) {
+                    FilterChip(
+                        selected = boardState.isEditMode,
+                        onClick = { controller.dispatch(GameAction.Ui.SetEditMode(!boardState.isEditMode)) },
+                        label = { Text(if (boardState.isEditMode) "Editing..." else "Edit Board") }
+                    )
+                    if (boardState.isEditMode) {
+                        Button(
+                            onClick = { controller.dispatch(GameAction.Ui.SetEditMode(false)) },
+                            colors = ButtonDefaults.buttonColors(containerColor = colorScheme.primary, contentColor = colorScheme.onPrimary)
+                        ) { Text("Done") }
+                        Button(
+                            onClick = { controller.dispatch(GameAction.Ui.ResetBoard) },
+                            colors = ButtonDefaults.buttonColors(containerColor = colorScheme.secondaryContainer, contentColor = colorScheme.onSecondaryContainer)
+                        ) { Text("Reset") }
+                        Button(
+                            onClick = { controller.dispatch(GameAction.Ui.ClearBoard) },
+                            colors = ButtonDefaults.buttonColors(containerColor = colorScheme.errorContainer, contentColor = colorScheme.onErrorContainer)
+                        ) { Text("Clear") }
+                    }
+                }
+
+                val activeName = if (snapshot.activeColor == PieceColor.WHITE) matchState.whiteName else matchState.blackName
+                val prefix = if (uiVisualState.currentScreen == Screen.ANALYSIS) "To move: " else "Turn: "
+                Column(
+                    modifier = Modifier.padding(8.dp).height(56.dp),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "$prefix$activeName",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colorScheme.onBackground,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = boardState.openingName ?: "",
+                        fontSize = 14.sp,
+                        color = colorScheme.secondary,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1
+                    )
+                }
+                
+                if (engineState.isThinking) {
+                    Text(
+                        text = "(Thinking...)",
+                        color = colorScheme.outline,
+                        fontSize = 16.sp,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                if (puzzleState.currentPuzzleIndex != null) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Text("Auto-forward", fontSize = 12.sp, color = colorScheme.outline)
+                        Switch(
+                            checked = puzzleState.isAutoForward,
+                            onCheckedChange = { controller.dispatch(GameAction.Puzzles.SetAutoForward(it)) }
+                        )
+                        Button(
+                            onClick = { controller.dispatch(GameAction.Puzzles.NextPuzzle) }
+                        ) { Text("Next Puzzle") }
+                    }
+                } else if (uiVisualState.currentScreen == Screen.GAME && snapshot.status == GameStatus.ONGOING) {
+                    Button(
+                        onClick = { controller.dispatch(GameAction.Flow.Resign) },
+                        colors = ButtonDefaults.buttonColors(containerColor = colorScheme.errorContainer, contentColor = colorScheme.onErrorContainer)
+                    ) { Text("Resign") }
+                    Button(
+                        onClick = { controller.dispatch(GameAction.Flow.OfferDraw) }
+                    ) { Text("Draw") }
+                }
+            }
+
+            if (snapshot.status == GameStatus.ONGOING && snapshot.drawOfferedBy != null && snapshot.drawOfferedBy != snapshot.activeColor) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text("Draw offered by ${snapshot.drawOfferedBy}", color = colorScheme.onBackground)
+                    Button(onClick = { controller.dispatch(GameAction.Flow.AcceptDraw) }) { Text("Accept") }
+                    Button(onClick = { controller.dispatch(GameAction.Flow.DeclineDraw) }) { Text("Decline") }
+                }
+            }
+
+            Box(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    if (boardState.isEditMode) {
+                        PiecePalette(
+                            selectedPiece = uiVisualState.selectedPalettePiece,
+                            onPieceSelect = { piece ->
+                                if (piece != null) {
+                                    controller.dispatch(GameAction.Ui.SelectPalettePiece(piece))
+                                } else {
+                                    controller.dispatch(GameAction.Ui.SelectEraser)
+                                }
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
+                    BoxWithConstraints(
+                        modifier = Modifier.fillMaxHeight().padding(bottom = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val boardSize = minOf(maxHeight, maxWidth - 48.dp) // 48dp for bar + spacing
+
+                        Row(
+                            modifier = Modifier.height(boardSize).width(boardSize + 48.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            EvaluationBar(
+                                evaluation = uiVisualState.currentEvaluation,
+                                isBoardFlipped = boardState.isBoardFlipped,
+                                modifier = Modifier.width(32.dp).fillMaxHeight().padding(end = 16.dp)
+                            )
+
+                            Box(modifier = Modifier.size(boardSize)) {
+                                Column(modifier = Modifier.fillMaxSize()) {
+                                    for (rank in ranks) {
+                                        val isDestinationRank = rank == lastMoveToRank
+                                        Row(
+                                            modifier = Modifier.weight(1f)
+                                                .zIndex(if (isDestinationRank) 5f else 0f)
+                                        ) {
+                                            for (file in files) {
+                                                val position = Position.from(file, rank)
+                                                val isLeftmost = file == (if (boardState.isBoardFlipped) 8 else 1)
+                                                val isBottom = rank == (if (boardState.isBoardFlipped) 8 else 1)
+
+                                                SquareView(
+                                                    position = position,
+                                                    boardState = boardState,
+                                                    uiVisualState = uiVisualState,
+                                                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                                                    showRank = isLeftmost,
+                                                    showFile = isBottom,
+                                                    onAction = { controller.dispatch(it) }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                uiVisualState.bestMoveArrow?.let { arrow ->
+                                    ChessBoardOverlay(
+                                        from = arrow.first,
+                                        to = arrow.second,
+                                        isBoardFlipped = boardState.isBoardFlipped,
+                                        color = colorScheme.primary.copy(alpha = 0.5f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Button(
+                    onClick = { controller.dispatch(GameAction.Nav.StepBack) },
+                    enabled = boardState.canGoBack()
+                ) { Text("Back") }
+                Text(
+                    text = "${boardState.currentIndex} / ${boardState.snapshots.size - 1}",
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    color = colorScheme.onBackground
+                )
+                Button(
+                    onClick = { controller.dispatch(GameAction.Nav.StepForward) },
+                    enabled = boardState.canGoForward()
+                ) { Text("Forward") }
+            }
+        }
+
+        Spacer(modifier = Modifier.width(32.dp))
+
+        Column(modifier = Modifier.weight(0.3f).fillMaxHeight()) {
+            val topName = if (boardState.isBoardFlipped) matchState.whiteName else matchState.blackName
+            val topCaptured = if (boardState.isBoardFlipped) snapshot.capturedBlack else snapshot.capturedWhite
+            val topTime = if (boardState.isBoardFlipped) clockState.whiteTimeMillis else clockState.blackTimeMillis
+
+            val bottomName = if (boardState.isBoardFlipped) matchState.blackName else matchState.whiteName
+            val bottomCaptured = if (boardState.isBoardFlipped) snapshot.capturedWhite else snapshot.capturedBlack
+            val bottomTime = if (boardState.isBoardFlipped) clockState.blackTimeMillis else clockState.whiteTimeMillis
+
+            val topImbalance = if (boardState.isBoardFlipped) {
+                if (snapshot.materialImbalance > 0) snapshot.materialImbalance else 0
+            } else {
+                if (snapshot.materialImbalance < 0) -snapshot.materialImbalance else 0
+            }
+
+            val bottomImbalance = if (boardState.isBoardFlipped) {
+                if (snapshot.materialImbalance < 0) -snapshot.materialImbalance else 0
+            } else {
+                if (snapshot.materialImbalance > 0) snapshot.materialImbalance else 0
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = topName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colorScheme.onBackground)
+                if (uiVisualState.currentScreen != Screen.PUZZLES && puzzleState.currentPuzzleIndex == null) {
+                    Text(
+                        text = formatTime(topTime),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = if (topTime < 30000) colorScheme.error else colorScheme.onBackground
+                    )
+                }
+            }
+            CapturedPiecesView(pieces = topCaptured, imbalance = topImbalance)
+
+            Spacer(modifier = Modifier.height(8.dp))
+            MoveHistoryList(controller = controller, modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = bottomName, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colorScheme.onBackground)
+                if (uiVisualState.currentScreen != Screen.PUZZLES && puzzleState.currentPuzzleIndex == null) {
+                    Text(
+                        text = formatTime(bottomTime),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = if (bottomTime < 30000) colorScheme.error else colorScheme.onBackground
+                    )
+                }
+            }
+            CapturedPiecesView(pieces = bottomCaptured, imbalance = bottomImbalance)
+
+            Spacer(modifier = Modifier.height(16.dp))
+            EngineLevelSelector(
+                currentModel = engineState.model,
+                onModelChange = { controller.dispatch(GameAction.Ui.ChangeEngineLevel(it)) })
+        }
+
+        Spacer(modifier = Modifier.width(32.dp))
+
+        Column(modifier = Modifier.weight(0.3f).fillMaxHeight()) {
+            PuzzleList(
+                controller = controller,
+                modifier = Modifier.weight(1f)
             )
         }
     }

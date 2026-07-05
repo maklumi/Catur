@@ -104,6 +104,7 @@ class JVMPersistenceManager : PersistenceManager {
 
 class JVMPlatform: Platform {
     override val name: String = "Java ${System.getProperty("java.version")}"
+    override val isMobile: Boolean = false
     override val persistenceManager: PersistenceManager = JVMPersistenceManager()
 
     override fun createGameController(scope: CoroutineScope): GameController {

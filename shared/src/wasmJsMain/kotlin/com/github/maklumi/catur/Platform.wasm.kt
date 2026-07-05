@@ -68,6 +68,7 @@ external fun jsGenerateId(): String
 
 class WebPlatform : Platform {
     override val name: String = "Web (Wasm)"
+    override val isMobile: Boolean = false
     override val persistenceManager: PersistenceManager = WebPersistenceManager()
 
     override fun createGameController(scope: CoroutineScope): GameController {

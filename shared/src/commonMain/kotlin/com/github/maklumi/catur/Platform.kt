@@ -7,6 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 
 interface Platform {
     val name: String
+    val isMobile: Boolean
     val persistenceManager: PersistenceManager
     fun createGameController(scope: CoroutineScope): GameController
     fun playSound(type: SoundType)

@@ -133,7 +133,7 @@ fun SquareView(
             PieceImage(
                 piece = p,
                 modifier = Modifier
-                    .fillMaxSize(0.85f)
+                    .fillMaxSize(1.0f)
                     .zIndex(10f)
                     .offset { IntOffset(animOffset.value.x.toInt(), animOffset.value.y.toInt()) }
             )

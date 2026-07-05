@@ -76,6 +76,7 @@ class AndroidPersistenceManager(context: Context) : PersistenceManager {
 
 class AndroidPlatform(private val context: Context) : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
+    override val isMobile: Boolean = true
     override val persistenceManager: PersistenceManager = AndroidPersistenceManager(context)
 
     override fun createGameController(scope: CoroutineScope): GameController {
