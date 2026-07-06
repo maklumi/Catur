@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import com.github.maklumi.catur.state.model.UiVisualState
 
 @Composable
 @Preview
@@ -30,7 +31,7 @@ fun App() {
     val scope = rememberCoroutineScope()
     val platform = remember { getPlatform() }
     val controller = remember { platform.createGameController(scope) }
-    val uiVisualState by controller.uiVisualState.collectAsState(com.github.maklumi.catur.state.model.UiVisualState())
+    val uiVisualState by controller.uiVisualState.collectAsState(UiVisualState())
 
     val focusRequester = remember { FocusRequester() }
 

@@ -40,8 +40,6 @@ fun PlaySelectionView(
         )
 
         PlayOptionButton(
-            text = "New Game Local",
-            description = "Player vs Player (Pass & Play)",
             onClick = { onAction(GameAction.Flow.StartLocalGame) }
         )
 
@@ -95,7 +93,14 @@ fun PlaySelectionView(
                         .size(width = 100.dp, height = 60.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(colorScheme.secondaryContainer)
-                        .clickable { onAction(GameAction.Flow.StartComputerGame(model, selectedColor)) }
+                        .clickable {
+                            onAction(
+                                GameAction.Flow.StartComputerGame(
+                                    model,
+                                    selectedColor
+                                )
+                            )
+                        }
                         .padding(8.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -119,8 +124,6 @@ fun PlaySelectionView(
 
 @Composable
 private fun PlayOptionButton(
-    text: String,
-    description: String,
     onClick: () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -135,13 +138,13 @@ private fun PlayOptionButton(
     ) {
         Column {
             Text(
-                text = text,
+                text = "New Game Local",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onSurfaceVariant
             )
             Text(
-                text = description,
+                text = "Player vs Player (Pass & Play)",
                 fontSize = 14.sp,
                 color = colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )

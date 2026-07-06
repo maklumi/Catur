@@ -192,15 +192,16 @@ internal fun MobileBoardLayout(
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (isPuzzle) {
+                val totalSteps = puzzleState.puzzles.getOrNull(currentIndex)?.solutionMoves?.size ?: 0
                 Text(
-                    text = "${puzzleState.currentPuzzleStep}/7",
+                    text = "${puzzleState.currentPuzzleStep}/$totalSteps",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.outline
                 )
             } else {
                 Text(
-                    text = matchState.whiteName.take(5),
+                    text = matchState.whiteName.take(8),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.onBackground
@@ -214,9 +215,10 @@ internal fun MobileBoardLayout(
             )
 
             if (isPuzzle) {
+                val completed = puzzleState.completedPuzzleIndices.size
                 Text(
-                    text = "00:00",
-                    fontSize = 24.sp,
+                    text = "Score: $completed",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorScheme.outline
                 )
@@ -252,10 +254,10 @@ internal fun MobileBoardLayout(
                         )
                         .padding(8.dp)
                 ) {
-                    val currentPuzzle = puzzleState.puzzles.getOrNull(currentIndex)
+                    val history = boardState.snapshots.drop(1).joinToString(" ") { it.notation ?: "" }
+                    
                     Text(
-                        text = if (puzzleState.isPuzzleFinished) currentPuzzle?.solution
-                            ?: "" else "",
+                        text = if (history.isNotEmpty()) history else "Play for advantage",
                         fontSize = 16.sp,
                         color = colorScheme.onSurfaceVariant
                     )

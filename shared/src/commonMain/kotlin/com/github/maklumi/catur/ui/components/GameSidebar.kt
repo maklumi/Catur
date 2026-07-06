@@ -40,6 +40,7 @@ import com.github.maklumi.catur.state.model.BoardTheme
 import com.github.maklumi.catur.domain.chess.logic.PgnUtils
 import com.github.maklumi.catur.state.model.PuzzleState
 import com.github.maklumi.catur.domain.chess.piece.Piece
+import com.github.maklumi.catur.domain.chess.piece.PieceColor
 
 @Composable
 fun CapturedPiecesView(pieces: List<Piece>, imbalance: Int = 0) {
@@ -127,13 +128,31 @@ fun MoveHistoryList(
         )
 
         val historySnapshots = boardState.snapshots.drop(1)
-        for (i in historySnapshots.indices step 2) {
+        val startsWithBlack = boardState.snapshots.firstOrNull()?.activeColor == PieceColor.BLACK
+        
+        val totalMoves = historySnapshots.size
+        val itemsCount = if (startsWithBlack) totalMoves + 1 else totalMoves
+
+        for (i in 0 until itemsCount step 2) {
             val turnNumber = i / 2 + 1
-            val whiteMoveIdx = i + 1
-            val blackMoveIdx = i + 2
             
-            val whiteMove = historySnapshots[i].notation ?: ""
-            val blackMove = historySnapshots.getOrNull(i + 1)?.notation ?: ""
+            val whiteMoveIdx: Int
+            val blackMoveIdx: Int
+            val whiteMove: String
+            val blackMove: String
+
+            if (startsWithBlack && i == 0) {
+                whiteMoveIdx = -1
+                blackMoveIdx = 1
+                whiteMove = "..."
+                blackMove = historySnapshots.getOrNull(0)?.notation ?: ""
+            } else {
+                val offset = if (startsWithBlack) -1 else 0
+                whiteMoveIdx = i + 1 + offset
+                blackMoveIdx = i + 2 + offset
+                whiteMove = historySnapshots.getOrNull(i + offset)?.notation ?: ""
+                blackMove = historySnapshots.getOrNull(i + 1 + offset)?.notation ?: ""
+            }
 
             Row(modifier = Modifier.padding(vertical = 2.dp)) {
                 Text(
@@ -147,7 +166,9 @@ fun MoveHistoryList(
                     color = if (boardState.currentIndex == whiteMoveIdx) colorScheme.primary else colorScheme.onBackground,
                     modifier = Modifier
                         .width(64.dp)
-                        .clickable { controller.dispatch(GameAction.Nav.JumpToHistory(whiteMoveIdx)) }
+                        .clickable(enabled = whiteMoveIdx != -1) { 
+                            controller.dispatch(GameAction.Nav.JumpToHistory(whiteMoveIdx)) 
+                        }
                 )
                 if (blackMove.isNotEmpty()) {
                     Text(

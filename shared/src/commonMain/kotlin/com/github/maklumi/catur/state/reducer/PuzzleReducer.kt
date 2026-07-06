@@ -36,6 +36,8 @@ internal fun GameState.reducePuzzles(action: GameAction.Puzzles): GameState {
             val whiteName = names.getOrNull(0)?.trim() ?: "White"
             val blackName = names.getOrNull(1)?.trim() ?: "Black"
 
+            val isWhiteHuman = activeColor == PieceColor.WHITE
+
             copy(
                 board = BoardState(
                     snapshots = listOf(GameSnapshotState(context = ChessContext(board = boardInit, activeColor = activeColor))),
@@ -44,9 +46,9 @@ internal fun GameState.reducePuzzles(action: GameAction.Puzzles): GameState {
                 ),
                 match = MatchState(
                     whiteName = whiteName,
-                    whiteType = PlayerType.HUMAN,
+                    whiteType = if (isWhiteHuman) PlayerType.HUMAN else PlayerType.ENGINE,
                     blackName = blackName,
-                    blackType = PlayerType.ENGINE
+                    blackType = if (isWhiteHuman) PlayerType.ENGINE else PlayerType.HUMAN
                 ),
                 clock = ClockState(),
                 engine = engine.copy(isThinking = false),

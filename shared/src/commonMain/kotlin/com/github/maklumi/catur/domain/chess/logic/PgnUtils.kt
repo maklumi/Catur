@@ -16,6 +16,12 @@ object PgnUtils {
         pgn.append("[Date \"${getPlatform().getCurrentDate()}\"]\n")
         pgn.append("[White \"${state.match.whiteName}\"]\n")
         pgn.append("[Black \"${state.match.blackName}\"]\n")
+        
+        if (!state.isFromInitialPosition()) {
+            pgn.append("[SetUp \"1\"]\n")
+            pgn.append("[FEN \"${state.snapshots.first().generateFen()}\"]\n")
+        }
+
         state.board.openingName?.let { pgn.append("[Opening \"$it\"]\n") }
         
         val result = when (snapshot.status) {
@@ -29,9 +35,14 @@ object PgnUtils {
 
         // Moves
         val historySnapshots = state.snapshots.drop(1)
+        val startsWithBlack = state.snapshots.firstOrNull()?.activeColor == PieceColor.BLACK
+        
         for (i in historySnapshots.indices) {
-            if (i % 2 == 0) {
-                pgn.append("${(i / 2) + 1}. ")
+            if (i == 0 && startsWithBlack) {
+                pgn.append("1... ")
+            } else if ((i + (if (startsWithBlack) 1 else 0)) % 2 == 0) {
+                val turnNumber = (i + (if (startsWithBlack) 1 else 0)) / 2 + 1
+                pgn.append("$turnNumber. ")
             }
             pgn.append("${historySnapshots[i].notation} ")
         }

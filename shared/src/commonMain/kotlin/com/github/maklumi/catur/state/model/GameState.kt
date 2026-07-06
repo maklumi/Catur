@@ -62,7 +62,7 @@ data class UiVisualState(
     val bestMoveArrow: Pair<Position, Position>? = null,
     val threats: List<Position> = emptyList(),
     val currentEvaluation: Int? = null,
-    val currentScreen: Screen = Screen.MENU,
+    val currentScreen: Screen = Screen.PUZZLES,
     val selectedPalettePiece: Piece? = null,
     val boardTheme: BoardTheme = BoardTheme.GREEN,
     val isSoundEnabled: Boolean = true
@@ -96,6 +96,7 @@ data class GameState(
 
     val isEngineTurn: Boolean get() = !isViewingHistory &&
         currentSnapshot.status == GameStatus.ONGOING &&
+        puzzle.currentPuzzleIndex == null &&
         ((currentSnapshot.activeColor == PieceColor.WHITE && match.whiteType == PlayerType.ENGINE) ||
          (currentSnapshot.activeColor == PieceColor.BLACK && match.blackType == PlayerType.ENGINE))
 

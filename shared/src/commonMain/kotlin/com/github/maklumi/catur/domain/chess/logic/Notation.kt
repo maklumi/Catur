@@ -91,6 +91,7 @@ fun Board.findMoveByNotation(
 
     // Parse Target Square
     val cleanNoPromo = clean.replace(Regex("=[QRBN]"), "")
+    val promoChar = if (clean.contains("=")) clean.substringAfter("=").take(1) else null
     val targetStr = cleanNoPromo.takeLast(2)
     val target = try { Position.valueOf(targetStr) } catch (_: Exception) { return null }
 
@@ -111,7 +112,13 @@ fun Board.findMoveByNotation(
         if (pieceSymbol != pieceType) return@flatMap emptyList<BoardMove>()
         
         piece.pseudoLegalMoves(this, lastMove, movedPositions).filter { boardMove ->
-            boardMove.move.to == target && !boardMove.move.applyOn(this).isInCheck(activeColor)
+            val m = boardMove.move
+            val targetMatch = m.to == target
+            val promoMatch = if (promoChar != null && m is PromotionMove) {
+                m.promotedPiece.textSymbol == promoChar
+            } else true
+            
+            targetMatch && promoMatch && !m.applyOn(this).isInCheck(activeColor)
         }
     }
 
