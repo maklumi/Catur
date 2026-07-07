@@ -1,8 +1,6 @@
 package com.github.maklumi.catur.ui.components
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -63,7 +61,19 @@ fun SquareView(
     val lastMoveId = boardState.lastMoveId
     val wasJustMovedTo = lastMove?.to == position
 
-    val animScale = remember(lastMoveId) { Animatable(1f) }
+    val wasCapturedHere = remember(lastMoveId) {
+        val prevPiece = boardState.snapshots.getOrNull(boardState.currentIndex - 1)?.board?.get(position)?.piece
+        if (prevPiece == null) return@remember null
+
+        val isRegularCapture = wasJustMovedTo
+        val isEnPassantCapture = lastMove is com.github.maklumi.catur.domain.chess.move.EnPassantMove && lastMove.capturedPosition == position
+
+        if (isRegularCapture || isEnPassantCapture) prevPiece else null
+    }
+
+    val animCapturedScale = remember(lastMoveId) { Animatable(1f) }
+    val animCapturedAlpha = remember(lastMoveId) { Animatable(1f) }
+
     val animOffset = remember(lastMoveId) {
         val initialOffset = if (wasJustMovedTo && squareSize > 0) {
             val fromRankIdx = ranks.indexOf(lastMove.from.rank)
@@ -85,9 +95,19 @@ fun SquareView(
                     animationSpec = tween(300)
                 )
             }
+        }
+        if (wasCapturedHere != null && squareSize > 0) {
             launch {
-                animScale.animateTo(1.2f, animationSpec = tween(150))
-                animScale.animateTo(1.0f, animationSpec = tween(150))
+                animCapturedScale.animateTo(
+                    0.5f,
+                    animationSpec = tween(300, easing = FastOutSlowInEasing)
+                )
+            }
+            launch {
+                animCapturedAlpha.animateTo(
+                    0f,
+                    animationSpec = tween(300, easing = LinearEasing)
+                )
             }
         }
     }
@@ -143,19 +163,28 @@ fun SquareView(
             )
         }
 
+        val density = androidx.compose.ui.platform.LocalDensity.current
+        val pieceSizeDp = with(density) { (squareSize * 1.1f).toDp() }
+
+        wasCapturedHere?.let { p ->
+            PieceImage(
+                piece = p,
+                modifier = Modifier
+                    .size(pieceSizeDp)
+                    .graphicsLayer {
+                        scaleX = animCapturedScale.value
+                        scaleY = animCapturedScale.value
+                        alpha = animCapturedAlpha.value
+                    }
+            )
+        }
+
         piece?.let { p ->
-            val density = androidx.compose.ui.platform.LocalDensity.current
-            val pieceSizeDp = with(density) { (squareSize * 1.1f).toDp() }
-            
             PieceImage(
                 piece = p,
                 modifier = Modifier
                     .size(pieceSizeDp)
                     .zIndex(10f)
-                    .graphicsLayer {
-                        scaleX = animScale.value
-                        scaleY = animScale.value
-                    }
                     .offset { IntOffset(animOffset.value.x.toInt(), animOffset.value.y.toInt()) }
             )
         }
