@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
@@ -24,6 +25,7 @@ import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.board.isLightSquare
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.ui.theme.CaturTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun SquareView(
@@ -61,6 +63,7 @@ fun SquareView(
     val lastMoveId = boardState.lastMoveId
     val wasJustMovedTo = lastMove?.to == position
 
+    val animScale = remember(lastMoveId) { Animatable(1f) }
     val animOffset = remember(lastMoveId) {
         val initialOffset = if (wasJustMovedTo && squareSize > 0) {
             val fromRankIdx = ranks.indexOf(lastMove.from.rank)
@@ -76,10 +79,16 @@ fun SquareView(
 
     LaunchedEffect(lastMoveId) {
         if (wasJustMovedTo && squareSize > 0) {
-            animOffset.animateTo(
-                androidx.compose.ui.geometry.Offset.Zero,
-                animationSpec = tween(300)
-            )
+            launch {
+                animOffset.animateTo(
+                    androidx.compose.ui.geometry.Offset.Zero,
+                    animationSpec = tween(300)
+                )
+            }
+            launch {
+                animScale.animateTo(1.2f, animationSpec = tween(150))
+                animScale.animateTo(1.0f, animationSpec = tween(150))
+            }
         }
     }
 
@@ -143,6 +152,10 @@ fun SquareView(
                 modifier = Modifier
                     .size(pieceSizeDp)
                     .zIndex(10f)
+                    .graphicsLayer {
+                        scaleX = animScale.value
+                        scaleY = animScale.value
+                    }
                     .offset { IntOffset(animOffset.value.x.toInt(), animOffset.value.y.toInt()) }
             )
         }

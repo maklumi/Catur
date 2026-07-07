@@ -88,7 +88,37 @@ class AndroidPlatform(private val context: Context) : Platform {
     }
 
     override fun playSound(type: SoundType) {
-        // Implement Android sound playing
+        val fileName = when (type) {
+            SoundType.MOVE -> "Move.wav"
+            SoundType.CAPTURE -> "Capture.wav"
+            SoundType.CHECK -> "Check.wav"
+            SoundType.GAME_END -> "Victory.wav"
+        }
+        try {
+            val assetPath = "composeResources/catur.shared.generated.resources/files/$fileName"
+            val afd = context.assets.openFd(assetPath)
+            android.media.MediaPlayer().apply {
+                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                prepare()
+                setOnCompletionListener { release() }
+                start()
+            }
+            afd.close()
+        } catch (e: Exception) {
+            // Fallback to simpler path if generation varies
+            try {
+                val afd = context.assets.openFd("files/$fileName")
+                android.media.MediaPlayer().apply {
+                    setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                    prepare()
+                    setOnCompletionListener { release() }
+                    start()
+                }
+                afd.close()
+            } catch (e2: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     override fun getCurrentDate(): String {
