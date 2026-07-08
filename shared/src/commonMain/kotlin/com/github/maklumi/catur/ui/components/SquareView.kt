@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.board.isLightSquare
+import com.github.maklumi.catur.domain.chess.move.EnPassantMove
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.ui.theme.CaturTheme
 import kotlinx.coroutines.launch
@@ -62,13 +63,13 @@ fun SquareView(
     val wasJustMovedTo = lastMove?.to == position
 
     val wasCapturedHere = remember(lastMoveId) {
-        val prevPiece = boardState.snapshots.getOrNull(boardState.currentIndex - 1)?.board?.get(position)?.piece
-        if (prevPiece == null) return@remember null
+        val prevPiece =
+            boardState.snapshots.getOrNull(boardState.currentIndex - 1)?.board?.get(position)?.piece
+                ?: return@remember null
 
-        val isRegularCapture = wasJustMovedTo
-        val isEnPassantCapture = lastMove is com.github.maklumi.catur.domain.chess.move.EnPassantMove && lastMove.capturedPosition == position
+        val isEnPassantCapture = lastMove is EnPassantMove && lastMove.capturedPosition == position
 
-        if (isRegularCapture || isEnPassantCapture) prevPiece else null
+        if (wasJustMovedTo || isEnPassantCapture) prevPiece else null
     }
 
     val animCapturedScale = remember(lastMoveId) { Animatable(1f) }
