@@ -23,28 +23,27 @@ class King(override val pieceColor: PieceColor) : Piece() {
         movedPositions: Set<Position>
     ): List<BoardMove> {
         val moves = singleMoves(board, offsets).toMutableList()
-        val square = board.find(this) ?: return moves
+        val pos = board.find(this) ?: return moves
 
-        if (movedPositions.contains(square.position)) return moves
+        if (movedPositions.contains(pos)) return moves
 
-        val rank = square.rank
-        val color = pieceColor
-        val oppositeColor = color.opposite()
+        val rank = pos.rank
+        val oppositeColor = pieceColor.opposite()
 
         // Kingside
         val kingsideRookPos = Position.from(8, rank)
-        val kingsideRook = board[kingsideRookPos].piece
+        val kingsideRook = board[kingsideRookPos]
         if (kingsideRook is Rook && !movedPositions.contains(kingsideRookPos)) {
             val f = Position.from(6, rank)
             val g = Position.from(7, rank)
-            if (board[f].isEmpty && board[g].isEmpty &&
-                !board.isAttacked(square.position, oppositeColor) &&
+            if (board[f] == null && board[g] == null &&
+                !board.isAttacked(pos, oppositeColor) &&
                 !board.isAttacked(f, oppositeColor) &&
                 !board.isAttacked(g, oppositeColor)
             ) {
                 moves += BoardMove.Castling(
                     piece = this,
-                    from = square.position,
+                    from = pos,
                     to = g,
                     rook = kingsideRook,
                     rookFrom = kingsideRookPos,
@@ -55,19 +54,19 @@ class King(override val pieceColor: PieceColor) : Piece() {
 
         // Queenside
         val queensideRookPos = Position.from(1, rank)
-        val queensideRook = board[queensideRookPos].piece
+        val queensideRook = board[queensideRookPos]
         if (queensideRook is Rook && !movedPositions.contains(queensideRookPos)) {
             val d = Position.from(4, rank)
             val c = Position.from(3, rank)
             val b = Position.from(2, rank)
-            if (board[d].isEmpty && board[c].isEmpty && board[b].isEmpty &&
-                !board.isAttacked(square.position, oppositeColor) &&
+            if (board[d] == null && board[c] == null && board[b] == null &&
+                !board.isAttacked(pos, oppositeColor) &&
                 !board.isAttacked(d, oppositeColor) &&
                 !board.isAttacked(c, oppositeColor)
             ) {
                 moves += BoardMove.Castling(
                     piece = this,
-                    from = square.position,
+                    from = pos,
                     to = c,
                     rook = queensideRook,
                     rookFrom = queensideRookPos,

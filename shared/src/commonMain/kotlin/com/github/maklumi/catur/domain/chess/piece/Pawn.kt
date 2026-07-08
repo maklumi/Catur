@@ -24,52 +24,56 @@ class Pawn(override val pieceColor: PieceColor) : Piece() {
         movedPositions: Set<Position>
     ): List<BoardMove> {
         val moves = mutableListOf<BoardMove>()
-        val square = board.find(this) ?: return emptyList()
+        val pos = board.find(this) ?: return emptyList()
         val forward = if (pieceColor == PieceColor.WHITE) 1 else -1
         val startRank = if (pieceColor == PieceColor.WHITE) 2 else 7
         val promotionRank = if (pieceColor == PieceColor.WHITE) 8 else 1
 
         // Forward 1
-        val oneForward = board[square.file, square.rank + forward]
-        if (oneForward != null && oneForward.isEmpty) {
-            if (oneForward.rank == promotionRank) {
-                moves += promotionMoves(square.position, oneForward.position)
+        val oneForward = board[pos.file, pos.rank + forward]
+        if (oneForward == null && pos.rank + forward in 1..8) {
+            val toPos = Position.from(pos.file, pos.rank + forward)
+            if (toPos.rank == promotionRank) {
+                moves += promotionMoves(pos, toPos)
             } else {
-                moves += BoardMove.Simple(this, square.position, oneForward.position)
+                moves += BoardMove.Simple(this, pos, toPos)
             }
 
             // Forward 2
-            if (square.rank == startRank) {
-                val twoForward = board[square.file, square.rank + 2 * forward]
-                if (twoForward != null && twoForward.isEmpty) {
-                    moves += BoardMove.Simple(this, square.position, twoForward.position)
+            if (pos.rank == startRank) {
+                val twoForward = board[pos.file, pos.rank + 2 * forward]
+                if (twoForward == null) {
+                    moves += BoardMove.Simple(this, pos, Position.from(pos.file, pos.rank + 2 * forward))
                 }
             }
         }
 
         // Captures
         listOf(-1, 1).forEach { deltaFile ->
-            val target = board[square.file + deltaFile, square.rank + forward]
-            if (target != null) {
-                if (target.hasPiece(pieceColor.opposite())) {
-                    if (target.rank == promotionRank) {
-                        moves += promotionMoves(square.position, target.position)
+            val targetFile = pos.file + deltaFile
+            val targetRank = pos.rank + forward
+            if (targetFile in 1..8 && targetRank in 1..8) {
+                val targetPiece = board[targetFile, targetRank]
+                val toPos = Position.from(targetFile, targetRank)
+                if (targetPiece?.pieceColor == pieceColor.opposite()) {
+                    if (targetRank == promotionRank) {
+                        moves += promotionMoves(pos, toPos)
                     } else {
-                        moves += BoardMove.Simple(this, square.position, target.position)
+                        moves += BoardMove.Simple(this, pos, toPos)
                     }
-                } else if (target.isEmpty) {
+                } else if (targetPiece == null) {
                     // En Passant
                     val lastMove = lastMove
                     if (lastMove is BoardMove.Simple &&
                         lastMove.piece is Pawn &&
                         abs(lastMove.from.rank - lastMove.to.rank) == 2 &&
-                        lastMove.to.file == target.file &&
-                        lastMove.to.rank == square.rank
+                        lastMove.to.file == targetFile &&
+                        lastMove.to.rank == pos.rank
                     ) {
                         moves += BoardMove.EnPassant(
                             piece = this,
-                            from = square.position,
-                            to = target.position,
+                            from = pos,
+                            to = toPos,
                             capturedPosition = lastMove.to
                         )
                     }
@@ -82,13 +86,14 @@ class Pawn(override val pieceColor: PieceColor) : Piece() {
 
     override fun attacks(board: Board): List<Position> {
         val attacks = mutableListOf<Position>()
-        val square = board.find(this) ?: return emptyList()
+        val pos = board.find(this) ?: return emptyList()
         val forward = if (pieceColor == PieceColor.WHITE) 1 else -1
 
         listOf(-1, 1).forEach { deltaFile ->
-            val target = board[square.file + deltaFile, square.rank + forward]
-            if (target != null) {
-                attacks += target.position
+            val targetFile = pos.file + deltaFile
+            val targetRank = pos.rank + forward
+            if (targetFile in 1..8 && targetRank in 1..8) {
+                attacks += Position.from(targetFile, targetRank)
             }
         }
 

@@ -2,8 +2,7 @@ package com.github.maklumi.catur.state.controller
 
 import com.github.maklumi.catur.Platform
 import com.github.maklumi.catur.getPlatform
-import com.github.maklumi.catur.domain.chess.board.Position
-import com.github.maklumi.catur.domain.chess.board.isInCheck
+import com.github.maklumi.catur.domain.chess.board.*
 import com.github.maklumi.catur.domain.chess.notation.findMoveByNotation
 import com.github.maklumi.catur.domain.chess.notation.PgnUtils
 import com.github.maklumi.catur.domain.chess.notation.OpeningBook
@@ -197,7 +196,7 @@ class GameController(
                             val activeColor = snapshot.activeColor
                             val opponentColor = activeColor.opposite()
                             val threats = snapshot.board.piecesMap.keys.filter { pos ->
-                                val piece = snapshot.board[pos].piece
+                                val piece = snapshot.board[pos]
                                 piece?.pieceColor == activeColor && snapshot.board.isAttacked(
                                     pos,
                                     opponentColor

@@ -29,15 +29,21 @@ sealed class Piece {
 
     protected fun lineMoves(board: Board, directions: List<Pair<Int, Int>>): List<BoardMove> {
         val moves = mutableListOf<BoardMove>()
-        val square = board.find(this) ?: return emptyList()
+        val fromPos = board.find(this) ?: return emptyList()
         directions.forEach { (df, dr) ->
             var i = 0
             while (true) {
                 i++
-                val target = board[square.file + df * i, square.rank + dr * i] ?: break
-                if (target.hasPiece(pieceColor)) break
-                moves += BoardMove.Simple(this, square.position, target.position)
-                if (target.isNotEmpty) break
+                val targetFile = fromPos.file + df * i
+                val targetRank = fromPos.rank + dr * i
+                val targetPiece = board[targetFile, targetRank] ?: if (targetFile !in 1..8 || targetRank !in 1..8) break else null
+                
+                if (targetPiece?.pieceColor == pieceColor) break
+                
+                val toPos = Position.from(targetFile, targetRank)
+                moves += BoardMove.Simple(this, fromPos, toPos)
+                
+                if (targetPiece != null) break
             }
         }
         return moves
@@ -45,11 +51,15 @@ sealed class Piece {
 
     protected fun singleMoves(board: Board, offsets: List<Pair<Int, Int>>): List<BoardMove> {
         val moves = mutableListOf<BoardMove>()
-        val square = board.find(this) ?: return emptyList()
+        val fromPos = board.find(this) ?: return emptyList()
         offsets.forEach { (df, dr) ->
-            val target = board[square.file + df, square.rank + dr] ?: return@forEach
-            if (!target.hasPiece(pieceColor)) {
-                moves += BoardMove.Simple(this, square.position, target.position)
+            val targetFile = fromPos.file + df
+            val targetRank = fromPos.rank + dr
+            if (targetFile in 1..8 && targetRank in 1..8) {
+                val targetPiece = board[targetFile, targetRank]
+                if (targetPiece?.pieceColor != pieceColor) {
+                    moves += BoardMove.Simple(this, fromPos, Position.from(targetFile, targetRank))
+                }
             }
         }
         return moves
@@ -57,14 +67,19 @@ sealed class Piece {
 
     protected fun lineAttacks(board: Board, directions: List<Pair<Int, Int>>): List<Position> {
         val attacks = mutableListOf<Position>()
-        val square = board.find(this) ?: return emptyList()
+        val fromPos = board.find(this) ?: return emptyList()
         directions.forEach { (df, dr) ->
             var i = 0
             while (true) {
                 i++
-                val target = board[square.file + df * i, square.rank + dr * i] ?: break
-                attacks += target.position
-                if (target.isNotEmpty) break
+                val targetFile = fromPos.file + df * i
+                val targetRank = fromPos.rank + dr * i
+                if (targetFile !in 1..8 || targetRank !in 1..8) break
+                
+                val toPos = Position.from(targetFile, targetRank)
+                attacks += toPos
+                
+                if (board[targetFile, targetRank] != null) break
             }
         }
         return attacks
@@ -72,10 +87,13 @@ sealed class Piece {
 
     protected fun singleAttacks(board: Board, offsets: List<Pair<Int, Int>>): List<Position> {
         val attacks = mutableListOf<Position>()
-        val square = board.find(this) ?: return emptyList()
+        val fromPos = board.find(this) ?: return emptyList()
         offsets.forEach { (df, dr) ->
-            val target = board[square.file + df, square.rank + dr] ?: return@forEach
-            attacks += target.position
+            val targetFile = fromPos.file + df
+            val targetRank = fromPos.rank + dr
+            if (targetFile in 1..8 && targetRank in 1..8) {
+                attacks += Position.from(targetFile, targetRank)
+            }
         }
         return attacks
     }

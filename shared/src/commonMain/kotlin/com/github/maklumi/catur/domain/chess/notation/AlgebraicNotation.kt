@@ -1,8 +1,6 @@
 package com.github.maklumi.catur.domain.chess.notation
 
-import com.github.maklumi.catur.domain.chess.board.Board
-import com.github.maklumi.catur.domain.chess.board.Position
-import com.github.maklumi.catur.domain.chess.board.isInCheck
+import com.github.maklumi.catur.domain.chess.board.*
 import com.github.maklumi.catur.domain.chess.move.BoardMove
 import com.github.maklumi.catur.domain.chess.piece.Pawn
 import com.github.maklumi.catur.domain.chess.piece.PieceColor
@@ -68,7 +66,7 @@ fun Board.findMoveByNotation(
     // Castling
     if (clean == "O-O" || clean == "0-0") {
         val kingPos = if (activeColor == PieceColor.WHITE) Position.e1 else Position.e8
-        val piece = this[kingPos].piece ?: return null
+        val piece = this[kingPos] ?: return null
         return piece.pseudoLegalMoves(this, lastMove, movedPositions)
             .find { 
                 it is BoardMove.Castling && it.rookTo.file > it.from.file 
@@ -76,7 +74,7 @@ fun Board.findMoveByNotation(
     }
     if (clean == "O-O-O" || clean == "0-0-0") {
         val kingPos = if (activeColor == PieceColor.WHITE) Position.e1 else Position.e8
-        val piece = this[kingPos].piece ?: return null
+        val piece = this[kingPos] ?: return null
         return piece.pseudoLegalMoves(this, lastMove, movedPositions)
             .find { 
                 it is BoardMove.Castling && it.rookTo.file < it.from.file 

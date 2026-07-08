@@ -71,7 +71,7 @@ data class GameSnapshotState(
     }
 
     val legalMoves: List<BoardMove> = if (pendingPromotion != null || forcedStatus != null) emptyList() else selectedPosition?.let { pos ->
-        val piece = board[pos].piece
+        val piece = board[pos]
         if (piece?.pieceColor == activeColor) {
             getLegalMovesForPosition(pos)
         } else {
@@ -80,7 +80,7 @@ data class GameSnapshotState(
     } ?: emptyList()
 
     fun getLegalMovesForPosition(pos: Position): List<BoardMove> {
-        val piece = board[pos].piece ?: return emptyList()
+        val piece = board[pos] ?: return emptyList()
         return piece.pseudoLegalMoves(board, lastMove, movedPositions).filter { boardMove ->
             val nextBoard = boardMove.applyOn(board)
             !nextBoard.isInCheck(piece.pieceColor)
@@ -90,7 +90,7 @@ data class GameSnapshotState(
     val status: GameStatus by lazy {
         forcedStatus ?: run {
             val hasAnyLegalMove = board.piecesMap.keys.any { pos ->
-                val piece = board[pos].piece
+                val piece = board[pos]
                 piece?.pieceColor == activeColor && getLegalMovesForPosition(pos).isNotEmpty()
             }
 
@@ -108,7 +108,7 @@ data class GameSnapshotState(
 
     fun findMoveByUci(uci: String): BoardMove? {
         val candidates = board.piecesMap.keys
-            .filter { board[it].piece?.pieceColor == activeColor }
+            .filter { board[it]?.pieceColor == activeColor }
             .flatMap { getLegalMovesForPosition(it) }
             .filter { it.toUciString() == uci }
         
@@ -130,7 +130,7 @@ data class GameSnapshotState(
                 applyMove(boardMove)
             }
             else -> {
-                val piece = board[to].piece
+                val piece = board[to]
                 if (piece != null && piece.pieceColor == activeColor) {
                     copy(context = context.copy(selectedPosition = to), pendingPromotion = null)
                 } else {
@@ -146,8 +146,8 @@ data class GameSnapshotState(
 
     private fun applyMove(boardMove: BoardMove): GameSnapshotState {
         val capturedPiece = when (boardMove) {
-            is BoardMove.EnPassant -> board[boardMove.capturedPosition].piece
-            else -> board[boardMove.to].piece
+            is BoardMove.EnPassant -> board[boardMove.capturedPosition]
+            else -> board[boardMove.to]
         }
 
         val newCapturedWhite = if (capturedPiece?.pieceColor == PieceColor.WHITE) {

@@ -12,9 +12,6 @@ enum class Position {
 
     val file: Int = ordinal / 8 + 1
 
-    val fileAsLetter: Char =
-        toString()[0]
-
     val rank: Int = ordinal % 8 + 1
 
     companion object {
@@ -26,5 +23,8 @@ enum class Position {
 
             return entries[idx]
         }
+
+        fun from(file: Char, rank: Int): Position =
+            from(file - 'a' + 1, rank)
     }
 }

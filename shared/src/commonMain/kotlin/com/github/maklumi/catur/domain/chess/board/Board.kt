@@ -13,35 +13,30 @@ data class Board(
     val piecesMap: Map<Position, Piece> = emptyMap()
 ) {
 
-    val squares = Position.entries.associateWith { position ->
-        Square(position, piecesMap[position])
-    }
+    operator fun get(position: Position): Piece? =
+        piecesMap[position]
 
-    operator fun get(position: Position): Square =
-        squares[position]!!
+    operator fun get(file: Char, rank: Int): Piece? =
+        get(Position.from(file, rank))
 
-    operator fun get(file: File, rank: Int): Square? =
-        get(file.ordinal + 1, rank)
-
-    operator fun get(file: Int, rank: Int): Square? {
+    operator fun get(file: Int, rank: Int): Piece? {
         return try {
             val position = Position.from(file, rank)
-            squares[position]
+            piecesMap[position]
         } catch (_: IllegalArgumentException) {
             null
         }
     }
 
-    fun find(piece: Piece): Square? =
-        squares.values.firstOrNull { it.piece === piece }
+    fun find(piece: Piece): Position? =
+        piecesMap.entries.firstOrNull { it.value === piece }?.key
 
-    fun findKing(color: PieceColor): Square? =
-        squares.values.firstOrNull { it.piece is King && it.piece.pieceColor == color }
+    fun findKing(color: PieceColor): Position? =
+        piecesMap.entries.firstOrNull { it.value is King && it.value.pieceColor == color }?.key
 
     fun isAttacked(position: Position, byColor: PieceColor): Boolean {
-        return squares.values.any { square ->
-            val piece = square.piece
-            piece != null && piece.pieceColor == byColor && piece.attacks(this).contains(position)
+        return piecesMap.entries.any { (pos, piece) ->
+            piece.pieceColor == byColor && piece.attacks(this).contains(position)
         }
     }
 
@@ -162,6 +157,6 @@ data class Board(
 }
 
 fun Board.isInCheck(color: PieceColor): Boolean {
-    val kingSquare = findKing(color) ?: return false
-    return isAttacked(kingSquare.position, color.opposite())
+    val kingPos = findKing(color) ?: return false
+    return isAttacked(kingPos, color.opposite())
 }

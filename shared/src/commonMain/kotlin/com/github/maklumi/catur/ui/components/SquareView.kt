@@ -43,7 +43,7 @@ fun SquareView(
     val isLastMove =
         snapshot.lastMove?.let { it.from == position || it.to == position } ?: false
     val isLegalMove = snapshot.legalMoves.any { it.to == position }
-    val piece = snapshot.board[position].piece
+    val piece = snapshot.board[position]
     val hasPiece = piece != null
     val isLight = position.isLightSquare()
     val isThreatened = uiVisualState.threats.contains(position)
@@ -64,7 +64,7 @@ fun SquareView(
 
     val wasCapturedHere = remember(lastMoveId) {
         val prevPiece =
-            boardState.snapshots.getOrNull(boardState.currentIndex - 1)?.board?.get(position)?.piece
+            boardState.snapshots.getOrNull(boardState.currentIndex - 1)?.board?.get(position)
                 ?: return@remember null
 
         val isEnPassantCapture = lastMove is BoardMove.EnPassant && lastMove.capturedPosition == position

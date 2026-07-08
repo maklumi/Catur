@@ -1,5 +1,6 @@
 package com.github.maklumi.catur.domain.chess.board
 
+import com.github.maklumi.catur.domain.chess.piece.Piece
 
 fun idx(file: Int, rank: Int): Int =
     (file - 1) * 8 + (rank - 1)
@@ -14,5 +15,4 @@ fun validate(file: Int, rank: Int) {
 fun Position.isLightSquare(): Boolean =
     (ordinal + file % 2) % 2 == 0
 
-fun Position.isDarkSquare(): Boolean =
-    (ordinal + file % 2) % 2 == 1
+val Piece?.isNotEmpty get() = this != null
