@@ -8,7 +8,7 @@ import com.github.maklumi.catur.domain.chess.move.Move
 import com.github.maklumi.catur.domain.chess.move.PromotionMove
 import kotlin.math.abs
 
-class Pawn(override val pieceColor: PieceColor) : Piece {
+class Pawn(override val pieceColor: PieceColor) : Piece() {
 
     override val symbol: String = when (pieceColor) {
         PieceColor.WHITE -> "♙"

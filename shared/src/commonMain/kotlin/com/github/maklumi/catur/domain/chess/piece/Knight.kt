@@ -4,7 +4,7 @@ import com.github.maklumi.catur.domain.chess.board.Board
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.move.BoardMove
 
-class Knight(override val pieceColor: PieceColor) : Piece {
+class Knight(override val pieceColor: PieceColor) : Piece() {
 
     override val symbol: String = when (pieceColor) {
         PieceColor.WHITE -> "♘"

@@ -33,7 +33,7 @@ data class Board(
     }
 
     fun find(piece: Piece): Square? =
-        squares.values.firstOrNull { it.piece == piece }
+        squares.values.firstOrNull { it.piece === piece }
 
     fun findKing(color: PieceColor): Square? =
         squares.values.firstOrNull { it.piece is King && it.piece.pieceColor == color }

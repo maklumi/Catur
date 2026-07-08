@@ -5,7 +5,7 @@ import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.move.BoardMove
 import com.github.maklumi.catur.domain.chess.move.CastlingMove
 
-class King(override val pieceColor: PieceColor) : Piece {
+class King(override val pieceColor: PieceColor) : Piece() {
 
     override val symbol: String = when (pieceColor) {
         PieceColor.WHITE -> "♔"

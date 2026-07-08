@@ -4,7 +4,7 @@ import com.github.maklumi.catur.domain.chess.board.Board
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.move.BoardMove
 
-class Queen(override val pieceColor: PieceColor) : Piece {
+class Queen(override val pieceColor: PieceColor) : Piece() {
 
     override val symbol: String = when (pieceColor) {
         PieceColor.WHITE -> "♕"
@@ -32,13 +32,13 @@ class Queen(override val pieceColor: PieceColor) : Piece {
     companion object {
         val directions = listOf(
             -1 to -1,
-            -1 to 1,
-            1 to -1,
-            1 to 1,
             -1 to 0,
-            1 to 0,
+            -1 to 1,
             0 to -1,
             0 to 1,
+            1 to -1,
+            1 to 0,
+            1 to 1,
         )
     }
 }
