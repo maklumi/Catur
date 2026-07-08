@@ -3,7 +3,7 @@ package com.github.maklumi.catur.state.reducer
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.domain.chess.piece.PieceColor
 import com.github.maklumi.catur.domain.chess.board.isInCheck
-import com.github.maklumi.catur.domain.chess.logic.getNotation
+import com.github.maklumi.catur.domain.chess.notation.getNotation
 import kotlin.random.Random
 
 internal fun GameState.reduceMove(action: GameAction.Move): GameState {

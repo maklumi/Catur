@@ -4,9 +4,9 @@ import com.github.maklumi.catur.Platform
 import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.board.isInCheck
-import com.github.maklumi.catur.domain.chess.logic.findMoveByNotation
-import com.github.maklumi.catur.domain.chess.logic.PgnUtils
-import com.github.maklumi.catur.domain.chess.logic.OpeningBook
+import com.github.maklumi.catur.domain.chess.notation.findMoveByNotation
+import com.github.maklumi.catur.domain.chess.notation.PgnUtils
+import com.github.maklumi.catur.domain.chess.notation.OpeningBook
 import com.github.maklumi.catur.domain.audio.SoundType
 import com.github.maklumi.catur.domain.engine.ChessEngine
 import com.github.maklumi.catur.domain.puzzle.PuzzleLoader

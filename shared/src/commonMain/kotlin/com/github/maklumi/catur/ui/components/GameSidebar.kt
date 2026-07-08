@@ -37,7 +37,7 @@ import com.github.maklumi.catur.state.controller.GameController
 import com.github.maklumi.catur.state.model.BoardState
 import com.github.maklumi.catur.state.model.GameAction
 import com.github.maklumi.catur.state.model.BoardTheme
-import com.github.maklumi.catur.domain.chess.logic.PgnUtils
+import com.github.maklumi.catur.domain.chess.notation.PgnUtils
 import com.github.maklumi.catur.state.model.PuzzleState
 import com.github.maklumi.catur.domain.chess.piece.Piece
 import com.github.maklumi.catur.domain.chess.piece.PieceColor

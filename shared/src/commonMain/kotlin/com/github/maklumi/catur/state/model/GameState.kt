@@ -6,7 +6,7 @@ import com.github.maklumi.catur.domain.puzzle.Puzzle
 import com.github.maklumi.catur.domain.chess.move.BoardMove
 import com.github.maklumi.catur.domain.chess.piece.Piece
 import com.github.maklumi.catur.domain.chess.piece.PieceColor
-import com.github.maklumi.catur.domain.chess.logic.OpeningBook
+import com.github.maklumi.catur.domain.chess.notation.OpeningBook
 import com.github.maklumi.catur.domain.chess.GameRecord
 
 enum class PlayerType { HUMAN, ENGINE }

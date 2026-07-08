@@ -1,4 +1,4 @@
-package com.github.maklumi.catur.domain.chess.logic
+package com.github.maklumi.catur.domain.chess.notation
 
 data class Opening(val name: String, val code: String)
 

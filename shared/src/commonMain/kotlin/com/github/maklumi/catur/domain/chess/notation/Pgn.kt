@@ -1,4 +1,4 @@
-package com.github.maklumi.catur.domain.chess.logic
+package com.github.maklumi.catur.domain.chess.notation
 
 import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.domain.chess.piece.PieceColor

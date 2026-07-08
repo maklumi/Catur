@@ -1,4 +1,4 @@
-package com.github.maklumi.catur.domain.chess.logic
+package com.github.maklumi.catur.domain.chess.notation
 
 import com.github.maklumi.catur.domain.chess.board.Board
 import com.github.maklumi.catur.domain.chess.board.Position
