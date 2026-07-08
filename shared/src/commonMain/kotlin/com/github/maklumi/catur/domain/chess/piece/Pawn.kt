@@ -3,9 +3,6 @@ package com.github.maklumi.catur.domain.chess.piece
 import com.github.maklumi.catur.domain.chess.board.Board
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.move.BoardMove
-import com.github.maklumi.catur.domain.chess.move.EnPassantMove
-import com.github.maklumi.catur.domain.chess.move.Move
-import com.github.maklumi.catur.domain.chess.move.PromotionMove
 import kotlin.math.abs
 
 class Pawn(override val pieceColor: PieceColor) : Piece() {
@@ -35,18 +32,17 @@ class Pawn(override val pieceColor: PieceColor) : Piece() {
         // Forward 1
         val oneForward = board[square.file, square.rank + forward]
         if (oneForward != null && oneForward.isEmpty) {
-            val move = Move(this, square.position, oneForward.position)
             if (oneForward.rank == promotionRank) {
-                moves += promotionMoves(move)
+                moves += promotionMoves(square.position, oneForward.position)
             } else {
-                moves += BoardMove(move)
+                moves += BoardMove.Simple(this, square.position, oneForward.position)
             }
 
             // Forward 2
             if (square.rank == startRank) {
                 val twoForward = board[square.file, square.rank + 2 * forward]
                 if (twoForward != null && twoForward.isEmpty) {
-                    moves += BoardMove(Move(this, square.position, twoForward.position))
+                    moves += BoardMove.Simple(this, square.position, twoForward.position)
                 }
             }
         }
@@ -56,28 +52,25 @@ class Pawn(override val pieceColor: PieceColor) : Piece() {
             val target = board[square.file + deltaFile, square.rank + forward]
             if (target != null) {
                 if (target.hasPiece(pieceColor.opposite())) {
-                    val move = Move(this, square.position, target.position)
                     if (target.rank == promotionRank) {
-                        moves += promotionMoves(move)
+                        moves += promotionMoves(square.position, target.position)
                     } else {
-                        moves += BoardMove(move)
+                        moves += BoardMove.Simple(this, square.position, target.position)
                     }
                 } else if (target.isEmpty) {
                     // En Passant
-                    val lastMovePrimary = lastMove?.move
-                    if (lastMovePrimary is Move &&
-                        lastMovePrimary.piece is Pawn &&
-                        abs(lastMovePrimary.from.rank - lastMovePrimary.to.rank) == 2 &&
-                        lastMovePrimary.to.file == target.file &&
-                        lastMovePrimary.to.rank == square.rank
+                    val lastMove = lastMove
+                    if (lastMove is BoardMove.Simple &&
+                        lastMove.piece is Pawn &&
+                        abs(lastMove.from.rank - lastMove.to.rank) == 2 &&
+                        lastMove.to.file == target.file &&
+                        lastMove.to.rank == square.rank
                     ) {
-                        moves += BoardMove(
-                            EnPassantMove(
-                                piece = this,
-                                from = square.position,
-                                to = target.position,
-                                capturedPosition = lastMovePrimary.to
-                            )
+                        moves += BoardMove.EnPassant(
+                            piece = this,
+                            from = square.position,
+                            to = target.position,
+                            capturedPosition = lastMove.to
                         )
                     }
                 }
@@ -102,12 +95,12 @@ class Pawn(override val pieceColor: PieceColor) : Piece() {
         return attacks
     }
 
-    private fun promotionMoves(baseMove: Move): List<BoardMove> {
+    private fun promotionMoves(from: Position, to: Position): List<BoardMove> {
         return listOf(
             Queen(pieceColor),
             Rook(pieceColor),
             Bishop(pieceColor),
             Knight(pieceColor)
-        ).map { BoardMove(PromotionMove(baseMove, it)) }
+        ).map { BoardMove.Promotion(this, from, to, it) }
     }
 }

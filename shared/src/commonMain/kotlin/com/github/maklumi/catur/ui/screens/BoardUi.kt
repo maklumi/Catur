@@ -107,7 +107,7 @@ private fun DesktopLayout(
 ) {
     val snapshot = boardState.currentSnapshot
     val colorScheme = MaterialTheme.colorScheme
-    val lastMoveToRank = snapshot.lastMove?.move?.to?.rank
+    val lastMoveToRank = snapshot.lastMove?.to?.rank
     val ranks = if (boardState.isBoardFlipped) 1..8 else 8 downTo 1
     val files = if (boardState.isBoardFlipped) 8 downTo 1 else 1..8
 

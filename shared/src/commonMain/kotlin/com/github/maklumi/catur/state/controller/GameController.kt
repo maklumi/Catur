@@ -11,10 +11,9 @@ import com.github.maklumi.catur.domain.audio.SoundType
 import com.github.maklumi.catur.domain.engine.ChessEngine
 import com.github.maklumi.catur.domain.puzzle.PuzzleLoader
 import com.github.maklumi.catur.domain.chess.GameRecord
+import com.github.maklumi.catur.domain.chess.move.BoardMove
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.state.reducer.gameReducer
-import com.github.maklumi.catur.domain.chess.move.EnPassantMove
-import com.github.maklumi.catur.domain.chess.move.toUciString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -133,8 +132,8 @@ class GameController(
                     val lastSnapshot = currentState.snapshots.last()
                     val prevSnapshot = currentState.snapshots[currentState.snapshots.size - 2]
 
-                    val move = lastSnapshot.lastMove?.move
-                    if (move != null && currentState.uiVisual.isSoundEnabled) {
+                    val boardMove = lastSnapshot.lastMove
+                    if (boardMove != null && currentState.uiVisual.isSoundEnabled) {
                         val platform = getPlatform()
                         when {
                             lastSnapshot.status == GameStatus.CHECKMATE ||
@@ -146,7 +145,7 @@ class GameController(
                                 platform.playSound(SoundType.CHECK)
                             }
 
-                            prevSnapshot.board[move.to].isNotEmpty || move is EnPassantMove -> {
+                            prevSnapshot.board[boardMove.to].isNotEmpty || boardMove is BoardMove.EnPassant -> {
                                 platform.playSound(SoundType.CAPTURE)
                             }
 
@@ -229,12 +228,12 @@ class GameController(
             state.map { it.longPressedPosition }.distinctUntilChanged().collectLatest { pos ->
                 dispatch(GameAction.Ui.SetMoveEvaluations(emptyMap()))
                 if (pos != null) {
-                    val currentMoves = state.value.snapshots.take(state.value.board.currentIndex + 1).drop(1).mapNotNull { it.lastMoveUci }
+                    val currentMoves = state.value.snapshots.take(state.value.board.currentIndex + 1).mapNotNull { it.lastMoveUci }
                     val legalMoves = state.value.currentSnapshot.getLegalMovesForPosition(pos)
                     val evals = mutableMapOf<String, Int>()
 
                     for (boardMove in legalMoves) {
-                        val uci = boardMove.move.toUciString()
+                        val uci = boardMove.toUciString()
                         val score = engine?.evaluate(currentMoves + uci)
                         evals[uci] = score ?: 0
                         dispatch(GameAction.Ui.SetMoveEvaluations(evals.toMap()))
@@ -259,7 +258,7 @@ class GameController(
                             snapshot.movedPositions
                         )
                         if (boardMove != null) {
-                            dispatch(GameAction.Move.EngineMove(boardMove.move.toUciString()))
+                            dispatch(GameAction.Move.EngineMove(boardMove.toUciString()))
                         }
                     }
                 }

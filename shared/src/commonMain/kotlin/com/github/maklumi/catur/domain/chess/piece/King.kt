@@ -3,7 +3,6 @@ package com.github.maklumi.catur.domain.chess.piece
 import com.github.maklumi.catur.domain.chess.board.Board
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.move.BoardMove
-import com.github.maklumi.catur.domain.chess.move.CastlingMove
 
 class King(override val pieceColor: PieceColor) : Piece() {
 
@@ -43,15 +42,13 @@ class King(override val pieceColor: PieceColor) : Piece() {
                 !board.isAttacked(f, oppositeColor) &&
                 !board.isAttacked(g, oppositeColor)
             ) {
-                moves += BoardMove(
-                    CastlingMove(
-                        piece = this,
-                        from = square.position,
-                        to = g,
-                        rook = kingsideRook,
-                        rookFrom = kingsideRookPos,
-                        rookTo = f
-                    )
+                moves += BoardMove.Castling(
+                    piece = this,
+                    from = square.position,
+                    to = g,
+                    rook = kingsideRook,
+                    rookFrom = kingsideRookPos,
+                    rookTo = f
                 )
             }
         }
@@ -68,15 +65,13 @@ class King(override val pieceColor: PieceColor) : Piece() {
                 !board.isAttacked(d, oppositeColor) &&
                 !board.isAttacked(c, oppositeColor)
             ) {
-                moves += BoardMove(
-                    CastlingMove(
-                        piece = this,
-                        from = square.position,
-                        to = c,
-                        rook = queensideRook,
-                        rookFrom = queensideRookPos,
-                        rookTo = d
-                    )
+                moves += BoardMove.Castling(
+                    piece = this,
+                    from = square.position,
+                    to = c,
+                    rook = queensideRook,
+                    rookFrom = queensideRookPos,
+                    rookTo = d
                 )
             }
         }

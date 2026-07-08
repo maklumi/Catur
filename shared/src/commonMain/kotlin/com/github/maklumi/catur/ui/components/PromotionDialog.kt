@@ -44,7 +44,7 @@ fun PromotionDialog(
                         contentAlignment = Alignment.Center
                     ) {
                         PieceImage(
-                            piece = move.move.piece,
+                            piece = move.piece,
                             modifier = Modifier.size(48.dp)
                         )
                     }

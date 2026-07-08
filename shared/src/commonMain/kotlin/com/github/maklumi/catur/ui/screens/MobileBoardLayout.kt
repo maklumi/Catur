@@ -148,7 +148,7 @@ internal fun MobileBoardLayout(
         // --- Board Area ---
         val ranks = if (boardState.isBoardFlipped) 1..8 else 8 downTo 1
         val files = if (boardState.isBoardFlipped) 8 downTo 1 else 1..8
-        val lastMoveToRank = snapshot.lastMove?.move?.to?.rank
+        val lastMoveToRank = snapshot.lastMove?.to?.rank
 
         Box(
             modifier = Modifier.fillMaxWidth().aspectRatio(1f),

@@ -3,7 +3,6 @@ package com.github.maklumi.catur.domain.chess.piece
 import com.github.maklumi.catur.domain.chess.board.Board
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.move.BoardMove
-import com.github.maklumi.catur.domain.chess.move.Move
 
 sealed class Piece {
     abstract val pieceColor: PieceColor
@@ -37,7 +36,7 @@ sealed class Piece {
                 i++
                 val target = board[square.file + df * i, square.rank + dr * i] ?: break
                 if (target.hasPiece(pieceColor)) break
-                moves += BoardMove(Move(this, square.position, target.position))
+                moves += BoardMove.Simple(this, square.position, target.position)
                 if (target.isNotEmpty) break
             }
         }
@@ -50,7 +49,7 @@ sealed class Piece {
         offsets.forEach { (df, dr) ->
             val target = board[square.file + df, square.rank + dr] ?: return@forEach
             if (!target.hasPiece(pieceColor)) {
-                moves += BoardMove(Move(this, square.position, target.position))
+                moves += BoardMove.Simple(this, square.position, target.position)
             }
         }
         return moves

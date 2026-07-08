@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.chess.board.isLightSquare
-import com.github.maklumi.catur.domain.chess.move.EnPassantMove
+import com.github.maklumi.catur.domain.chess.move.BoardMove
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.ui.theme.CaturTheme
 import kotlinx.coroutines.launch
@@ -41,8 +41,8 @@ fun SquareView(
         it.key.length >= 4 && it.key.substring(2, 4) == position.toString()
     }?.value
     val isLastMove =
-        snapshot.lastMove?.let { it.move.from == position || it.move.to == position } ?: false
-    val isLegalMove = snapshot.legalMoves.any { it.move.to == position }
+        snapshot.lastMove?.let { it.from == position || it.to == position } ?: false
+    val isLegalMove = snapshot.legalMoves.any { it.to == position }
     val piece = snapshot.board[position].piece
     val hasPiece = piece != null
     val isLight = position.isLightSquare()
@@ -58,7 +58,7 @@ fun SquareView(
     val rankIdx = ranks.indexOf(position.rank)
     val fileIdx = files.indexOf(position.file)
 
-    val lastMove = snapshot.lastMove?.move
+    val lastMove = snapshot.lastMove
     val lastMoveId = boardState.lastMoveId
     val wasJustMovedTo = lastMove?.to == position
 
@@ -67,7 +67,7 @@ fun SquareView(
             boardState.snapshots.getOrNull(boardState.currentIndex - 1)?.board?.get(position)?.piece
                 ?: return@remember null
 
-        val isEnPassantCapture = lastMove is EnPassantMove && lastMove.capturedPosition == position
+        val isEnPassantCapture = lastMove is BoardMove.EnPassant && lastMove.capturedPosition == position
 
         if (wasJustMovedTo || isEnPassantCapture) prevPiece else null
     }
