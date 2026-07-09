@@ -35,7 +35,7 @@ data class Board(
         piecesMap.entries.firstOrNull { it.value is King && it.value.pieceColor == color }?.key
 
     fun isAttacked(position: Position, byColor: PieceColor): Boolean {
-        return piecesMap.entries.any { (pos, piece) ->
+        return piecesMap.entries.any { (_, piece) ->
             piece.pieceColor == byColor && piece.attacks(this).contains(position)
         }
     }

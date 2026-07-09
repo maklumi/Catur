@@ -2,8 +2,7 @@ package com.github.maklumi.catur.domain.chess.notation
 
 import com.github.maklumi.catur.domain.chess.board.*
 import com.github.maklumi.catur.domain.chess.move.BoardMove
-import com.github.maklumi.catur.domain.chess.piece.Pawn
-import com.github.maklumi.catur.domain.chess.piece.PieceColor
+import com.github.maklumi.catur.domain.chess.piece.*
 
 fun Board.getNotation(move: BoardMove, isCheck: Boolean, isMate: Boolean): String {
     val piece = if (move is BoardMove.Promotion) move.movingPiece else move.piece

@@ -113,3 +113,5 @@ sealed class Piece {
         return result
     }
 }
+
+val Piece?.isNotEmpty get() = this != null

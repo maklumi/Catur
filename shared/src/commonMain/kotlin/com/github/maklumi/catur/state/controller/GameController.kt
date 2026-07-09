@@ -11,6 +11,7 @@ import com.github.maklumi.catur.domain.engine.ChessEngine
 import com.github.maklumi.catur.domain.puzzle.PuzzleLoader
 import com.github.maklumi.catur.domain.chess.GameRecord
 import com.github.maklumi.catur.domain.chess.move.BoardMove
+import com.github.maklumi.catur.domain.chess.piece.*
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.state.reducer.gameReducer
 import kotlinx.coroutines.CoroutineScope

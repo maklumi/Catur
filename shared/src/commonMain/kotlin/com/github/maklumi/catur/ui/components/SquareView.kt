@@ -20,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.github.maklumi.catur.domain.chess.board.Position
-import com.github.maklumi.catur.domain.chess.board.isLightSquare
 import com.github.maklumi.catur.domain.chess.move.BoardMove
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.ui.theme.CaturTheme
@@ -45,7 +44,7 @@ fun SquareView(
     val isLegalMove = snapshot.legalMoves.any { it.to == position }
     val piece = snapshot.board[position]
     val hasPiece = piece != null
-    val isLight = position.isLightSquare()
+    val isLight = position.isLightSquare
     val isThreatened = uiVisualState.threats.contains(position)
 
     val boardColors = CaturTheme.board
