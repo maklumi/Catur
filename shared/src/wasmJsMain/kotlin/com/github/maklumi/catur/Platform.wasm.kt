@@ -34,6 +34,19 @@ class WebPersistenceManager : PersistenceManager {
         }.sortedByDescending { it.date }
     }
 
+    override fun saveSettings(theme: String, soundEnabled: Boolean, engineModel: String) {
+        window.localStorage.setItem("board_theme", theme)
+        window.localStorage.setItem("sound_enabled", soundEnabled.toString())
+        window.localStorage.setItem("engine_model", engineModel)
+    }
+
+    override fun loadSettings(): Triple<String, Boolean, String>? {
+        val theme = window.localStorage.getItem("board_theme") ?: return null
+        val sound = window.localStorage.getItem("sound_enabled")?.toBoolean() ?: true
+        val engine = window.localStorage.getItem("engine_model") ?: "maia3-5m"
+        return Triple(theme, sound, engine)
+    }
+
     private fun loadGamesIds(): Set<String> {
         val s = window.localStorage.getItem("game_ids") ?: ""
         if (s.isEmpty()) return emptySet()

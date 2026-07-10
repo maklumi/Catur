@@ -84,6 +84,37 @@ class JVMPersistenceManager : PersistenceManager {
         }.sortedByDescending { it.date }
     }
 
+    override fun saveSettings(theme: String, soundEnabled: Boolean, engineModel: String) {
+        val props = Properties()
+        if (prefsFile.exists()) {
+            try {
+                prefsFile.inputStream().use { props.load(it) }
+            } catch (_: Exception) { }
+        }
+        props.setProperty("board_theme", theme)
+        props.setProperty("sound_enabled", soundEnabled.toString())
+        props.setProperty("engine_model", engineModel)
+        try {
+            prefsFile.outputStream().use { props.store(it, "Catur Preferences") }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun loadSettings(): Triple<String, Boolean, String>? {
+        if (!prefsFile.exists()) return null
+        val props = Properties()
+        try {
+            prefsFile.inputStream().use { props.load(it) }
+            val theme = props.getProperty("board_theme", "GREEN")
+            val sound = props.getProperty("sound_enabled", "true").toBoolean()
+            val engine = props.getProperty("engine_model", "maia3-5m")
+            return Triple(theme, sound, engine)
+        } catch (_: Exception) {
+            return null
+        }
+    }
+
     private fun parseRecordFromPgn(id: String, pgn: String): GameRecord {
         fun extractTag(tag: String): String {
             val pattern = "\\[$tag \"(.*?)\"]".toRegex()

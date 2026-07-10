@@ -9,9 +9,7 @@ import com.github.maklumi.catur.state.model.GameAction
 import com.github.maklumi.catur.state.model.GameStatus
 import com.github.maklumi.catur.state.model.GameState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class PersistenceHandler(
@@ -29,6 +27,20 @@ class PersistenceHandler(
             
             val games = platform.persistenceManager.loadGames()
             dispatch(GameAction.History.SetPastGames(games))
+
+            platform.persistenceManager.loadSettings()?.let { (theme, sound, engine) ->
+                dispatch(GameAction.Ui.ApplySettings(theme, sound, engine))
+            }
+        }
+
+        // Save settings when they change
+        scope.launch {
+            state.map { 
+                Triple(it.uiVisual.boardTheme.name, it.uiVisual.isSoundEnabled, it.engine.model)
+            }.distinctUntilChanged().drop(1).collect { settings ->
+                val (theme, sound, engine) = settings
+                platform.persistenceManager.saveSettings(theme, sound, engine)
+            }
         }
 
         // Save completed puzzles

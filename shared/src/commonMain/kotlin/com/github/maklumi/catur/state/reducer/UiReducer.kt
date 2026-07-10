@@ -70,5 +70,13 @@ internal fun GameState.reduceUi(action: GameAction.Ui): GameState {
         is GameAction.Ui.SetSoundEnabled -> {
             updateVisual { copy(isSoundEnabled = action.enabled) }
         }
+        is GameAction.Ui.ApplySettings -> {
+            val theme = try { BoardTheme.valueOf(action.theme) } catch (_: Exception) { BoardTheme.GREEN }
+            updateVisual { 
+                copy(boardTheme = theme, isSoundEnabled = action.soundEnabled) 
+            }.updateEngine {
+                copy(model = action.engineModel)
+            }
+        }
     }
 }

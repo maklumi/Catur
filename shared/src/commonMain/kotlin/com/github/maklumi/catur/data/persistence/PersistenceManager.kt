@@ -8,4 +8,7 @@ interface PersistenceManager {
     
     fun saveGame(record: GameRecord)
     fun loadGames(): List<GameRecord>
+
+    fun saveSettings(theme: String, soundEnabled: Boolean, engineModel: String)
+    fun loadSettings(): Triple<String, Boolean, String>?
 }

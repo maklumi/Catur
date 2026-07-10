@@ -158,6 +158,7 @@ sealed class GameAction {
         data class ChangeEngineLevel(val model: String) : Ui()
         data class SetBoardTheme(val theme: BoardTheme) : Ui()
         data class SetSoundEnabled(val enabled: Boolean) : Ui()
+        data class ApplySettings(val theme: String, val soundEnabled: Boolean, val engineModel: String) : Ui()
     }
 
     sealed class Puzzles : GameAction() {

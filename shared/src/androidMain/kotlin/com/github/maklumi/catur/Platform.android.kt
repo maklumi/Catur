@@ -56,6 +56,23 @@ class AndroidPersistenceManager(context: Context) : PersistenceManager {
         }.sortedByDescending { it.date }
     }
 
+    override fun saveSettings(theme: String, soundEnabled: Boolean, engineModel: String) {
+        prefs.edit {
+            putString("board_theme", theme)
+            putBoolean("sound_enabled", soundEnabled)
+            putString("engine_model", engineModel)
+        }
+    }
+
+    override fun loadSettings(): Triple<String, Boolean, String>? {
+        if (!prefs.contains("board_theme")) return null
+        return Triple(
+            prefs.getString("board_theme", "GREEN") ?: "GREEN",
+            prefs.getBoolean("sound_enabled", true),
+            prefs.getString("engine_model", "maia3-5m") ?: "maia3-5m"
+        )
+    }
+
     private fun parseRecordFromPgn(id: String, pgn: String): GameRecord {
         fun extractTag(tag: String): String {
             val pattern = "\\[$tag \"(.*?)\"]".toRegex()
@@ -115,7 +132,7 @@ class AndroidPlatform(private val context: Context) : Platform {
                     start()
                 }
                 afd.close()
-            } catch (e2: Exception) {
+            } catch (_: Exception) {
                 e.printStackTrace()
             }
         }
