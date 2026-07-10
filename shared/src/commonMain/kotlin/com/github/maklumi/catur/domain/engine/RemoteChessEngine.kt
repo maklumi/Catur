@@ -15,6 +15,12 @@ data class MoveResponse(val move: String?)
 @Serializable
 data class EvalResponse(val score: Int)
 
+@Serializable
+data class TopMove(val move: String, val score: Int)
+
+@Serializable
+data class TopMovesResponse(val moves: List<TopMove>)
+
 class RemoteChessEngine(
     private val baseUrl: String
 ) : ChessEngine {
@@ -45,10 +51,31 @@ class RemoteChessEngine(
         }
     }
 
-    override suspend fun evaluate(moves: List<String>, fen: String?): Int {
+    override suspend fun getTopMoves(
+        moves: List<String>,
+        model: String,
+        count: Int,
+        fen: String?
+    ): List<Pair<String, Int>> {
+        return try {
+            val response = client.get("$baseUrl/top-moves") {
+                parameter("moves", moves.joinToString(" "))
+                parameter("model", model)
+                parameter("count", count)
+                fen?.let { parameter("fen", it) }
+            }
+            response.body<TopMovesResponse>().moves.map { it.move to it.score }
+        } catch (t: Throwable) {
+            println("Engine Error (getTopMoves): ${t.message}")
+            emptyList()
+        }
+    }
+
+    override suspend fun evaluate(moves: List<String>, model: String, fen: String?): Int {
         return try {
             val response = client.get("$baseUrl/evaluate") {
                 parameter("moves", moves.joinToString(" "))
+                parameter("model", model)
                 fen?.let { parameter("fen", it) }
             }
             response.body<EvalResponse>().score

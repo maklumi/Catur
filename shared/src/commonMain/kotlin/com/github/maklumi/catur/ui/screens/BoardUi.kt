@@ -92,6 +92,13 @@ fun ChessBoard(
                 onCancel = { controller.dispatch(GameAction.Move.CancelPromotion) }
             )
         }
+
+        if (uiVisualState.isPgnImportDialogOpen) {
+            PgnImportDialog(
+                onImport = { controller.dispatch(GameAction.History.LoadGame(it)) },
+                onCancel = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(false)) }
+            )
+        }
     }
 }
 
@@ -140,6 +147,12 @@ private fun DesktopLayout(
                             onClick = { controller.dispatch(GameAction.Ui.ClearBoard) },
                             colors = ButtonDefaults.buttonColors(containerColor = colorScheme.errorContainer, contentColor = colorScheme.onErrorContainer)
                         ) { Text("Clear") }
+                    }
+                }
+
+                if (uiVisualState.currentScreen == Screen.ANALYSIS) {
+                    Button(onClick = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(true)) }) {
+                        Text("Import PGN")
                     }
                 }
 
@@ -350,6 +363,11 @@ private fun DesktopLayout(
             }
             CapturedPiecesView(pieces = topCaptured, imbalance = topImbalance)
 
+            if (uiVisualState.currentScreen == Screen.ANALYSIS) {
+                Spacer(modifier = Modifier.height(8.dp))
+                TopMovesView(topMoves = uiVisualState.topAnalysisMoves)
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
             MoveHistoryList(controller = controller, modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.height(8.dp))
@@ -377,13 +395,15 @@ private fun DesktopLayout(
                 onModelChange = { controller.dispatch(GameAction.Ui.ChangeEngineLevel(it)) })
         }
 
-        Spacer(modifier = Modifier.width(32.dp))
+        if (puzzleState.currentPuzzleIndex != null) {
+            Spacer(modifier = Modifier.width(32.dp))
 
-        Column(modifier = Modifier.weight(0.3f).fillMaxHeight()) {
-            PuzzleList(
-                controller = controller,
-                modifier = Modifier.weight(1f)
-            )
+            Column(modifier = Modifier.weight(0.3f).fillMaxHeight()) {
+                PuzzleList(
+                    controller = controller,
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }

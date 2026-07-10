@@ -98,7 +98,12 @@ class MaiaChessEngine : ChessEngine {
         }
     }
 
-    override suspend fun evaluate(moves: List<String>, fen: String?): Int = withContext(Dispatchers.IO) {
+    override suspend fun getTopMoves(moves: List<String>, model: String, count: Int, fen: String?): List<Pair<String, Int>> {
+        val best = getBestMove(moves, model, fen) ?: return emptyList()
+        return listOf(best to 0)
+    }
+
+    override suspend fun evaluate(moves: List<String>, model: String, fen: String?): Int = withContext(Dispatchers.IO) {
         mutex.withLock {
             if (process == null || !process!!.isAlive) {
                 startProcess(currentModel ?: "maia3-5m")
@@ -141,10 +146,6 @@ class MaiaChessEngine : ChessEngine {
     }
 
     override fun stop() {
-        // Run in a separate thread/scope to not block if called from main
-        // But since it's a simple destroy, we'll just try-lock or similar if needed
-        // For simplicity in KMP/JVM, we'll just use a non-blocking approach
-        
         val p = process
         val out = output
         

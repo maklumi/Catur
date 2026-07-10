@@ -53,4 +53,23 @@ object PgnUtils {
 
         return pgn.toString()
     }
+
+    fun parseMoves(pgn: String): List<String> {
+        val clean = pgn.replace(Regex("\\[.*?]"), "") // Remove headers
+            .replace(Regex("\\{.*?}"), "") // Remove comments
+            .replace(Regex("\\d+\\.\\.\\."), "") // Remove Black move indicators
+            .replace(Regex("\\d+\\."), "") // Remove move numbers
+            .replace("1-0", "")
+            .replace("0-1", "")
+            .replace("1/2-1/2", "")
+            .replace("*", "")
+            .trim()
+        
+        return clean.split(Regex("\\s+")).filter { it.isNotBlank() }
+    }
+
+    fun extractFen(pgn: String): String? {
+        val pattern = "\\[FEN \"(.*?)\"]".toRegex()
+        return pattern.find(pgn)?.groupValues?.get(1)
+    }
 }

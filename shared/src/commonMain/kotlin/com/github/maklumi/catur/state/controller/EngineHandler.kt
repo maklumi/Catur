@@ -4,6 +4,7 @@ import com.github.maklumi.catur.domain.chess.board.Position
 import com.github.maklumi.catur.domain.engine.ChessEngine
 import com.github.maklumi.catur.state.model.GameAction
 import com.github.maklumi.catur.state.model.GameState
+import com.github.maklumi.catur.state.model.Screen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
@@ -66,7 +67,7 @@ class EngineHandler(
                             dispatch(GameAction.Ui.SetThreats(threats))
 
                             // Best move arrow
-                            val bestMove = engine.getBestMove(engineMoves, currentState.engine.model, engineFen)
+                            val bestMove = engine.getBestMove(engineMoves, "stockfish", engineFen)
                             if (bestMove != null && bestMove.length >= 4) {
                                 try {
                                     val from = Position.valueOf(bestMove.substring(0, 2))
@@ -76,8 +77,27 @@ class EngineHandler(
                             }
 
                             // Current Position Evaluation
-                            val eval = engine.evaluate(engineMoves, engineFen)
+                            val eval = engine.evaluate(engineMoves, "stockfish", engineFen)
                             dispatch(GameAction.Ui.SetCurrentEvaluation(eval))
+
+                            // Top 3 Moves for Analysis
+                            if (currentState.uiVisual.currentScreen == Screen.ANALYSIS) {
+                                val topMoves = engine.getTopMoves(engineMoves, "stockfish", 3, engineFen)
+                                val mapped = topMoves.mapNotNull { (uci, score) ->
+                                    try {
+                                        val from = Position.valueOf(uci.substring(0, 2))
+                                        val to = Position.valueOf(uci.substring(2, 4))
+                                        (from to to) to score
+                                    } catch (_: Exception) {
+                                        null
+                                    }
+                                }
+                                dispatch(GameAction.Ui.SetTopAnalysisMoves(mapped))
+                            } else {
+                                if (currentState.uiVisual.topAnalysisMoves.isNotEmpty()) {
+                                    dispatch(GameAction.Ui.SetTopAnalysisMoves(emptyList()))
+                                }
+                            }
                         }
                     }
                 }
@@ -94,7 +114,7 @@ class EngineHandler(
 
                     for (boardMove in legalMoves) {
                         val uci = boardMove.toUciString()
-                        val score = engine.evaluate(currentMoves + uci)
+                        val score = engine.evaluate(currentMoves + uci, "stockfish")
                         evals[uci] = score
                         dispatch(GameAction.Ui.SetMoveEvaluations(evals.toMap()))
                     }

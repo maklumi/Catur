@@ -38,7 +38,55 @@ class StockfishChessEngine : ChessEngine {
 
     override suspend fun getBestMove(moves: List<String>, model: String, fen: String?): String? = null // Not used for eval
 
-    override suspend fun evaluate(moves: List<String>, fen: String?): Int = withContext(Dispatchers.IO) {
+    override suspend fun getTopMoves(moves: List<String>, model: String, count: Int, fen: String?): List<Pair<String, Int>> = withContext(Dispatchers.IO) {
+        mutex.withLock {
+            start()
+            val out = output ?: return@withLock emptyList()
+            val inp = input ?: return@withLock emptyList()
+
+            val sideToMove = when {
+                fen != null -> {
+                    val parts = fen.split(" ")
+                    if (parts.size > 1) parts[1] else "w"
+                }
+                else -> if (moves.size % 2 == 0) "w" else "b"
+            }
+
+            val posCmd = when {
+                fen != null -> if (moves.isEmpty()) "position fen $fen\n" else "position fen $fen moves ${moves.joinToString(" ")}\n"
+                else -> if (moves.isEmpty()) "position startpos\n" else "position startpos moves ${moves.joinToString(" ")}\n"
+            }
+            out.write(posCmd)
+            out.write("setoption name MultiPV value $count\n")
+            out.write("go depth 10\n")
+            out.flush()
+
+            val topMoves = mutableMapOf<Int, Pair<String, Int>>() // pv index to (move, score)
+            while (true) {
+                val line = inp.readLine() ?: break
+                if (line.contains("multipv")) {
+                    val pvPart = line.split("multipv ").getOrNull(1)?.split(" ")?.getOrNull(0)?.toIntOrNull()
+                    val scorePart = if (line.contains("score cp ")) {
+                        line.split("score cp ").getOrNull(1)?.split(" ")?.getOrNull(0)?.toIntOrNull()
+                    } else if (line.contains("score mate ")) {
+                        val mateIn = line.split("score mate ").getOrNull(1)?.split(" ")?.getOrNull(0)?.toIntOrNull() ?: 0
+                        if (mateIn > 0) 10000 else -10000
+                    } else null
+                    
+                    val movePart = line.split(" pv ").getOrNull(1)?.split(" ")?.getOrNull(0)
+
+                    if (pvPart != null && scorePart != null && movePart != null) {
+                        val normalizedScore = if (sideToMove == "b") -scorePart else scorePart
+                        topMoves[pvPart] = movePart to normalizedScore
+                    }
+                }
+                if (line.startsWith("bestmove")) break
+            }
+            topMoves.values.toList()
+        }
+    }
+
+    override suspend fun evaluate(moves: List<String>, model: String, fen: String?): Int = withContext(Dispatchers.IO) {
         mutex.withLock {
             start()
             val out = output ?: return@withLock 0

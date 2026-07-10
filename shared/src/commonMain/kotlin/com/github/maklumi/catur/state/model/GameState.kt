@@ -60,10 +60,12 @@ data class UiVisualState(
     val longPressedPosition: Position? = null,
     val moveEvaluations: Map<String, Int> = emptyMap(),
     val bestMoveArrow: Pair<Position, Position>? = null,
+    val topAnalysisMoves: List<Pair<Pair<Position, Position>, Int>> = emptyList(), // ((from, to), score)
     val threats: List<Position> = emptyList(),
     val currentEvaluation: Int? = null,
-    val currentScreen: Screen = Screen.PUZZLES,
+    val currentScreen: Screen = Screen.ANALYSIS,
     val selectedPalettePiece: Piece? = null,
+    val isPgnImportDialogOpen: Boolean = false,
     val boardTheme: BoardTheme = BoardTheme.GREEN,
     val isSoundEnabled: Boolean = true
 )
@@ -149,6 +151,7 @@ sealed class GameAction {
         data class SetThreats(val threats: List<Position>) : Ui()
         data class SetCurrentEvaluation(val evaluation: Int) : Ui()
         object ClearCurrentEvaluation : Ui()
+        data class SetTopAnalysisMoves(val moves: List<Pair<Pair<Position, Position>, Int>>) : Ui()
         data class SelectPalettePiece(val piece: Piece) : Ui()
         object SelectEraser : Ui()
         object ClearBoard : Ui()
@@ -158,6 +161,7 @@ sealed class GameAction {
         data class ChangeEngineLevel(val model: String) : Ui()
         data class SetBoardTheme(val theme: BoardTheme) : Ui()
         data class SetSoundEnabled(val enabled: Boolean) : Ui()
+        data class SetPgnImportDialogOpen(val open: Boolean) : Ui()
         data class ApplySettings(val theme: String, val soundEnabled: Boolean, val engineModel: String) : Ui()
     }
 

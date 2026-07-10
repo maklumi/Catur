@@ -39,10 +39,7 @@ import com.github.maklumi.catur.state.model.MatchState
 import com.github.maklumi.catur.state.model.PuzzleState
 import com.github.maklumi.catur.state.model.Screen
 import com.github.maklumi.catur.state.model.UiVisualState
-import com.github.maklumi.catur.ui.components.ChessBoardOverlay
-import com.github.maklumi.catur.ui.components.MoveHistoryList
-import com.github.maklumi.catur.ui.components.PieceImage
-import com.github.maklumi.catur.ui.components.SquareView
+import com.github.maklumi.catur.ui.components.*
 
 @Composable
 internal fun MobileBoardLayout(
@@ -127,6 +124,11 @@ internal fun MobileBoardLayout(
                 if (isPuzzle) {
                     IconButton(onClick = { controller.dispatch(GameAction.Nav.NavigateTo(Screen.PUZZLES)) }) {
                         Text("⊞", fontSize = 24.sp, color = colorScheme.onBackground)
+                    }
+                }
+                if (uiVisualState.currentScreen == Screen.ANALYSIS) {
+                    IconButton(onClick = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(true)) }) {
+                        Text("📥", fontSize = 24.sp, color = colorScheme.onBackground)
                     }
                 }
                 IconButton(onClick = { controller.dispatch(GameAction.Nav.NavigateTo(Screen.SETTINGS)) }) {
@@ -299,6 +301,10 @@ internal fun MobileBoardLayout(
                     )
                 }
             } else {
+                if (uiVisualState.currentScreen == Screen.ANALYSIS) {
+                    TopMovesView(topMoves = uiVisualState.topAnalysisMoves)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
                 MoveHistoryList(controller = controller, modifier = Modifier.weight(1f))
 
                 if (uiVisualState.currentScreen == Screen.GAME && snapshot.status == GameStatus.ONGOING) {

@@ -29,6 +29,9 @@ internal fun GameState.reduceUi(action: GameAction.Ui): GameState {
         GameAction.Ui.ClearCurrentEvaluation -> {
             updateVisual { copy(currentEvaluation = null) }
         }
+        is GameAction.Ui.SetTopAnalysisMoves -> {
+            updateVisual { copy(topAnalysisMoves = action.moves) }
+        }
         is GameAction.Ui.SelectPalettePiece -> {
             updateVisual { copy(selectedPalettePiece = action.piece) }
         }
@@ -69,6 +72,9 @@ internal fun GameState.reduceUi(action: GameAction.Ui): GameState {
         }
         is GameAction.Ui.SetSoundEnabled -> {
             updateVisual { copy(isSoundEnabled = action.enabled) }
+        }
+        is GameAction.Ui.SetPgnImportDialogOpen -> {
+            updateVisual { copy(isPgnImportDialogOpen = action.open) }
         }
         is GameAction.Ui.ApplySettings -> {
             val theme = try { BoardTheme.valueOf(action.theme) } catch (_: Exception) { BoardTheme.GREEN }
