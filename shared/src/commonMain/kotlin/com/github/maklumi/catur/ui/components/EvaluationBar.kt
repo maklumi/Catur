@@ -3,15 +3,21 @@ package com.github.maklumi.catur.ui.components
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -48,7 +54,8 @@ fun EvaluationBar(
         modifier = modifier
             .fillMaxHeight()
             .clip(RoundedCornerShape(4.dp))
-            .background(backgroundColor)
+            .background(backgroundColor),
+        contentAlignment = Alignment.Center
     ) {
         // The "fill" part (represents the bottom color)
         Box(
@@ -73,12 +80,25 @@ fun EvaluationBar(
 
         Text(
             text = evalText,
-            color = if (animatedFill.value > 0.5f) Color.DarkGray else Color.LightGray,
-            fontSize = 10.sp,
+            color = if (animatedFill.value > 0.5f) {
+                if (isBoardFlipped) Color.White else Color.Black
+            } else {
+                if (isBoardFlipped) Color.Black else Color.White
+            },
+            fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier
-                .align(if (isBoardFlipped) Alignment.TopCenter else Alignment.BottomCenter)
-                .padding(vertical = 4.dp)
+                .layout { measurable, constraints ->
+                    val placeable = measurable.measure(constraints.copy(minWidth = 0, maxWidth = Constraints.Infinity))
+                    layout(placeable.height, placeable.width) {
+                        placeable.placeWithLayer(
+                            x = -(placeable.width / 2 - placeable.height / 2),
+                            y = -(placeable.height / 2 - placeable.width / 2)
+                        ) {
+                            rotationZ = -90f
+                        }
+                    }
+                }
         )
     }
 }
