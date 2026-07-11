@@ -7,7 +7,7 @@ import com.github.maklumi.catur.data.persistence.PersistenceManager
 import com.github.maklumi.catur.domain.audio.SoundType
 import com.github.maklumi.catur.domain.chess.GameRecord
 import com.github.maklumi.catur.state.controller.GameController
-import com.github.maklumi.catur.domain.engine.RemoteChessEngine
+import com.github.maklumi.catur.domain.engine.AndroidLocalChessEngine
 import kotlinx.coroutines.CoroutineScope
 import androidx.core.content.edit
 import java.io.File
@@ -98,7 +98,7 @@ class AndroidPlatform(private val context: Context) : Platform {
 
     override fun createGameController(scope: CoroutineScope): GameController {
         return GameController(
-            engine = RemoteChessEngine("http://10.0.2.2:8000"),
+            engine = AndroidLocalChessEngine(context),
             scope = scope,
             platform = this
         )

@@ -26,22 +26,26 @@ internal fun GameState.reduceHistory(action: GameAction.History): GameState {
             val snapshots = mutableListOf(currentSnapshot)
             
             for (notation in moves) {
-                val boardMove = currentSnapshot.board.findMoveByNotation(
-                    notation,
-                    currentSnapshot.activeColor,
-                    currentSnapshot.lastMove,
-                    currentSnapshot.movedPositions
-                ) ?: break
-                
-                val nextSnapshotBeforeNotation = currentSnapshot.promote(boardMove)
-                val isCheck = nextSnapshotBeforeNotation.board.isInCheck(nextSnapshotBeforeNotation.activeColor)
-                val isMate = nextSnapshotBeforeNotation.status == GameStatus.CHECKMATE
-                
-                val actualNotation = currentSnapshot.board.getNotation(boardMove, isCheck, isMate)
-                currentSnapshot = nextSnapshotBeforeNotation.copy(
-                    history = nextSnapshotBeforeNotation.history.copy(notation = actualNotation)
-                )
-                snapshots.add(currentSnapshot)
+                try {
+                    val boardMove = currentSnapshot.board.findMoveByNotation(
+                        notation,
+                        currentSnapshot.activeColor,
+                        currentSnapshot.lastMove,
+                        currentSnapshot.movedPositions
+                    ) ?: break
+                    
+                    val nextSnapshotBeforeNotation = currentSnapshot.promote(boardMove)
+                    val isCheck = nextSnapshotBeforeNotation.board.isInCheck(nextSnapshotBeforeNotation.activeColor)
+                    val isMate = nextSnapshotBeforeNotation.status == GameStatus.CHECKMATE
+                    
+                    val actualNotation = currentSnapshot.board.getNotation(boardMove, isCheck, isMate)
+                    currentSnapshot = nextSnapshotBeforeNotation.copy(
+                        history = nextSnapshotBeforeNotation.history.copy(notation = actualNotation)
+                    )
+                    snapshots.add(currentSnapshot)
+                } catch (_: Exception) {
+                    break // Stop replaying if a move is invalid
+                }
             }
             
             copy(

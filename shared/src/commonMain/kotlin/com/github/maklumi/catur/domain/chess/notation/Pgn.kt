@@ -38,7 +38,7 @@ object PgnUtils {
         val startsWithBlack = state.snapshots.firstOrNull()?.activeColor == PieceColor.BLACK
         
         for (i in historySnapshots.indices) {
-            if (i == 0 && startsWithBlack) {
+            if ((i == 0) && startsWithBlack) {
                 pgn.append("1... ")
             } else if ((i + (if (startsWithBlack) 1 else 0)) % 2 == 0) {
                 val turnNumber = (i + (if (startsWithBlack) 1 else 0)) / 2 + 1
@@ -55,10 +55,16 @@ object PgnUtils {
     }
 
     fun parseMoves(pgn: String): List<String> {
-        val clean = pgn.replace(Regex("\\[.*?]"), "") // Remove headers
-            .replace(Regex("\\{.*?}"), "") // Remove comments
-            .replace(Regex("\\d+\\.\\.\\."), "") // Remove Black move indicators
-            .replace(Regex("\\d+\\."), "") // Remove move numbers
+        // 1. Remove all headers [Tag "Value"]
+        val noHeaders = pgn.replace(Regex("\\[.*?]\\s*"), "")
+        
+        // 2. Remove all comments { comment } or ( variation )
+        val noComments = noHeaders.replace(Regex("\\{.*?\\}\\s*"), "")
+            .replace(Regex("\\(.*?\\)\\s*"), "")
+        
+        // 3. Remove move numbers and annotations (1., 1..., !, ?, etc.)
+        val clean = noComments.replace(Regex("\\d+\\.+\\s*"), " ")
+            .replace(Regex("[!?]"), "")
             .replace("1-0", "")
             .replace("0-1", "")
             .replace("1/2-1/2", "")

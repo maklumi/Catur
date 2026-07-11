@@ -127,7 +127,7 @@ internal fun MobileBoardLayout(
                     }
                 }
                 if (uiVisualState.currentScreen == Screen.ANALYSIS) {
-                    IconButton(onClick = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(true)) }) {
+                    IconButton(onClick = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(open = true)) }) {
                         Text("📥", fontSize = 24.sp, color = colorScheme.onBackground)
                     }
                 }
@@ -286,7 +286,10 @@ internal fun MobileBoardLayout(
                         )
                         .padding(8.dp)
                 ) {
-                    val history = boardState.snapshots.drop(1).joinToString(" ") { it.notation ?: "" }
+                    val history = boardState.snapshots
+                        .asSequence()
+                        .drop(1)
+                        .joinToString(" ") { it.notation ?: "" }
                     
                     Text(
                         text = history.ifEmpty { "Play for advantage" },
@@ -308,10 +311,22 @@ internal fun MobileBoardLayout(
                 }
             } else {
                 if (uiVisualState.currentScreen == Screen.ANALYSIS) {
-                    TopMovesView(topMoves = uiVisualState.topAnalysisMoves)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TopMovesView(
+                            topMoves = uiVisualState.topAnalysisMoves,
+                            modifier = Modifier.weight(0.45f).fillMaxHeight()
+                        )
+                        MoveHistoryList(
+                            controller = controller,
+                            modifier = Modifier.weight(0.55f).fillMaxHeight()
+                        )
+                    }
+                } else {
+                    MoveHistoryList(controller = controller, modifier = Modifier.weight(1f))
                 }
-                MoveHistoryList(controller = controller, modifier = Modifier.weight(1f))
 
                 if (uiVisualState.currentScreen == Screen.GAME && snapshot.status == GameStatus.ONGOING) {
                     Row(

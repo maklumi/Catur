@@ -70,7 +70,7 @@ data class GameSnapshotState(
         return "$boardFen $active - - 0 1"
     }
 
-    val legalMoves: List<BoardMove> = if (pendingPromotion != null || forcedStatus != null) emptyList() else selectedPosition?.let { pos ->
+    val legalMoves: List<BoardMove> = if ((pendingPromotion != null) || (forcedStatus != null)) emptyList() else selectedPosition?.let { pos ->
         val piece = board[pos]
         if (piece?.pieceColor == activeColor) {
             getLegalMovesForPosition(pos)

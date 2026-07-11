@@ -5,7 +5,7 @@ import com.github.maklumi.catur.domain.chess.move.BoardMove
 import com.github.maklumi.catur.domain.chess.piece.*
 
 fun Board.getNotation(move: BoardMove, isCheck: Boolean, isMate: Boolean): String {
-    val piece = if (move is BoardMove.Promotion) move.movingPiece else move.piece
+    val piece = (move as? BoardMove.Promotion)?.movingPiece ?: move.piece
     
     val base = when (move) {
         is BoardMove.Castling -> {
@@ -13,7 +13,7 @@ fun Board.getNotation(move: BoardMove, isCheck: Boolean, isMate: Boolean): Strin
         }
         else -> {
             if (piece is Pawn) {
-                val capture = if (this[move.to].isNotEmpty || move is BoardMove.EnPassant) {
+                val capture = if (this[move.to].isNotEmpty || (move is BoardMove.EnPassant)) {
                     move.from.toString()[0] + "x"
                 } else ""
                 val promotion = if (move is BoardMove.Promotion) "=" + move.promotedPiece.textSymbol else ""
@@ -23,9 +23,9 @@ fun Board.getNotation(move: BoardMove, isCheck: Boolean, isMate: Boolean): Strin
                 
                 // Disambiguation
                 val others = piecesMap.filter { 
-                    it.value.pieceColor == piece.pieceColor && 
-                    it.value::class == piece::class && 
-                    it.key != move.from 
+                    (it.value.pieceColor == piece.pieceColor) && 
+                    (it.value::class == piece::class) && 
+                    (it.key != move.from) 
                 }
                 
                 val canAlsoReach = others.filter { (_, p) ->
@@ -45,7 +45,7 @@ fun Board.getNotation(move: BoardMove, isCheck: Boolean, isMate: Boolean): Strin
                     }
                 } else ""
                 
-                val capture = if (this[move.to].isNotEmpty || move is BoardMove.EnPassant) "x" else ""
+                val capture = if (this[move.to].isNotEmpty || (move is BoardMove.EnPassant)) "x" else ""
                 piecePrefix + disambiguation + capture + move.to.toString()
             }
         }
@@ -58,7 +58,7 @@ fun Board.findMoveByNotation(
     notation: String,
     activeColor: PieceColor,
     lastMove: BoardMove?,
-    movedPositions: Set<Position>
+    movedPositions: Set<Position>,
 ): BoardMove? {
     val clean = notation.replace("+", "").replace("#", "")
     

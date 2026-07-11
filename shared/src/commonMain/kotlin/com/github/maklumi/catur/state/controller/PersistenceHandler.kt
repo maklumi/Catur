@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 class PersistenceHandler(
     private val platform: Platform,
-    private val dispatch: (GameAction) -> Unit
+    private val dispatch: (GameAction) -> Unit,
 ) {
     fun attach(scope: CoroutineScope, state: StateFlow<GameState>) {
         // Load initial data
@@ -63,7 +63,7 @@ class PersistenceHandler(
                 .collect { status ->
                     if (status != GameStatus.ONGOING) {
                         val currentState = state.value
-                        if (currentState.snapshots.size > 1 && (currentState.match.id != null)) {
+                        if ((currentState.snapshots.size > 1) && (currentState.match.id != null)) {
                             val pgn = PgnUtils.generatePgn(currentState)
                             val moves = currentState.snapshots
                                 .asSequence()

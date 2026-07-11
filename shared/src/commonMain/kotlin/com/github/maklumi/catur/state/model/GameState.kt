@@ -21,12 +21,12 @@ data class BoardState(
     val isBoardFlipped: Boolean = false,
     val lastMoveId: Long? = null,
     val isEditMode: Boolean = false,
-    val openingName: String? = null
+    val openingName: String? = null,
 ) {
     val currentSnapshot: GameSnapshotState get() = snapshots[currentIndex]
-    val isViewingHistory: Boolean get() = currentIndex < snapshots.size - 1
+    val isViewingHistory: Boolean get() = currentIndex < (snapshots.size - 1)
     fun canGoBack(): Boolean = currentIndex > 0
-    fun canGoForward(): Boolean = currentIndex < snapshots.size - 1
+    fun canGoForward(): Boolean = currentIndex < (snapshots.size - 1)
 }
 
 data class MatchState(
@@ -103,7 +103,11 @@ data class GameState(
          (currentSnapshot.activeColor == PieceColor.BLACK && match.blackType == PlayerType.ENGINE))
 
     fun identifyOpening(): String? {
-        val moves = board.snapshots.take(board.currentIndex + 1).mapNotNull { it.lastMoveUci }
+        val moves = board.snapshots
+            .take(board.currentIndex + 1)
+            .asSequence()
+            .mapNotNull { it.lastMoveUci }
+            .toList()
         return OpeningBook.getOpeningName(moves)
     }
 }

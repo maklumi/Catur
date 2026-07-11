@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -40,14 +42,15 @@ fun TopMovesView(
         modifier = modifier
             .fillMaxWidth()
             .background(colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+            .verticalScroll(rememberScrollState())
             .padding(8.dp)
     ) {
         Text(
-            text = "Top Engine Moves",
+            text = "Engine",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = colorScheme.primary,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 4.dp)
         )
         
         if (topMoves.isEmpty()) {

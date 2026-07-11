@@ -10,7 +10,7 @@ import com.github.maklumi.catur.domain.chess.piece.Queen
 import com.github.maklumi.catur.domain.chess.piece.Rook
 
 data class Board(
-    val piecesMap: Map<Position, Piece> = emptyMap()
+    val piecesMap: Map<Position, Piece> = emptyMap(),
 ) {
 
     operator fun get(position: Position): Piece? =
@@ -32,11 +32,11 @@ data class Board(
         piecesMap.entries.firstOrNull { it.value === piece }?.key
 
     fun findKing(color: PieceColor): Position? =
-        piecesMap.entries.firstOrNull { it.value is King && it.value.pieceColor == color }?.key
+        piecesMap.entries.firstOrNull { (it.value is King) && (it.value.pieceColor == color) }?.key
 
     fun isAttacked(position: Position, byColor: PieceColor): Boolean {
         return piecesMap.entries.any { (_, piece) ->
-            piece.pieceColor == byColor && piece.attacks(this).contains(position)
+            (piece.pieceColor == byColor) && piece.attacks(this).contains(position)
         }
     }
 

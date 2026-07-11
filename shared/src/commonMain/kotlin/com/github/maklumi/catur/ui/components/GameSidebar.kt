@@ -92,8 +92,8 @@ fun MoveHistoryList(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Move History",
-                fontSize = 18.sp,
+                text = "History",
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onBackground
             )
@@ -104,15 +104,15 @@ fun MoveHistoryList(
                     val pgn = PgnUtils.generatePgn(currentState)
                     getPlatform().setClipboardText(pgn)
                 },
-                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                modifier = Modifier.height(32.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 2.dp),
+                modifier = Modifier.height(24.dp),
                 shape = RoundedCornerShape(4.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorScheme.secondaryContainer,
                     contentColor = colorScheme.onSecondaryContainer
                 )
             ) {
-                Text("Copy PGN", fontSize = 10.sp)
+                Text("Copy", fontSize = 9.sp)
             }
         }
         

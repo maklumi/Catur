@@ -71,7 +71,7 @@ fun ChessBoard(
                 matchState = matchState,
                 clockState = clockState,
                 puzzleState = puzzleState,
-                uiVisualState = uiVisualState
+                uiVisualState = uiVisualState,
             )
         } else {
             DesktopLayout(
@@ -81,7 +81,7 @@ fun ChessBoard(
                 clockState = clockState,
                 engineState = engineState,
                 puzzleState = puzzleState,
-                uiVisualState = uiVisualState
+                uiVisualState = uiVisualState,
             )
         }
 
@@ -89,14 +89,14 @@ fun ChessBoard(
             PromotionDialog(
                 moves = moves,
                 onChoice = { controller.dispatch(GameAction.Move.PromotionChoice(it)) },
-                onCancel = { controller.dispatch(GameAction.Move.CancelPromotion) }
+                onCancel = { controller.dispatch(GameAction.Move.CancelPromotion) },
             )
         }
 
         if (uiVisualState.isPgnImportDialogOpen) {
             PgnImportDialog(
                 onImport = { controller.dispatch(GameAction.History.LoadGame(it)) },
-                onCancel = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(false)) }
+                onCancel = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(open = false)) },
             )
         }
     }
