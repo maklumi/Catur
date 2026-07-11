@@ -245,6 +245,9 @@ class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
 
     override fun stop() {
         sfProcess?.destroy()
+        sfProcess = null
+        sfOut = null
+        sfIn = null
         stopLc0()
     }
 }

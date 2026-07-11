@@ -35,6 +35,13 @@ fun App() {
 
     val focusRequester = remember { FocusRequester() }
 
+    // This observer helps stop engines when the app is no longer visible
+    DisposableEffect(Unit) {
+        onDispose {
+            controller.dispose()
+        }
+    }
+
     LaunchedEffect(uiVisualState.currentScreen) {
         if (uiVisualState.currentScreen == Screen.GAME || uiVisualState.currentScreen == Screen.ANALYSIS) {
             focusRequester.requestFocus()

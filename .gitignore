@@ -23,3 +23,5 @@ kotlin-js-store/
 catur_prefs.properties
 history/
 /androidApp/release/
+/androidApp/src/main/jniLibs/
+/shared/src/androidMain/assets/maia-*

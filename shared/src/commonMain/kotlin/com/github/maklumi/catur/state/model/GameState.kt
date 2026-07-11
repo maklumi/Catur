@@ -63,7 +63,7 @@ data class UiVisualState(
     val topAnalysisMoves: List<Pair<Pair<Position, Position>, Int>> = emptyList(), // ((from, to), score)
     val threats: List<Position> = emptyList(),
     val currentEvaluation: Int? = null,
-    val currentScreen: Screen = Screen.ANALYSIS,
+    val currentScreen: Screen = Screen.MENU,
     val selectedPalettePiece: Piece? = null,
     val isPgnImportDialogOpen: Boolean = false,
     val boardTheme: BoardTheme = BoardTheme.GREEN,

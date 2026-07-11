@@ -40,13 +40,7 @@ import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.state.controller.GameController
 import com.github.maklumi.catur.state.model.*
 import com.github.maklumi.catur.ui.components.*
-
-private fun formatTime(millis: Long): String {
-    val totalSeconds = millis / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}"
-}
+import com.github.maklumi.catur.ui.screens.mobile.*
 
 @Composable
 fun ChessBoard(
@@ -65,14 +59,33 @@ fun ChessBoard(
         val isMobile = getPlatform().isMobile
 
         if (isMobile) {
-            MobileBoardLayout(
-                controller = controller,
-                boardState = boardState,
-                matchState = matchState,
-                clockState = clockState,
-                puzzleState = puzzleState,
-                uiVisualState = uiVisualState,
-            )
+            when {
+                puzzleState.currentPuzzleIndex != null -> {
+                    MobilePuzzleScreen(
+                        controller = controller,
+                        boardState = boardState,
+                        puzzleState = puzzleState,
+                        uiVisualState = uiVisualState,
+                    )
+                }
+                uiVisualState.currentScreen == Screen.ANALYSIS -> {
+                    MobileAnalysisScreen(
+                        controller = controller,
+                        boardState = boardState,
+                        matchState = matchState,
+                        uiVisualState = uiVisualState,
+                    )
+                }
+                else -> {
+                    MobileGameScreen(
+                        controller = controller,
+                        boardState = boardState,
+                        matchState = matchState,
+                        clockState = clockState,
+                        uiVisualState = uiVisualState,
+                    )
+                }
+            }
         } else {
             DesktopLayout(
                 controller = controller,

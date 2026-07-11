@@ -103,19 +103,24 @@ private fun GameRecordItem(
                     fontSize = 12.sp,
                     color = colorScheme.outline
                 )
-                if (record.opening != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    if (record.opening != null) {
+                        Text(
+                            text = record.opening,
+                            fontSize = 12.sp,
+                            color = colorScheme.secondary
+                        )
+                    }
                     Text(
-                        text = record.opening,
-                        fontSize = 12.sp,
-                        color = colorScheme.secondary
+                        text = record.result,
+                        fontWeight = FontWeight.Black,
+                        color = colorScheme.primary
                     )
                 }
             }
-            Text(
-                text = record.result,
-                fontWeight = FontWeight.Black,
-                color = colorScheme.primary
-            )
         }
     }
 }

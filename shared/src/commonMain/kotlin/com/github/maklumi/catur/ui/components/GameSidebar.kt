@@ -92,7 +92,7 @@ fun MoveHistoryList(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "History",
+                text = "Moves",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorScheme.onBackground
@@ -112,20 +112,11 @@ fun MoveHistoryList(
                     contentColor = colorScheme.onSecondaryContainer
                 )
             ) {
-                Text("Copy", fontSize = 9.sp)
+                Text("Copy PGN", fontSize = 9.sp)
             }
         }
         
         Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Start",
-            fontWeight = if (boardState.currentIndex == 0) FontWeight.Bold else FontWeight.Normal,
-            color = if (boardState.currentIndex == 0) colorScheme.primary else colorScheme.onBackground,
-            modifier = Modifier
-                .clickable { controller.dispatch(GameAction.Nav.JumpToHistory(0)) }
-                .padding(vertical = 4.dp)
-        )
 
         val historySnapshots = boardState.snapshots.drop(1)
         val startsWithBlack = boardState.snapshots.firstOrNull()?.activeColor == PieceColor.BLACK

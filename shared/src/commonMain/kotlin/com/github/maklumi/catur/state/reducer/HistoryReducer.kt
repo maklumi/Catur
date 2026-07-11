@@ -51,7 +51,7 @@ internal fun GameState.reduceHistory(action: GameAction.History): GameState {
             copy(
                 board = BoardState(
                     snapshots = snapshots,
-                    currentIndex = snapshots.size - 1,
+                    currentIndex = 0,
                     isBoardFlipped = false
                 ),
                 uiVisual = uiVisual.copy(currentScreen = Screen.ANALYSIS, isPgnImportDialogOpen = false),

@@ -41,12 +41,12 @@ fun TopMovesView(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+            .background(colorScheme.surfaceVariant.copy(alpha = 0.5f), RoundedCornerShape(4.dp))
             .verticalScroll(rememberScrollState())
             .padding(8.dp)
     ) {
         Text(
-            text = "Engine",
+            text = "Stockfish top moves",
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = colorScheme.primary,
@@ -54,7 +54,7 @@ fun TopMovesView(
         )
         
         if (topMoves.isEmpty()) {
-            Text("Calculating...", fontSize = 12.sp, color = colorScheme.outline)
+            Text("...", fontSize = 12.sp, color = colorScheme.outline)
         }
 
         topMoves.forEachIndexed { index, (move, score) ->
