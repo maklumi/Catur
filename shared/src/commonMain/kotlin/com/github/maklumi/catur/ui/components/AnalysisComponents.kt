@@ -144,3 +144,54 @@ fun PgnImportDialog(
         }
     }
 }
+
+@Composable
+fun FenImportDialog(
+    onImport: (String) -> Unit,
+    onCancel: () -> Unit
+) {
+    var fenText by remember { mutableStateOf("") }
+    val colorScheme = MaterialTheme.colorScheme
+
+    Dialog(onDismissRequest = onCancel) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = colorScheme.surface,
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Import FEN",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                OutlinedTextField(
+                    value = fenText,
+                    onValueChange = { fenText = it },
+                    label = { Text("Paste FEN here") },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
+                    singleLine = true
+                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onCancel) {
+                        Text("Cancel")
+                    }
+                    Button(
+                        onClick = { onImport(fenText) },
+                        enabled = fenText.isNotBlank(),
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Text("Import")
+                    }
+                }
+            }
+        }
+    }
+}

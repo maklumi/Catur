@@ -66,6 +66,7 @@ data class UiVisualState(
     val currentScreen: Screen = Screen.MENU,
     val selectedPalettePiece: Piece? = null,
     val isPgnImportDialogOpen: Boolean = false,
+    val isFenImportDialogOpen: Boolean = false,
     val boardTheme: BoardTheme = BoardTheme.GREEN,
     val isSoundEnabled: Boolean = true
 )
@@ -166,6 +167,7 @@ sealed class GameAction {
         data class SetBoardTheme(val theme: BoardTheme) : Ui()
         data class SetSoundEnabled(val enabled: Boolean) : Ui()
         data class SetPgnImportDialogOpen(val open: Boolean) : Ui()
+        data class SetFenImportDialogOpen(val open: Boolean) : Ui()
         data class ApplySettings(val theme: String, val soundEnabled: Boolean, val engineModel: String) : Ui()
     }
 
@@ -180,6 +182,7 @@ sealed class GameAction {
     sealed class History : GameAction() {
         data class SetPastGames(val games: List<GameRecord>) : History()
         data class LoadGame(val pgn: String) : History()
+        data class LoadFen(val fen: String) : History()
     }
 }
 

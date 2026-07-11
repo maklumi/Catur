@@ -38,8 +38,6 @@ import com.github.maklumi.catur.state.controller.GameController
 import com.github.maklumi.catur.state.model.GameAction
 import com.github.maklumi.catur.state.model.PuzzleState
 import com.github.maklumi.catur.state.model.Screen
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
 
 @Composable
 fun PuzzleListView(

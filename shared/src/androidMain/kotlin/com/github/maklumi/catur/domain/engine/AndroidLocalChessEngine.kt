@@ -133,6 +133,13 @@ class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
         return null
     }
 
+    private fun getPositionCommand(moves: List<String>, fen: String?): String {
+        return when {
+            fen != null -> if (moves.isEmpty()) "position fen $fen\n" else "position fen $fen moves ${moves.joinToString(" ")}\n"
+            else -> if (moves.isEmpty()) "position startpos\n" else "position startpos moves ${moves.joinToString(" ")}\n"
+        }
+    }
+
     override suspend fun getBestMove(moves: List<String>, model: String, fen: String?): String? = withContext(Dispatchers.IO) {
         mutex.withLock {
             if (model == "stockfish") {
@@ -140,8 +147,7 @@ class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
                 val out = sfOut ?: return@withLock null
                 val inp = sfIn ?: return@withLock null
                 
-                val posCmd = if (fen != null) "position fen $fen moves ${moves.joinToString(" ")}\n" else "position startpos moves ${moves.joinToString(" ")}\n"
-                out.write(posCmd)
+                out.write(getPositionCommand(moves, fen))
                 out.write("go movetime 1000\n")
                 out.flush()
                 val line = readUntil(inp, "bestmove")
@@ -151,8 +157,7 @@ class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
                 val out = lc0Out ?: return@withLock null
                 val inp = lc0In ?: return@withLock null
                 
-                val posCmd = if (fen != null) "position fen $fen moves ${moves.joinToString(" ")}\n" else "position startpos moves ${moves.joinToString(" ")}\n"
-                out.write(posCmd)
+                out.write(getPositionCommand(moves, fen))
                 out.write("go movetime 1000\n")
                 out.flush()
                 val line = readUntil(inp, "bestmove")
@@ -172,8 +177,7 @@ class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
                 if (parts.size > 1) parts[1] else "w"
             } else if (moves.size % 2 == 0) "w" else "b"
 
-            val posCmd = if (fen != null) "position fen $fen moves ${moves.joinToString(" ")}\n" else "position startpos moves ${moves.joinToString(" ")}\n"
-            out.write(posCmd)
+            out.write(getPositionCommand(moves, fen))
             out.write("setoption name MultiPV value $count\n")
             out.write("go depth 10\n")
             out.flush()
@@ -219,8 +223,7 @@ class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
                 if (parts.size > 1) parts[1] else "w"
             } else if (moves.size % 2 == 0) "w" else "b"
 
-            val posCmd = if (fen != null) "position fen $fen moves ${moves.joinToString(" ")}\n" else "position startpos moves ${moves.joinToString(" ")}\n"
-            out.write(posCmd)
+            out.write(getPositionCommand(moves, fen))
             out.write("go depth 10\n")
             out.flush()
 

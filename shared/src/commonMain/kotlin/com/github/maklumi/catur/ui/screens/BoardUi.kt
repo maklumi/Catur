@@ -112,6 +112,13 @@ fun ChessBoard(
                 onCancel = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(open = false)) },
             )
         }
+
+        if (uiVisualState.isFenImportDialogOpen) {
+            FenImportDialog(
+                onImport = { controller.dispatch(GameAction.History.LoadFen(it)) },
+                onCancel = { controller.dispatch(GameAction.Ui.SetFenImportDialogOpen(open = false)) }
+            )
+        }
     }
 }
 
@@ -166,6 +173,9 @@ private fun DesktopLayout(
                 if (uiVisualState.currentScreen == Screen.ANALYSIS) {
                     Button(onClick = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(true)) }) {
                         Text("Import PGN")
+                    }
+                    Button(onClick = { controller.dispatch(GameAction.Ui.SetFenImportDialogOpen(true)) }) {
+                        Text("Import FEN")
                     }
                 }
 

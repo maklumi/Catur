@@ -2,6 +2,7 @@ package com.github.maklumi.catur.state.reducer
 
 import com.github.maklumi.catur.domain.chess.board.Board
 import com.github.maklumi.catur.domain.chess.board.isInCheck
+import com.github.maklumi.catur.domain.chess.piece.PieceColor
 import com.github.maklumi.catur.domain.chess.notation.PgnUtils
 import com.github.maklumi.catur.domain.chess.notation.findMoveByNotation
 import com.github.maklumi.catur.domain.chess.notation.getNotation
@@ -56,6 +57,24 @@ internal fun GameState.reduceHistory(action: GameAction.History): GameState {
                 ),
                 uiVisual = uiVisual.copy(currentScreen = Screen.ANALYSIS, isPgnImportDialogOpen = false),
                 puzzle = PuzzleState() // Clear puzzle state when loading a game
+            )
+        }
+        is GameAction.History.LoadFen -> {
+            val boardInit = try { Board.fromFen(action.fen) } catch (_: Exception) { Board.initial }
+            val activeColor = try { Board.parseActiveColor(action.fen) } catch (_: Exception) { PieceColor.WHITE }
+            
+            val snapshot = GameSnapshotState(
+                context = ChessContext(board = boardInit, activeColor = activeColor)
+            )
+            
+            copy(
+                board = BoardState(
+                    snapshots = listOf(snapshot),
+                    currentIndex = 0,
+                    isBoardFlipped = activeColor == PieceColor.BLACK
+                ),
+                uiVisual = uiVisual.copy(currentScreen = Screen.ANALYSIS, isFenImportDialogOpen = false),
+                puzzle = PuzzleState()
             )
         }
     }

@@ -76,6 +76,9 @@ internal fun GameState.reduceUi(action: GameAction.Ui): GameState {
         is GameAction.Ui.SetPgnImportDialogOpen -> {
             updateVisual { copy(isPgnImportDialogOpen = action.open) }
         }
+        is GameAction.Ui.SetFenImportDialogOpen -> {
+            updateVisual { copy(isFenImportDialogOpen = action.open) }
+        }
         is GameAction.Ui.ApplySettings -> {
             val theme = try { BoardTheme.valueOf(action.theme) } catch (_: Exception) { BoardTheme.GREEN }
             updateVisual { 

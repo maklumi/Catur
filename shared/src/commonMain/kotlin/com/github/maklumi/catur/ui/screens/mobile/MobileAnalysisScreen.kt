@@ -54,6 +54,9 @@ internal fun MobileAnalysisScreen(
                 IconButton(onClick = { controller.dispatch(GameAction.Ui.SetPgnImportDialogOpen(open = true)) }) {
                     Text("📥", fontSize = 24.sp, color = colorScheme.onBackground)
                 }
+                IconButton(onClick = { controller.dispatch(GameAction.Ui.SetFenImportDialogOpen(open = true)) }) {
+                    Text("🧩", fontSize = 24.sp, color = colorScheme.onBackground)
+                }
                 IconButton(onClick = { controller.dispatch(GameAction.Nav.NavigateTo(Screen.SETTINGS)) }) {
                     Text("⋮", fontSize = 24.sp, color = colorScheme.onBackground)
                 }

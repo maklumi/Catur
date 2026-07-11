@@ -24,14 +24,14 @@ class EngineHandler(
         // Engine Turn & Background Analysis
         scope.launch {
             state
-                .map { Triple(it.snapshots.size, it.board.currentIndex, it.isEngineTurn) }
+                .map { Triple(it.board, it.board.currentIndex, it.isEngineTurn) }
                 .distinctUntilChanged()
-                .collectLatest { (_, currentIndex, isEngineTurn) ->
+                .collectLatest { (boardState, currentIndex, isEngineTurn) ->
                     val currentState = state.value
                     if (isEngineTurn && !currentState.engine.isThinking) {
                         dispatch(GameAction.Ui.SetEngineThinking(isThinking = true))
 
-                        val moves = currentState.snapshots
+                        val moves = boardState.snapshots
                             .drop(1)
                             .mapNotNull { it.lastMoveUci }
 
@@ -53,8 +53,7 @@ class EngineHandler(
                                 .toList()
 
                             val isStandardStart = currentState.isFromInitialPosition()
-                            val engineFen = if (isStandardStart) null else currentState.currentSnapshot.generateFen()
-                            val engineMoves = if (isStandardStart) moves else emptyList()
+                            val engineFen = if (isStandardStart) null else boardState.snapshots[0].generateFen()
 
                             // Calculate Threats
                             val snapshot = currentState.currentSnapshot
@@ -67,7 +66,7 @@ class EngineHandler(
                             dispatch(GameAction.Ui.SetThreats(threats))
 
                             // Best move arrow
-                            val bestMove = engine.getBestMove(engineMoves, "stockfish", engineFen)
+                            val bestMove = engine.getBestMove(moves, "stockfish", engineFen)
                             if (bestMove != null && bestMove.length >= 4) {
                                 try {
                                     val from = Position.valueOf(bestMove.substring(0, 2))
@@ -77,12 +76,12 @@ class EngineHandler(
                             }
 
                             // Current Position Evaluation
-                            val eval = engine.evaluate(engineMoves, "stockfish", engineFen)
+                            val eval = engine.evaluate(moves, "stockfish", engineFen)
                             dispatch(GameAction.Ui.SetCurrentEvaluation(eval))
 
                             // Top 3 Moves for Analysis
                             if (currentState.uiVisual.currentScreen == Screen.ANALYSIS) {
-                                val topMoves = engine.getTopMoves(engineMoves, "stockfish", 3, engineFen)
+                                val topMoves = engine.getTopMoves(moves, "stockfish", 3, engineFen)
                                 val mapped = topMoves.mapNotNull { (uci, score) ->
                                     try {
                                         val from = Position.valueOf(uci.substring(0, 2))
