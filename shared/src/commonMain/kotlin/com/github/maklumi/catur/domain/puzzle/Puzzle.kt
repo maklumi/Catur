@@ -15,11 +15,16 @@ object PuzzleLoader {
     @OptIn(ExperimentalResourceApi::class)
     suspend fun loadPuzzles(completedIndices: Set<Int> = emptySet()): List<Puzzle> {
         return try {
+            println("PuzzleLoader: Starting to load m8n4.txt")
             val bytes = Res.readBytes("files/m8n4.txt")
+            println("PuzzleLoader: Read ${bytes.size} bytes.")
             val content = bytes.decodeToString()
-            parse(content, completedIndices)
+            val parsed = parse(content, completedIndices)
+            println("PuzzleLoader: Parsed ${parsed.size} puzzles.")
+            parsed
         } catch (t: Throwable) {
             println("Puzzle Loader Error: ${t.message}")
+            t.printStackTrace()
             emptyList()
         }
     }

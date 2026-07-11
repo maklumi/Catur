@@ -11,6 +11,7 @@ import com.github.maklumi.catur.state.model.GameState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PersistenceHandler(
     private val platform: Platform,
@@ -19,11 +20,15 @@ class PersistenceHandler(
     fun attach(scope: CoroutineScope, state: StateFlow<GameState>) {
         // Load initial data
         scope.launch {
-            val completed = platform.persistenceManager.loadCompletedPuzzles()
-            val puzzles = PuzzleLoader.loadPuzzles(completed)
-            if (puzzles.isNotEmpty()) {
-                dispatch(GameAction.Puzzles.SetPuzzles(puzzles, completed))
+            val puzzles = withContext(kotlinx.coroutines.Dispatchers.Default) {
+                val completed = platform.persistenceManager.loadCompletedPuzzles()
+                val list = PuzzleLoader.loadPuzzles(completed)
+                println("PersistenceHandler: Loaded ${list.size} puzzles.")
+                list
             }
+            
+            val completed = platform.persistenceManager.loadCompletedPuzzles()
+            dispatch(GameAction.Puzzles.SetPuzzles(puzzles, completed))
             
             val games = platform.persistenceManager.loadGames()
             dispatch(GameAction.History.SetPastGames(games))

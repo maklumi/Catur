@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.github.maklumi.catur.getPlatform
 import com.github.maklumi.catur.state.controller.GameController
 import com.github.maklumi.catur.state.model.GameAction
+import com.github.maklumi.catur.state.model.PuzzleState
 import com.github.maklumi.catur.state.model.Screen
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -42,59 +45,70 @@ import kotlinx.coroutines.flow.map
 fun PuzzleListView(
     controller: GameController
 ) {
-    val puzzles by remember(controller) { 
-        controller.puzzleState.map { it.puzzles }.distinctUntilChanged() 
-    }.collectAsState(emptyList())
+    val puzzleState by controller.puzzleState.collectAsState(PuzzleState())
+    val puzzles = puzzleState.puzzles
     
     val colorScheme = MaterialTheme.colorScheme
     val isMobile = remember { getPlatform().isMobile }
 
-    // Prefetch colors to avoid lookup inside items
+    // Prefetch colors
     val surfaceVariant = colorScheme.surfaceVariant
     val onSurfaceVariant = colorScheme.onSurfaceVariant
     val primary = colorScheme.primary
     val outline = colorScheme.outline
 
-    Column(
-        modifier = Modifier.fillMaxSize().background(colorScheme.background).padding(if (isMobile) 16.dp else 32.dp)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(bottom = if (isMobile) 16.dp else 32.dp)
+    Box(modifier = Modifier.fillMaxSize().background(colorScheme.background)) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(if (isMobile) 16.dp else 32.dp)
         ) {
-            Button(onClick = { controller.dispatch(GameAction.Nav.NavigateTo(Screen.MENU)) }) {
-                Text(if (isMobile) "Back" else "Back to Menu")
-            }
-            Spacer(modifier = Modifier.width(if (isMobile) 12.dp else 24.dp))
-            Text(
-                text = "Puzzles",
-                fontSize = if (isMobile) 24.sp else 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = colorScheme.onBackground
-            )
-        }
-
-        LazyVerticalGrid(
-            columns = if (isMobile) GridCells.Adaptive(64.dp) else GridCells.Adaptive(250.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(
-                count = puzzles.size,
-                key = { puzzles[it].initialFen }
-            ) { index ->
-                val puzzle = puzzles[index]
-                PuzzleItem(
-                    index = index,
-                    puzzle = puzzle,
-                    isMobile = isMobile,
-                    surfaceVariant = surfaceVariant,
-                    onSurfaceVariant = onSurfaceVariant,
-                    primary = primary,
-                    outline = outline,
-                    onClick = { controller.dispatch(GameAction.Puzzles.SelectPuzzle(index)) }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(bottom = if (isMobile) 16.dp else 32.dp)
+            ) {
+                Button(onClick = { controller.dispatch(GameAction.Nav.NavigateTo(Screen.MENU)) }) {
+                    Text(if (isMobile) "Back" else "Back to Menu")
+                }
+                Spacer(modifier = Modifier.width(if (isMobile) 12.dp else 24.dp))
+                Text(
+                    text = "Puzzles (${puzzles.size})",
+                    fontSize = if (isMobile) 24.sp else 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.onBackground
                 )
+            }
+
+            if (puzzles.isEmpty()) {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = primary)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Loading puzzles...", color = outline)
+                    }
+                }
+            } else {
+                LazyVerticalGrid(
+                    columns = if (isMobile) GridCells.Adaptive(80.dp) else GridCells.Adaptive(250.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.weight(1f).fillMaxWidth()
+                ) {
+                    items(
+                        count = puzzles.size,
+                        key = { it }
+                    ) { index ->
+                        val puzzle = puzzles[index]
+                        PuzzleItem(
+                            index = index,
+                            puzzle = puzzle,
+                            isMobile = isMobile,
+                            surfaceVariant = surfaceVariant,
+                            onSurfaceVariant = onSurfaceVariant,
+                            primary = primary,
+                            outline = outline,
+                            onClick = { controller.dispatch(GameAction.Puzzles.SelectPuzzle(index)) }
+                        )
+                    }
+                }
             }
         }
     }
