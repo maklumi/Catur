@@ -289,13 +289,19 @@ private fun DesktopLayout(
                                     }
                                 }
 
-                                uiVisualState.bestMoveArrow?.let { arrow ->
-                                    ChessBoardOverlay(
-                                        from = arrow.first,
-                                        to = arrow.second,
-                                        isBoardFlipped = boardState.isBoardFlipped,
-                                        color = colorScheme.primary.copy(alpha = 0.5f)
+                                if (uiVisualState.currentScreen == Screen.ANALYSIS && uiVisualState.topAnalysisMoves.isNotEmpty()) {
+                                    ChessBoardArrows(
+                                        moves = uiVisualState.topAnalysisMoves,
+                                        isBoardFlipped = boardState.isBoardFlipped
                                     )
+                                } else {
+                                    uiVisualState.bestMoveArrow?.let { arrow ->
+                                        ChessBoardOverlay(
+                                            from = arrow.first,
+                                            to = arrow.second,
+                                            isBoardFlipped = boardState.isBoardFlipped
+                                        )
+                                    }
                                 }
                             }
                         }
