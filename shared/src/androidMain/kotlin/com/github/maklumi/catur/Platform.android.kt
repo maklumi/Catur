@@ -69,7 +69,7 @@ class AndroidPersistenceManager(context: Context) : PersistenceManager {
         return Triple(
             prefs.getString("board_theme", "GREEN") ?: "GREEN",
             prefs.getBoolean("sound_enabled", true),
-            prefs.getString("engine_model", "maia3-5m") ?: "maia3-5m"
+            prefs.getString("engine_model", "maia-1500") ?: "maia-1500"
         )
     }
 

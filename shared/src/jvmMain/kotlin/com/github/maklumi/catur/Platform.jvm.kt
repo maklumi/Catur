@@ -4,7 +4,7 @@ import com.github.maklumi.catur.data.persistence.PersistenceManager
 import com.github.maklumi.catur.domain.audio.SoundType
 import com.github.maklumi.catur.domain.chess.GameRecord
 import com.github.maklumi.catur.state.controller.GameController
-import com.github.maklumi.catur.domain.engine.RemoteChessEngine
+import com.github.maklumi.catur.domain.engine.JVMLocalChessEngine
 import kotlinx.coroutines.CoroutineScope
 import java.awt.Toolkit
 import javax.sound.sampled.AudioSystem
@@ -108,7 +108,7 @@ class JVMPersistenceManager : PersistenceManager {
             prefsFile.inputStream().use { props.load(it) }
             val theme = props.getProperty("board_theme", "GREEN")
             val sound = props.getProperty("sound_enabled", "true").toBoolean()
-            val engine = props.getProperty("engine_model", "maia3-5m")
+            val engine = props.getProperty("engine_model", "maia-1500")
             return Triple(theme, sound, engine)
         } catch (_: Exception) {
             return null
@@ -140,7 +140,7 @@ class JVMPlatform: Platform {
 
     override fun createGameController(scope: CoroutineScope): GameController {
         return GameController(
-            engine = RemoteChessEngine("http://127.0.0.1:8000"),
+            engine = JVMLocalChessEngine(),
             scope = scope,
             platform = this
         )

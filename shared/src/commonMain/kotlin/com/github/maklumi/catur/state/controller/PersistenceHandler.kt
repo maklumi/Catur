@@ -8,6 +8,7 @@ import com.github.maklumi.catur.domain.puzzle.PuzzleLoader
 import com.github.maklumi.catur.state.model.GameAction
 import com.github.maklumi.catur.state.model.GameStatus
 import com.github.maklumi.catur.state.model.GameState
+import com.github.maklumi.catur.state.model.Screen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -18,24 +19,35 @@ class PersistenceHandler(
     private val dispatch: (GameAction) -> Unit,
 ) {
     fun attach(scope: CoroutineScope, state: StateFlow<GameState>) {
-        // Load initial data
+        // Load initial data (Games and Settings only)
         scope.launch {
-            val puzzles = withContext(kotlinx.coroutines.Dispatchers.Default) {
-                val completed = platform.persistenceManager.loadCompletedPuzzles()
-                val list = PuzzleLoader.loadPuzzles(completed)
-                println("PersistenceHandler: Loaded ${list.size} puzzles.")
-                list
-            }
-            
-            val completed = platform.persistenceManager.loadCompletedPuzzles()
-            dispatch(GameAction.Puzzles.SetPuzzles(puzzles, completed))
-            
             val games = platform.persistenceManager.loadGames()
             dispatch(GameAction.History.SetPastGames(games))
 
             platform.persistenceManager.loadSettings()?.let { (theme, sound, engine) ->
                 dispatch(GameAction.Ui.ApplySettings(theme, sound, engine))
             }
+        }
+
+        // Lazy load puzzles when entering Puzzles screen
+        scope.launch {
+            state.map { it.uiVisual.currentScreen }
+                .distinctUntilChanged()
+                .filter { it == Screen.PUZZLES }
+                .collect {
+                    val currentPuzzles = state.value.puzzle.puzzles
+                    if (currentPuzzles.isEmpty()) {
+                        val puzzles = withContext(kotlinx.coroutines.Dispatchers.Default) {
+                            val completed = platform.persistenceManager.loadCompletedPuzzles()
+                            val list = PuzzleLoader.loadPuzzles(completed)
+                            println("PersistenceHandler: Lazy loaded ${list.size} puzzles.")
+                            list
+                        }
+                        
+                        val completed = platform.persistenceManager.loadCompletedPuzzles()
+                        dispatch(GameAction.Puzzles.SetPuzzles(puzzles, completed))
+                    }
+                }
         }
 
         // Save settings when they change

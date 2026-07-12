@@ -1,13 +1,14 @@
 package com.github.maklumi.catur.domain.engine
 
 import android.content.Context
-import com.github.maklumi.catur.domain.chess.board.Position
-import com.github.maklumi.catur.domain.chess.move.BoardMove
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.io.*
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileOutputStream
 
 class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
 
@@ -83,15 +84,16 @@ class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
 
     private fun startLc0(model: String) {
         val modelBase = when (model) {
-            "maia3-3m-ablation" -> "maia-1300.pb"
-            "maia3-5m" -> "maia-1500.pb"
-            "maia3-23m" -> "maia-1700.pb"
-            "maia3-79m" -> "maia-1900.pb"
+            "maia-1100" -> "maia-1100.pb" // Assuming maia-1100 exists if they moved to maia2? 
+            // Wait, the previous grep showed "maia-1300.pb" etc.
+            "maia-1300" -> "maia-1300.pb"
+            "maia-1500" -> "maia-1500.pb"
+            "maia-1700" -> "maia-1700.pb"
+            "maia-1900" -> "maia-1900.pb"
             else -> "maia-1500.pb"
         }
-        val modelFile = modelBase
 
-        if (lc0Process?.isAlive == true && currentLc0Model == modelFile) return
+        if (lc0Process?.isAlive == true && currentLc0Model == modelBase) return
         
         stopLc0()
         
@@ -100,14 +102,14 @@ class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
 
             val p = ProcessBuilder(
                 lc0File.absolutePath,
-                "--weights=${File(binDir, modelFile).absolutePath}"
+                "--weights=${File(binDir, modelBase).absolutePath}"
             )
                 .redirectErrorStream(true)
                 .start()
             lc0Process = p
             lc0Out = p.outputStream.bufferedWriter()
             lc0In = p.inputStream.bufferedReader()
-            currentLc0Model = modelFile
+            currentLc0Model = modelBase
             
             lc0Out?.write("uci\n")
             lc0Out?.flush()
@@ -158,7 +160,7 @@ class AndroidLocalChessEngine(private val context: Context) : ChessEngine {
                 val inp = lc0In ?: return@withLock null
                 
                 out.write(getPositionCommand(moves, fen))
-                out.write("go movetime 1000\n")
+                out.write("go nodes 1\n")
                 out.flush()
                 val line = readUntil(inp, "bestmove")
                 line?.split(" ")?.getOrNull(1)

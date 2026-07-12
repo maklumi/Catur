@@ -22,7 +22,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "Mate in 4"
-            packageVersion = "1.26.6"
+            packageVersion = "1.26.7"
             description = "Apalagi mate in 4 lah."
             copyright = "MIT"
             vendor = "Makl"

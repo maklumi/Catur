@@ -80,10 +80,10 @@ fun PlaySelectionView(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
         ) {
             val engines = listOf(
-                "maia3-3m-ablation" to "Novice",
-                "maia3-5m" to "Casual",
-                "maia3-23m" to "Club",
-                "maia3-79m" to "Expert"
+                "maia-1300" to "Maia 1300",
+                "maia-1500" to "Maia 1500",
+                "maia-1700" to "Maia 1700",
+                "maia-1900" to "Maia 1900"
             )
 
             engines.forEach { (model, label) ->

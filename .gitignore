@@ -25,3 +25,5 @@ history/
 /androidApp/release/
 /androidApp/src/main/jniLibs/
 /shared/src/androidMain/assets/maia-*
+/shared/src/jvmMain/resources/bin/
+/desktopApp/bin/

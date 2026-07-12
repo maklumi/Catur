@@ -77,13 +77,20 @@ internal fun GameState.reduceGameFlow(action: GameAction.Flow): GameState {
         }
         is GameAction.Flow.StartComputerGame -> {
             val isHumanWhite = action.playerColor == PieceColor.WHITE
+            val engineName = when (action.model) {
+                "maia-1300" -> "Maia 1300"
+                "maia-1500" -> "Maia 1500"
+                "maia-1700" -> "Maia 1700"
+                "maia-1900" -> "Maia 1900"
+                else -> "Computer"
+            }
             copy(
                 board = BoardState(isBoardFlipped = !isHumanWhite),
                 match = MatchState(
                     id = platform.generateId(),
-                    whiteName = if (isHumanWhite) "Human" else "Computer (${action.model})",
+                    whiteName = if (isHumanWhite) "Human" else engineName,
                     whiteType = if (isHumanWhite) PlayerType.HUMAN else PlayerType.ENGINE,
-                    blackName = if (isHumanWhite) "Computer (${action.model})" else "Human",
+                    blackName = if (isHumanWhite) engineName else "Human",
                     blackType = if (isHumanWhite) PlayerType.ENGINE else PlayerType.HUMAN
                 ),
                 clock = ClockState(),

@@ -18,7 +18,7 @@ app.add_middleware(
 )
 
 # --- CONFIGURATION ---
-MAIA_CWD = r"E:\maia3"
+MAIA_CWD = r"E:\maia"
 STOCKFISH_PATH = r"E:\stockfish-windows-x86-64-avx2\stockfish\stockfish-windows-x86-64-avx2.exe"
 
 class TopMove(BaseModel):
@@ -81,7 +81,7 @@ class EngineWrapper:
         """Restarts Maia only if the requested model is different from the running one."""
         with self.lock:
             if model_name == "stockfish": return # Never update maia to stockfish
-            new_command = ["python", "-m", "maia3.uci", "--model", model_name]
+            new_command = ["python", "-m", "maia.uci", "--model", model_name]
             if self.command != new_command:
                 print(f"Difficulty changed! Switching model to: {model_name}")
                 self.command = new_command
@@ -189,12 +189,12 @@ class EngineWrapper:
 
 # Global engine instances
 print("Initializing engines...")
-maia = EngineWrapper(["python", "-m", "maia3.uci", "--model", "maia3-5m"], cwd=MAIA_CWD)
+maia = EngineWrapper(["python", "-m", "maia.uci", "--model", "maia-1500"], cwd=MAIA_CWD)
 stockfish = EngineWrapper([STOCKFISH_PATH])
 print("Engines ready!")
 
 @app.get("/best-move", response_model=MoveResponse)
-def best_move(moves: str = "", model: str = "maia3-5m", fen: str = None):
+def best_move(moves: str = "", model: str = "maia-1500", fen: str = None):
     if model == "stockfish":
         move = stockfish.get_best_move(moves, fen)
     else:

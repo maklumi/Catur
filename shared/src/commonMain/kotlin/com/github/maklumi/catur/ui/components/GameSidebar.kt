@@ -182,10 +182,10 @@ fun EngineLevelSelector(
     onModelChange: (String) -> Unit
 ) {
     val models = listOf(
-        "maia3-3m-ablation" to "3M Ablation",
-        "maia3-5m" to "5M (Standard)",
-        "maia3-23m" to "23M (Strong)",
-        "maia3-79m" to "79M (Expert)"
+        "maia-1300" to "Maia 1300",
+        "maia-1500" to "Maia 1500",
+        "maia-1700" to "Maia 1700",
+        "maia-1900" to "Maia 1900"
     )
     val colorScheme = MaterialTheme.colorScheme
 

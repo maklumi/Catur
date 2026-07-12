@@ -43,7 +43,7 @@ data class ClockState(
 )
 
 data class EngineState(
-    val model: String = "maia3-5m",
+    val model: String = "maia-1500",
     val isThinking: Boolean = false
 )
 
@@ -141,7 +141,7 @@ sealed class GameAction {
         object NewGame : Flow()
         object StartLocalGame : Flow()
         data class StartComputerGame(
-            val model: String = "maia3-5m",
+            val model: String = "maia-1500",
             val playerColor: PieceColor = PieceColor.WHITE
         ) : Flow()
         object StartAnalysis : Flow()

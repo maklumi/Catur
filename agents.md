@@ -17,16 +17,16 @@ In Catur, you can select from the following Maia-based personalities:
 
 | Personality | Model ID | Description |
 |:-------------| :--- | :--- |
-| **Novice** | `maia3-3m-ablation` | A beginner-level agent that plays naturally but makes frequent tactical mistakes. |
-| **Casual** | `maia3-5m` | The default level, suitable for casual players. Balanced human-like play. |
-| **Club** | `maia3-23m` | A stronger agent, approximating the strength of a club-level human player. |
-| **Expert** | `maia3-79m` | The strongest Maia model, providing a significant challenge for advanced players. |
+| **Novice** | `maia-1300` | A beginner-level agent (Maia 1300) that plays naturally but makes frequent tactical mistakes. |
+| **Casual** | `maia-1500` | The default level (Maia 1500), suitable for casual players. Balanced human-like play. |
+| **Club** | `maia-1700` | A stronger agent (Maia 1700), approximating the strength of a club-level human player. |
+| **Expert** | `maia-1900` | The strongest Maia model (Maia 1900), providing a significant challenge for advanced players. |
 
 ### Technical Implementation
 
-- **`MaiaChessEngine.kt`**: A JVM-specific implementation that wraps a local Python process running the Maia UCI engine.
-- **`RemoteChessEngine.kt`**: A platform-independent implementation that communicates with a Python/FastAPI server 
-- (typically at `localhost:8000`) to fetch moves and evaluations. This is used for the **Web (Wasm)** and **Android** targets.
+- **`JVMLocalChessEngine.kt`**: A JVM-specific implementation that bundles and extracts local Stockfish and Lc0 binaries for Desktop use.
+- **`AndroidLocalChessEngine.kt`**: An Android-specific implementation that bundles engines as native libraries (`jniLibs`) for high-performance offline play.
+- **`RemoteChessEngine.kt`**: A platform-independent implementation that communicates with a Python/FastAPI server (typically at `localhost:8000`). This is used for the **Web (Wasm)** target.
 
 ## Analysis Agent (Stockfish)
 

@@ -43,7 +43,7 @@ class WebPersistenceManager : PersistenceManager {
     override fun loadSettings(): Triple<String, Boolean, String>? {
         val theme = window.localStorage.getItem("board_theme") ?: return null
         val sound = window.localStorage.getItem("sound_enabled")?.toBoolean() ?: true
-        val engine = window.localStorage.getItem("engine_model") ?: "maia3-5m"
+        val engine = window.localStorage.getItem("engine_model") ?: "maia-1500"
         return Triple(theme, sound, engine)
     }
 
